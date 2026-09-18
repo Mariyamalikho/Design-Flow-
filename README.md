@@ -1,32 +1,27 @@
-# React + TypeScript + Vite
+# DesignFlow ??
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+![DesignFlow Banner](https://via.placeholder.com/1200x400?text=DesignFlow+-+Creative+Workspace)
 
-Currently, two official plugins are available:
+**DesignFlow** is a modern, frictionless creative workspace designed specifically for graphic designers, branding specialists, and creative agencies. Manage your entire branding workflow—from initial client discovery and moodboarding to brand identity delivery—all in one place.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ? Features
+- **Design Brief Wizard:** Gather client requirements effortlessly.
+- **Interactive Moodboards:** Drag, drop, and organize your visual inspiration.
+- **Color & Typography Tools:** Define brand identities with accessibility in mind.
+- **Local-First Architecture:** Your data never leaves your device. No signup required.
+- **PDF Export:** Generate professional brand guidelines instantly.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+## ?? Quick Start
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## ??? Tech Stack
+- **Frontend:** React 19, Vite, TypeScript, Tailwind CSS
+- **State & Data:** Dexie.js (IndexedDB)
+- **Tooling:** ESLint, Prettier, Husky
+
+---
+*Built as a portfolio showcase. Feel free to explore the code!*
+
