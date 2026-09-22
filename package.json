@@ -12,6 +12,8 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.23",
+    "@radix-ui/react-tooltip": "^1.2.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.47.0",
@@ -19,7 +21,8 @@
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4",
     "react-textarea-autosize": "^8.5.9",
-    "tailwind-merge": "^3.7.0"
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",
