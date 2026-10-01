@@ -5,6 +5,7 @@ export interface Project {
   title: string;
   description: string;
   status: "active" | "completed" | "archived";
+  tags?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
