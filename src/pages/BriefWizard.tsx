@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, KeyboardEvent } from "react";
 import { Check, ChevronRight, ChevronLeft } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,6 +52,22 @@ export default function BriefWizard() {
 
   const prevStep = () => {
     setCurrentStepIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleKeyDown = async (e: KeyboardEvent<HTMLFormElement>) => {
+    // Check if the user is typing in a textarea
+    if ((e.target as HTMLElement).tagName.toLowerCase() === "textarea") {
+      return; // Allow multiline breaks in textareas
+    }
+    
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent default form submission or triggering the wrong button
+      if (currentStepIndex < steps.length - 1) {
+        await nextStep();
+      } else {
+        methods.handleSubmit((data) => console.log(data))();
+      }
+    }
   };
 
   return (
@@ -109,7 +125,7 @@ export default function BriefWizard() {
       <main className="flex-1 overflow-y-auto p-8">
         <div className="max-w-2xl mx-auto">
           <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit((data) => console.log(data))}>
+            <form onSubmit={methods.handleSubmit((data) => console.log(data))} onKeyDown={handleKeyDown}>
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-8 shadow-sm min-h-[400px]">
                 {currentStepIndex === 0 && <ClientInfoForm />}
                 {currentStepIndex === 1 && <TargetAudienceForm />}
