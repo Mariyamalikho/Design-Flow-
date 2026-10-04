@@ -1,19 +1,50 @@
 import { useState } from "react";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, ChevronLeft } from "lucide-react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/Button";
+import { ClientInfoForm } from "@/components/wizard/ClientInfoForm";
+import { TargetAudienceForm } from "@/components/wizard/TargetAudienceForm";
+import { briefWizardSchema, clientInfoSchema, targetAudienceSchema, type BriefWizardFormValues } from "@/lib/schemas";
 
 const steps = [
-  { id: "client-info", title: "Client Info" },
-  { id: "target-audience", title: "Target Audience" },
-  { id: "brand-personality", title: "Brand Personality" },
-  { id: "deliverables", title: "Deliverables" },
-  { id: "summary", title: "Summary" }
+  { id: "client-info", title: "Client Info", fields: Object.keys(clientInfoSchema.shape) },
+  { id: "target-audience", title: "Target Audience", fields: Object.keys(targetAudienceSchema.shape) },
+  { id: "brand-personality", title: "Brand Personality", fields: [] },
+  { id: "deliverables", title: "Deliverables", fields: [] },
+  { id: "summary", title: "Summary", fields: [] }
 ];
 
 export default function BriefWizard() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
+  const methods = useForm<BriefWizardFormValues>({
+    resolver: zodResolver(briefWizardSchema),
+    mode: "onChange",
+    defaultValues: {
+      companyName: "",
+      contactName: "",
+      companyBackground: "",
+      primaryAudience: "",
+      audiencePainPoints: "",
+      competitors: "",
+    }
+  });
+
   const progress = ((currentStepIndex) / (steps.length - 1)) * 100;
+
+  const nextStep = async () => {
+    const fieldsToValidate = steps[currentStepIndex].fields as any;
+    const isStepValid = await methods.trigger(fieldsToValidate);
+    
+    if (isStepValid) {
+      setCurrentStepIndex((prev) => Math.min(steps.length - 1, prev + 1));
+    }
+  };
+
+  const prevStep = () => {
+    setCurrentStepIndex((prev) => Math.max(0, prev - 1));
+  };
 
   return (
     <div className="flex flex-col h-full bg-zinc-50 dark:bg-zinc-950">
@@ -25,7 +56,6 @@ export default function BriefWizard() {
             <Button variant="ghost" className="text-zinc-500">Save as Draft</Button>
           </div>
           
-          {/* Step Navigator */}
           <nav aria-label="Progress">
             <ol role="list" className="flex items-center">
               {steps.map((step, index) => {
@@ -36,7 +66,7 @@ export default function BriefWizard() {
                   <li key={step.title} className={`relative ${index !== steps.length - 1 ? "pr-8 sm:pr-20" : ""}`}>
                     <div className="flex items-center">
                       <div className={`
-                        flex h-8 w-8 items-center justify-center rounded-full border-2 
+                        flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors duration-300
                         ${isCompleted ? "border-indigo-600 bg-indigo-600" : isCurrent ? "border-indigo-600 bg-white dark:bg-zinc-950" : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950"}
                       `}>
                         {isCompleted ? (
@@ -48,10 +78,10 @@ export default function BriefWizard() {
                         )}
                       </div>
                       {index !== steps.length - 1 && (
-                        <div className={`hidden sm:block ml-4 h-0.5 w-12 ${isCompleted ? "bg-indigo-600" : "bg-zinc-200 dark:bg-zinc-800"}`} />
+                        <div className={`hidden sm:block ml-4 h-0.5 w-12 transition-colors duration-500 ${isCompleted ? "bg-indigo-600" : "bg-zinc-200 dark:bg-zinc-800"}`} />
                       )}
                     </div>
-                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs font-medium text-zinc-500 whitespace-nowrap hidden sm:block">
+                    <span className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs font-medium whitespace-nowrap hidden sm:block transition-colors ${isCurrent ? "text-indigo-600 dark:text-indigo-400" : "text-zinc-500"}`}>
                       {step.title}
                     </span>
                   </li>
@@ -60,7 +90,6 @@ export default function BriefWizard() {
             </ol>
           </nav>
           
-          {/* Continuous Progress Bar (Mobile mostly) */}
           <div className="mt-8 h-1 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden sm:hidden">
             <div 
               className="h-full bg-indigo-600 transition-all duration-500 ease-in-out" 
@@ -70,29 +99,42 @@ export default function BriefWizard() {
         </div>
       </header>
 
-      {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-8">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-8 shadow-sm h-[400px] flex items-center justify-center text-zinc-400 border-dashed">
-            <p>Form content for <strong>{steps[currentStepIndex].title}</strong> will go here (Days 30-31)</p>
-          </div>
-          
-          {/* Footer Navigation */}
-          <div className="mt-8 flex items-center justify-between">
-            <Button 
-              variant="outline" 
-              onClick={() => setCurrentStepIndex(Math.max(0, currentStepIndex - 1))}
-              disabled={currentStepIndex === 0}
-            >
-              Previous
-            </Button>
-            <Button 
-              onClick={() => setCurrentStepIndex(Math.min(steps.length - 1, currentStepIndex + 1))}
-              disabled={currentStepIndex === steps.length - 1}
-            >
-              Next Step <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
+          <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit((data) => console.log(data))}>
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-8 shadow-sm min-h-[400px]">
+                {currentStepIndex === 0 && <ClientInfoForm />}
+                {currentStepIndex === 1 && <TargetAudienceForm />}
+                {currentStepIndex > 1 && (
+                  <div className="h-full flex items-center justify-center text-zinc-400 border-dashed border rounded-lg p-12">
+                    <p>Form content for <strong>{steps[currentStepIndex].title}</strong> will go here (Day 31)</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="mt-8 flex items-center justify-between">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={prevStep}
+                  disabled={currentStepIndex === 0}
+                >
+                  <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+                </Button>
+                
+                {currentStepIndex < steps.length - 1 ? (
+                  <Button type="button" onClick={nextStep}>
+                    Next Step <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white">
+                    <Check className="mr-2 h-4 w-4" /> Complete Brief
+                  </Button>
+                )}
+              </div>
+            </form>
+          </FormProvider>
         </div>
       </main>
     </div>
