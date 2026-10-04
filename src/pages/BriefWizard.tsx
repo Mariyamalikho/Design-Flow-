@@ -5,13 +5,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/Button";
 import { ClientInfoForm } from "@/components/wizard/ClientInfoForm";
 import { TargetAudienceForm } from "@/components/wizard/TargetAudienceForm";
-import { briefWizardSchema, clientInfoSchema, targetAudienceSchema, type BriefWizardFormValues } from "@/lib/schemas";
+import { BrandPersonalityForm } from "@/components/wizard/BrandPersonalityForm";
+import { DeliverablesForm } from "@/components/wizard/DeliverablesForm";
+import { briefWizardSchema, brandPersonalitySchema, deliverablesSchema, clientInfoSchema, targetAudienceSchema, type BriefWizardFormValues } from "@/lib/schemas";
 
 const steps = [
   { id: "client-info", title: "Client Info", fields: Object.keys(clientInfoSchema.shape) },
   { id: "target-audience", title: "Target Audience", fields: Object.keys(targetAudienceSchema.shape) },
-  { id: "brand-personality", title: "Brand Personality", fields: [] },
-  { id: "deliverables", title: "Deliverables", fields: [] },
+  { id: "brand-personality", title: "Brand Personality", fields: Object.keys(brandPersonalitySchema.shape) },
+  { id: "deliverables", title: "Deliverables", fields: Object.keys(deliverablesSchema.shape) },
   { id: "summary", title: "Summary", fields: [] }
 ];
 
@@ -28,6 +30,12 @@ export default function BriefWizard() {
       primaryAudience: "",
       audiencePainPoints: "",
       competitors: "",
+      brandTone: "",
+      coreValues: "",
+      visualPreferences: "",
+      requiredDeliverables: "",
+      timeline: "",
+      budget: "",
     }
   });
 
@@ -48,7 +56,6 @@ export default function BriefWizard() {
 
   return (
     <div className="flex flex-col h-full bg-zinc-50 dark:bg-zinc-950">
-      {/* Header & Progress Bar */}
       <header className="px-8 py-6 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-8">
@@ -106,9 +113,11 @@ export default function BriefWizard() {
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-8 shadow-sm min-h-[400px]">
                 {currentStepIndex === 0 && <ClientInfoForm />}
                 {currentStepIndex === 1 && <TargetAudienceForm />}
-                {currentStepIndex > 1 && (
+                {currentStepIndex === 2 && <BrandPersonalityForm />}
+                {currentStepIndex === 3 && <DeliverablesForm />}
+                {currentStepIndex > 3 && (
                   <div className="h-full flex items-center justify-center text-zinc-400 border-dashed border rounded-lg p-12">
-                    <p>Form content for <strong>{steps[currentStepIndex].title}</strong> will go here (Day 31)</p>
+                    <p>Summary View will go here (Day 32)</p>
                   </div>
                 )}
               </div>
