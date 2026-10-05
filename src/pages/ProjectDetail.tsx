@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { ArrowLeft, MoreVertical, LayoutDashboard, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, MoreVertical, LayoutDashboard, Pencil, Trash2, FileText, CheckCircle2 } from "lucide-react";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -17,10 +17,14 @@ export default function ProjectDetail() {
   const projectId = parseInt(id || "0", 10);
 
   const project = useLiveQuery(() => db.projects.get(projectId), [projectId]);
+  // Fetch brief if exists
+  const brief = useLiveQuery(() => db.briefs.where("projectId").equals(projectId).first(), [projectId]);
+
   const [tags, setTags] = useState<string[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState<"board" | "brief">("board");
 
   useEffect(() => {
     if (project && project.tags) {
@@ -52,12 +56,10 @@ export default function ProjectDetail() {
   const handleDeleteProject = async () => {
     setIsDeleting(true);
     try {
-      // Cascading delete: delete all tasks associated with this project
       const projectTasks = await db.tasks.where("projectId").equals(projectId).toArray();
       const taskIds = projectTasks.map((t) => t.id!).filter(Boolean);
       await db.tasks.bulkDelete(taskIds);
       
-      // Delete the project
       await db.projects.delete(projectId);
       
       toast.success("Project deleted successfully");
@@ -117,17 +119,63 @@ export default function ProjectDetail() {
           </div>
         </div>
         
-        <div className="mt-6">
-          <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">Project Tags</h3>
-          <TagsInput tags={tags} onChange={handleTagsChange} />
+        <div className="mt-6 flex items-center justify-between">
+          <div className="flex-1">
+            <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">Project Tags</h3>
+            <TagsInput tags={tags} onChange={handleTagsChange} />
+          </div>
+          <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg ml-8 self-end">
+            <button 
+              onClick={() => setActiveTab("board")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "board" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
+            >
+              Task Board
+            </button>
+            <button 
+              onClick={() => setActiveTab("brief")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "brief" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
+            >
+              Design Brief
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="p-8 flex-1">
-        <div className="h-full rounded-xl border border-dashed border-zinc-300 dark:border-zinc-800 flex flex-col items-center justify-center text-zinc-500">
-          <LayoutDashboard className="h-10 w-10 mb-4 opacity-20" />
-          <p>Kanban Board & Brief will be integrated here.</p>
-        </div>
+      <div className="p-8 flex-1 overflow-auto">
+        {activeTab === "board" ? (
+          <div className="h-full rounded-xl border border-dashed border-zinc-300 dark:border-zinc-800 flex flex-col items-center justify-center text-zinc-500 bg-zinc-50/50 dark:bg-zinc-900/50">
+            <LayoutDashboard className="h-10 w-10 mb-4 opacity-20" />
+            <p>Kanban Board will be integrated here (Week 10).</p>
+          </div>
+        ) : (
+          <div className="h-full">
+            {brief ? (
+              <div className="bg-white dark:bg-zinc-900 rounded-xl p-8 shadow-sm border border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold">Brief Details</h2>
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-900">
+                    <CheckCircle2 className="mr-1.5 h-3 w-3" /> Completed
+                  </Badge>
+                </div>
+                <div className="prose dark:prose-invert">
+                  <p><strong>Company:</strong> {brief.companyName}</p>
+                  <p><strong>Audience:</strong> {brief.primaryAudience}</p>
+                  <p><strong>Deliverables:</strong> {brief.requiredDeliverables}</p>
+                  <Button variant="link" onClick={() => navigate("/briefs")} className="px-0">View full brief generator &rarr;</Button>
+                </div>
+              </div>
+            ) : (
+              <div className="h-full rounded-xl border border-dashed border-zinc-300 dark:border-zinc-800 flex flex-col items-center justify-center text-zinc-500 bg-zinc-50/50 dark:bg-zinc-900/50">
+                <FileText className="h-12 w-12 mb-4 text-zinc-400 dark:text-zinc-600" />
+                <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">No design brief yet</h3>
+                <p className="max-w-sm text-center mb-6">Create a comprehensive design brief for this project to align on goals, audience, and deliverables.</p>
+                <Button onClick={() => navigate("/briefs")}>
+                  Create Design Brief
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <EditProjectModal project={project} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
