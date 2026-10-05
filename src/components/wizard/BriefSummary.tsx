@@ -1,11 +1,22 @@
 import { useFormContext } from "react-hook-form";
 import type { BriefWizardFormValues } from "@/lib/schemas";
 import { Button } from "@/components/ui/Button";
-import { Printer } from "lucide-react";
+import { Printer, Copy, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export function BriefSummary() {
+  const [copied, setCopied] = useState(false);
   const { getValues } = useFormContext<BriefWizardFormValues>();
   const data = getValues();
+
+  const handleCopy = () => {
+    const text = `Client: ${data.companyName}\nBackground: ${data.companyBackground}\n\nTarget Audience: ${data.primaryAudience}\n\nDeliverables: ${data.requiredDeliverables}\nTimeline: ${data.timeline}`;
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success("Brief copied to clipboard!");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handlePrint = () => {
     window.print();
@@ -18,9 +29,15 @@ export function BriefSummary() {
           <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Brief Summary</h2>
           <p className="text-sm text-zinc-500 print-hide">Review your design brief before saving.</p>
         </div>
-        <Button variant="outline" size="sm" onClick={handlePrint} className="print-hide">
-          <Printer className="mr-2 h-4 w-4" /> Print / PDF
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleCopy} className="print-hide">
+            {copied ? <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> : <Copy className="mr-2 h-4 w-4" />}
+            {copied ? "Copied" : "Copy text"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={handlePrint} className="print-hide">
+            <Printer className="mr-2 h-4 w-4" /> Print / PDF
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-8 text-sm">
