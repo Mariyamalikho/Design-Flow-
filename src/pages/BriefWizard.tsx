@@ -7,6 +7,10 @@ import { ClientInfoForm } from "@/components/wizard/ClientInfoForm";
 import { TargetAudienceForm } from "@/components/wizard/TargetAudienceForm";
 import { BrandPersonalityForm } from "@/components/wizard/BrandPersonalityForm";
 import { DeliverablesForm } from "@/components/wizard/DeliverablesForm";
+import { BriefSummary } from "@/components/wizard/BriefSummary";
+import { db } from "@/lib/db";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { briefWizardSchema, brandPersonalitySchema, deliverablesSchema, clientInfoSchema, targetAudienceSchema, type BriefWizardFormValues } from "@/lib/schemas";
 
 const steps = [
@@ -18,6 +22,7 @@ const steps = [
 ];
 
 export default function BriefWizard() {
+  const navigate = useNavigate();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   const methods = useForm<BriefWizardFormValues>({
@@ -50,22 +55,52 @@ export default function BriefWizard() {
     }
   };
 
+  const onSubmit = async (data: BriefWizardFormValues) => {
+    try {
+      await db.briefs.add({
+        ...data,
+        status: "completed",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      toast.success("Design brief saved successfully!");
+      navigate("/projects");
+    } catch (error) {
+      toast.error("Failed to save design brief");
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    try {
+      const data = methods.getValues();
+      await db.briefs.add({
+        ...data,
+        status: "draft",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      toast.success("Draft saved!");
+      navigate("/projects");
+    } catch (error) {
+      toast.error("Failed to save draft");
+    }
+  };
+
   const prevStep = () => {
     setCurrentStepIndex((prev) => Math.max(0, prev - 1));
   };
 
   const handleKeyDown = async (e: KeyboardEvent<HTMLFormElement>) => {
-    // Check if the user is typing in a textarea
     if ((e.target as HTMLElement).tagName.toLowerCase() === "textarea") {
-      return; // Allow multiline breaks in textareas
+      return;
     }
     
     if (e.key === "Enter") {
-      e.preventDefault(); // Prevent default form submission or triggering the wrong button
+      e.preventDefault();
       if (currentStepIndex < steps.length - 1) {
         await nextStep();
       } else {
-        methods.handleSubmit((data) => console.log(data))();
+        methods.handleSubmit(onSubmit)();
       }
     }
   };
@@ -76,7 +111,7 @@ export default function BriefWizard() {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold tracking-tight">Create Design Brief</h1>
-            <Button variant="ghost" className="text-zinc-500">Save as Draft</Button>
+            <Button variant="ghost" className="text-zinc-500" onClick={handleSaveDraft}>Save as Draft</Button>
           </div>
           
           <nav aria-label="Progress">
@@ -125,17 +160,13 @@ export default function BriefWizard() {
       <main className="flex-1 overflow-y-auto p-8">
         <div className="max-w-2xl mx-auto">
           <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit((data) => console.log(data))} onKeyDown={handleKeyDown}>
+            <form onSubmit={methods.handleSubmit(onSubmit)} onKeyDown={handleKeyDown}>
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-8 shadow-sm min-h-[400px]">
                 {currentStepIndex === 0 && <ClientInfoForm />}
                 {currentStepIndex === 1 && <TargetAudienceForm />}
                 {currentStepIndex === 2 && <BrandPersonalityForm />}
                 {currentStepIndex === 3 && <DeliverablesForm />}
-                {currentStepIndex > 3 && (
-                  <div className="h-full flex items-center justify-center text-zinc-400 border-dashed border rounded-lg p-12">
-                    <p>Summary View will go here (Day 32)</p>
-                  </div>
-                )}
+                {currentStepIndex === 4 && <BriefSummary />}
               </div>
               
               <div className="mt-8 flex items-center justify-between">
