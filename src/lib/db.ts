@@ -1,4 +1,5 @@
 import Dexie, { type Table } from "dexie";
+import type { BriefWizardFormValues } from "./schemas";
 
 export interface Project {
   id?: number;
@@ -19,15 +20,25 @@ export interface Task {
   createdAt: Date;
 }
 
+export interface DesignBrief extends BriefWizardFormValues {
+  id?: number;
+  projectId?: number;
+  status: "draft" | "completed";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export class DesignFlowDB extends Dexie {
   projects!: Table<Project, number>;
   tasks!: Table<Task, number>;
+  briefs!: Table<DesignBrief, number>;
 
   constructor() {
     super("DesignFlowDB");
-    this.version(1).stores({
+    this.version(2).stores({
       projects: "++id, status, createdAt",
       tasks: "++id, projectId, status, priority",
+      briefs: "++id, projectId, status, createdAt",
     });
   }
 }
