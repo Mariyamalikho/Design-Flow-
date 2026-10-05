@@ -1,15 +1,26 @@
 import { useFormContext } from "react-hook-form";
 import type { BriefWizardFormValues } from "@/lib/schemas";
+import { Button } from "@/components/ui/Button";
+import { Printer } from "lucide-react";
 
 export function BriefSummary() {
   const { getValues } = useFormContext<BriefWizardFormValues>();
   const data = getValues();
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-8">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Brief Summary</h2>
-        <p className="text-sm text-zinc-500">Review your design brief before saving.</p>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-8 print-container bg-white dark:bg-zinc-900 p-0 sm:p-8 rounded-xl">
+      <div className="flex items-start justify-between">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Brief Summary</h2>
+          <p className="text-sm text-zinc-500 print-hide">Review your design brief before saving.</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={handlePrint} className="print-hide">
+          <Printer className="mr-2 h-4 w-4" /> Print / PDF
+        </Button>
       </div>
 
       <div className="space-y-8 text-sm">
