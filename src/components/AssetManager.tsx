@@ -3,7 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { UploadCloud, Image as ImageIcon, Filter } from "lucide-react";
 import { db } from "@/lib/db";
 import { toast } from "sonner";
-import { formatFileSize, revokeObjectUrl } from "@/lib/fileUtils";
+import { formatFileSize } from "@/lib/fileUtils";
 import { AssetCard } from "./AssetCard";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/DropdownMenu";
 import { Button } from "@/components/ui/Button";
@@ -100,7 +100,7 @@ export function AssetManager({ projectId }: AssetManagerProps) {
     try {
       const asset = await db.assets.get(id);
       if (asset && asset.data) {
-        revokeObjectUrl(asset.data as Blob);
+
       }
       await db.assets.delete(id);
       toast.success("Asset deleted");
