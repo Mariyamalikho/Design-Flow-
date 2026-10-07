@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/DropdownMenu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog";
 import { EditProjectModal } from "@/components/EditProjectModal";
+import { AssetManager } from "@/components/AssetManager";
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -17,14 +18,13 @@ export default function ProjectDetail() {
   const projectId = parseInt(id || "0", 10);
 
   const project = useLiveQuery(() => db.projects.get(projectId), [projectId]);
-  // Fetch brief if exists
   const brief = useLiveQuery(() => db.briefs.where("projectId").equals(projectId).first(), [projectId]);
 
   const [tags, setTags] = useState<string[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"board" | "brief">("board");
+  const [activeTab, setActiveTab] = useState<"board" | "brief" | "assets">("assets"); // Default to assets for testing
 
   useEffect(() => {
     if (project && project.tags) {
@@ -59,7 +59,6 @@ export default function ProjectDetail() {
       const projectTasks = await db.tasks.where("projectId").equals(projectId).toArray();
       const taskIds = projectTasks.map((t) => t.id!).filter(Boolean);
       await db.tasks.bulkDelete(taskIds);
-      
       await db.projects.delete(projectId);
       
       toast.success("Project deleted successfully");
@@ -137,12 +136,22 @@ export default function ProjectDetail() {
             >
               Design Brief
             </button>
+            <button 
+              onClick={() => setActiveTab("assets")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "assets" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
+            >
+              Assets
+            </button>
           </div>
         </div>
       </header>
 
       <div className="p-8 flex-1 overflow-auto">
-        {activeTab === "board" ? (
+        {activeTab === "assets" ? (
+          <div className="h-full">
+            <AssetManager projectId={projectId} />
+          </div>
+        ) : activeTab === "board" ? (
           <div className="h-full rounded-xl border border-dashed border-zinc-300 dark:border-zinc-800 flex flex-col items-center justify-center text-zinc-500 bg-zinc-50/50 dark:bg-zinc-900/50">
             <LayoutDashboard className="h-10 w-10 mb-4 opacity-20" />
             <p>Kanban Board will be integrated here (Week 10).</p>
