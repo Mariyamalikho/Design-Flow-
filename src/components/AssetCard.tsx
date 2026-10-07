@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { FileText, Image as ImageIcon, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { formatFileSize, getObjectUrl } from "@/lib/fileUtils";
+import { formatFileSize } from "@/lib/fileUtils";
 import { Asset } from "@/lib/db";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/DropdownMenu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { ImagePreviewModal } from "./ImagePreviewModal";
 
 interface AssetCardProps {
   asset: Asset;
@@ -18,14 +19,25 @@ export function AssetCard({ asset, onDelete, onRename }: AssetCardProps) {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [newName, setNewName] = useState(asset.name);
 
   useEffect(() => {
     // Generate object URL for the blob
+    let url: string | null = null;
+    
     if (asset.data) {
-      const url = getObjectUrl(asset.data as Blob);
+      // We explicitly create and revoke URLs per mount to prevent memory leaks
+      // since Dexie will return new Blob instances on every query update
+      url = URL.createObjectURL(asset.data as Blob);
       setObjectUrl(url);
     }
+
+    return () => {
+      if (url) {
+        URL.revokeObjectURL(url);
+      }
+    };
   }, [asset.data]);
 
   const isImage = asset.type.startsWith("image/");
@@ -43,6 +55,15 @@ export function AssetCard({ asset, onDelete, onRename }: AssetCardProps) {
   const handleDeleteSubmit = () => {
     onDelete(asset.id!);
     setIsDeleteOpen(false);
+  };
+
+  const handleViewAsset = () => {
+    if (isImage && objectUrl) {
+      setIsPreviewOpen(true);
+    } else if (objectUrl) {
+      // For non-images, just download or open in new tab
+      window.open(objectUrl, "_blank");
+    }
   };
 
   return (
@@ -86,7 +107,12 @@ export function AssetCard({ asset, onDelete, onRename }: AssetCardProps) {
           )}
           
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-2 pointer-events-none">
-            <span className="text-white text-xs font-medium bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-auto cursor-pointer">View Asset</span>
+            <span 
+              onClick={handleViewAsset}
+              className="text-white text-xs font-medium bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-auto cursor-pointer hover:bg-black/80 transition-colors"
+            >
+              View Asset
+            </span>
           </div>
         </div>
         
@@ -147,7 +173,15 @@ export function AssetCard({ asset, onDelete, onRename }: AssetCardProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {isImage && objectUrl && (
+        <ImagePreviewModal 
+          url={objectUrl} 
+          name={asset.name} 
+          open={isPreviewOpen} 
+          onOpenChange={setIsPreviewOpen} 
+        />
+      )}
     </>
   );
 }
-
