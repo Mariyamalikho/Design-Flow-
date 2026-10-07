@@ -2,28 +2,81 @@ import { useState } from "react";
 import { UploadCloud, Image as ImageIcon } from "lucide-react";
 import { db } from "@/lib/db";
 import { toast } from "sonner";
+import { formatFileSize } from "@/lib/fileUtils";
 
 interface AssetManagerProps {
   projectId: number;
 }
+
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const ALLOWED_TYPES = [
+  "image/jpeg", 
+  "image/png", 
+  "image/webp", 
+  "image/gif", 
+  "image/svg+xml", 
+  "application/pdf"
+];
 
 export function AssetManager({ projectId }: AssetManagerProps) {
   const [isDragging, setIsDragging] = useState(false);
 
   const uploadFiles = async (files: File[]) => {
     try {
-      const newAssets = files.map(file => ({
-        projectId,
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        data: file, // Store the raw File blob
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }));
+      // Fetch existing assets to check for duplicates by name
+      const existingAssets = await db.assets.where("projectId").equals(projectId).toArray();
+      const existingNames = new Set(existingAssets.map(a => a.name));
 
-      await db.assets.bulkAdd(newAssets);
-      toast.success(`Successfully uploaded ${files.length} asset${files.length > 1 ? "s" : ""}`);
+      const validFiles: File[] = [];
+      let skippedCount = 0;
+      let errorMessages: string[] = [];
+
+      for (const file of files) {
+        // Validation: Type
+        if (!ALLOWED_TYPES.includes(file.type)) {
+          errorMessages.push(`"${file.name}" is not a supported file type.`);
+          skippedCount++;
+          continue;
+        }
+
+        // Validation: Size
+        if (file.size > MAX_FILE_SIZE) {
+          errorMessages.push(`"${file.name}" exceeds the 50MB limit (${formatFileSize(file.size)}).`);
+          skippedCount++;
+          continue;
+        }
+
+        // Validation: Duplicate Name
+        if (existingNames.has(file.name)) {
+          errorMessages.push(`"${file.name}" already exists in this project.`);
+          skippedCount++;
+          continue;
+        }
+
+        validFiles.push(file);
+      }
+
+      if (validFiles.length > 0) {
+        const newAssets = validFiles.map(file => ({
+          projectId,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: file, // Store the raw File blob
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }));
+
+        await db.assets.bulkAdd(newAssets);
+        toast.success(`Successfully uploaded ${validFiles.length} asset${validFiles.length > 1 ? "s" : ""}`);
+      }
+
+      if (skippedCount > 0) {
+        toast.error(`Skipped ${skippedCount} file${skippedCount > 1 ? "s" : ""}`, {
+          description: errorMessages.slice(0, 3).join("\n") + (errorMessages.length > 3 ? `\n...and ${errorMessages.length - 3} more` : "")
+        });
+      }
+      
     } catch (error) {
       toast.error("Failed to upload assets");
     }
@@ -72,6 +125,7 @@ export function AssetManager({ projectId }: AssetManagerProps) {
         <input 
           type="file" 
           multiple 
+          accept={ALLOWED_TYPES.join(",")}
           onChange={handleFileInput} 
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           title="Drop files here to upload"
