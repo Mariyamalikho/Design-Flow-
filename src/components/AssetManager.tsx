@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { UploadCloud, Image as ImageIcon } from "lucide-react";
 import { db } from "@/lib/db";
 import { toast } from "sonner";
 import { formatFileSize } from "@/lib/fileUtils";
+import { AssetCard } from "./AssetCard";
 
 interface AssetManagerProps {
   projectId: number;
@@ -21,9 +23,14 @@ const ALLOWED_TYPES = [
 export function AssetManager({ projectId }: AssetManagerProps) {
   const [isDragging, setIsDragging] = useState(false);
 
+  // Fetch assets for this project
+  const assets = useLiveQuery(
+    () => db.assets.where("projectId").equals(projectId).reverse().sortBy("createdAt"),
+    [projectId]
+  );
+
   const uploadFiles = async (files: File[]) => {
     try {
-      // Fetch existing assets to check for duplicates by name
       const existingAssets = await db.assets.where("projectId").equals(projectId).toArray();
       const existingNames = new Set(existingAssets.map(a => a.name));
 
@@ -32,21 +39,18 @@ export function AssetManager({ projectId }: AssetManagerProps) {
       let errorMessages: string[] = [];
 
       for (const file of files) {
-        // Validation: Type
         if (!ALLOWED_TYPES.includes(file.type)) {
           errorMessages.push(`"${file.name}" is not a supported file type.`);
           skippedCount++;
           continue;
         }
 
-        // Validation: Size
         if (file.size > MAX_FILE_SIZE) {
           errorMessages.push(`"${file.name}" exceeds the 50MB limit (${formatFileSize(file.size)}).`);
           skippedCount++;
           continue;
         }
 
-        // Validation: Duplicate Name
         if (existingNames.has(file.name)) {
           errorMessages.push(`"${file.name}" already exists in this project.`);
           skippedCount++;
@@ -113,7 +117,7 @@ export function AssetManager({ projectId }: AssetManagerProps) {
   return (
     <div className="flex flex-col h-full space-y-6">
       <div 
-        className={`relative border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center transition-all duration-200 ${
+        className={`relative border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center transition-all duration-200 shrink-0 ${
           isDragging 
             ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" 
             : "border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-white dark:bg-zinc-900"
@@ -131,21 +135,38 @@ export function AssetManager({ projectId }: AssetManagerProps) {
           title="Drop files here to upload"
         />
         
-        <div className={`p-4 rounded-full mb-4 ${isDragging ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800"}`}>
-          <UploadCloud className="w-8 h-8" />
+        <div className={`p-3 rounded-full mb-3 ${isDragging ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800"}`}>
+          <UploadCloud className="w-6 h-6" />
         </div>
         
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 mb-1">
+        <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-50 mb-1">
           {isDragging ? "Drop files now" : "Click or drag files to upload"}
         </h3>
-        <p className="text-sm text-zinc-500 max-w-xs text-center">
+        <p className="text-xs text-zinc-500 max-w-xs text-center">
           Support for images, SVGs, and documents up to 50MB.
         </p>
       </div>
 
-      <div className="flex-1 min-h-[300px] border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-xl p-8 flex flex-col items-center justify-center text-zinc-500">
-        <ImageIcon className="w-10 h-10 mb-4 opacity-20" />
-        <p>Asset gallery will be displayed here (Day 39).</p>
+      <div className="flex-1 min-h-[300px] border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-xl p-6">
+        {assets === undefined ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className="bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-xl aspect-[3/4]"></div>
+            ))}
+          </div>
+        ) : assets.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-zinc-500">
+            <ImageIcon className="w-10 h-10 mb-4 opacity-20" />
+            <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-1">No assets yet</h3>
+            <p className="text-sm">Upload files using the dropzone above.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 auto-rows-max">
+            {assets.map((asset) => (
+              <AssetCard key={asset.id} asset={asset} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
