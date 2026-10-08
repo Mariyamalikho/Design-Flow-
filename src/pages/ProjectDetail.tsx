@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog";
 import { EditProjectModal } from "@/components/EditProjectModal";
 import { AssetManager } from "@/components/AssetManager";
+import { Moodboard } from "@/components/Moodboard";
 import { Download, DownloadCloud } from "lucide-react";
 import { exportProjectToZip } from "@/lib/generators/exportProject";
 
@@ -62,7 +63,7 @@ export default function ProjectDetail() {
       setIsExporting(false);
     }
   };
-  const [activeTab, setActiveTab] = useState<"board" | "brief" | "assets">("assets"); // Default to assets for testing
+  const [activeTab, setActiveTab] = useState<"board" | "brief" | "assets" | "moodboard">("assets"); // Default to assets for testing
 
   useEffect(() => {
     if (project && project.tags) {
@@ -185,6 +186,12 @@ export default function ProjectDetail() {
             >
               Assets
             </button>
+            <button 
+              onClick={() => setActiveTab("moodboard")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "moodboard" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
+            >
+              Moodboard
+            </button>
           </div>
         </div>
       </header>
@@ -193,6 +200,10 @@ export default function ProjectDetail() {
         {activeTab === "assets" ? (
           <div className="h-full">
             <AssetManager projectId={projectId} />
+          </div>
+        ) : activeTab === "moodboard" ? (
+          <div className="h-full">
+            <Moodboard projectId={projectId} />
           </div>
         ) : activeTab === "board" ? (
           <div className="h-full rounded-xl border border-dashed border-zinc-300 dark:border-zinc-800 flex flex-col items-center justify-center text-zinc-500 bg-zinc-50/50 dark:bg-zinc-900/50">
@@ -253,6 +264,10 @@ export default function ProjectDetail() {
     </div>
   );
 }
+
+
+
+
 
 
 

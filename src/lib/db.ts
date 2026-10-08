@@ -39,11 +39,20 @@ export interface Asset {
   updatedAt: Date;
 }
 
+export interface MoodboardItem {
+  id?: number;
+  projectId: number;
+  url: string; // Object URL or external URL
+  title?: string;
+  createdAt: Date;
+}
+
 export class DesignFlowDB extends Dexie {
   projects!: Table<Project, number>;
   tasks!: Table<Task, number>;
   briefs!: Table<DesignBrief, number>;
   assets!: Table<Asset, number>;
+  moodboardItems!: Table<MoodboardItem, number>;
 
   constructor() {
     super("DesignFlowDB");
@@ -68,7 +77,17 @@ export class DesignFlowDB extends Dexie {
       briefs: "++id, projectId, status, createdAt",
       assets: "++id, projectId, type, createdAt",
     });
+
+    // Version 4
+    this.version(4).stores({
+      projects: "++id, status, createdAt",
+      tasks: "++id, projectId, status, priority",
+      briefs: "++id, projectId, status, createdAt",
+      assets: "++id, projectId, type, createdAt",
+      moodboardItems: "++id, projectId, createdAt",
+    });
   }
 }
 
 export const db = new DesignFlowDB();
+
