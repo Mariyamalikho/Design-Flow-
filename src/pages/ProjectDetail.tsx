@@ -11,6 +11,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog";
 import { EditProjectModal } from "@/components/EditProjectModal";
 import { AssetManager } from "@/components/AssetManager";
+import { Download, DownloadCloud } from "lucide-react";
+import { exportProjectToZip } from "@/lib/generators/exportProject";
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -24,6 +26,42 @@ export default function ProjectDetail() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (!project) return;
+    
+    setIsExporting(true);
+    toast.info("Generating project export...");
+    
+    try {
+      const tasks = await db.tasks.where("projectId").equals(projectId).toArray();
+      const assets = await db.assets.where("projectId").equals(projectId).toArray();
+      
+      const zipBlob = await exportProjectToZip({
+        project,
+        brief,
+        tasks,
+        assets
+      });
+      
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${project.title.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}-export.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success("Project exported successfully!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to export project");
+    } finally {
+      setIsExporting(false);
+    }
+  };
   const [activeTab, setActiveTab] = useState<"board" | "brief" | "assets">("assets"); // Default to assets for testing
 
   useEffect(() => {
@@ -88,6 +126,11 @@ export default function ProjectDetail() {
           </div>
           
           <div className="flex items-center gap-3">
+            <Button variant="secondary" onClick={handleExport} disabled={isExporting}>
+              <DownloadCloud className="mr-2 h-4 w-4" />
+              {isExporting ? "Exporting..." : "Export Code"}
+            </Button>
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">Change Status</Button>
@@ -210,3 +253,7 @@ export default function ProjectDetail() {
     </div>
   );
 }
+
+
+
+
