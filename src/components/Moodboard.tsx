@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Plus, Link as LinkIcon, Image as ImageIcon, Trash2, Maximize } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
@@ -10,6 +10,22 @@ import { Label } from "@/components/ui/Label";
 import { toast } from "sonner";
 import { ImagePreviewModal } from "./ImagePreviewModal";
 
+
+function ImageWithSkeleton({ src, alt, className }: { src: string, alt?: string, className?: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      {!loaded && <div className={`animate-pulse bg-zinc-200 dark:bg-zinc-800 ${className}`} style={{ minHeight: "200px" }} />}
+      <img 
+        src={src} 
+        alt={alt} 
+        className={`${className} ${loaded ? "opacity-100" : "opacity-0 absolute"} transition-opacity duration-300`} 
+        loading="lazy" 
+        onLoad={() => setLoaded(true)} 
+      />
+    </>
+  );
+}
 
 function AssetThumbnail({ asset }: { asset: any }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -33,8 +49,7 @@ interface MoodboardProps {
 
 export function Moodboard({ projectId }: MoodboardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const columns = useMasonry(containerWidth, 250, 16);
+  const columns = useMasonry(containerRef, 250, 16);
   
   const [isUrlModalOpen, setIsUrlModalOpen] = useState(false);
   const [urlInput, setUrlInput] = useState("");
@@ -76,15 +91,6 @@ export function Moodboard({ projectId }: MoodboardProps) {
     [projectId]
   );
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      setContainerWidth(entries[0].contentRect.width);
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   const handleAddUrl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!urlInput) return;
@@ -105,13 +111,16 @@ export function Moodboard({ projectId }: MoodboardProps) {
     }
   };
 
-  // Basic masonry layout logic
-  const columnData: any[][] = Array.from({ length: columns }, () => []);
-  if (items) {
-    items.forEach((item, i) => {
-      columnData[i % columns].push(item);
-    });
-  }
+  // Basic masonry layout logic memoized to prevent unnecessary recalculations
+  const columnData = useMemo(() => {
+    const cols: any[][] = Array.from({ length: columns }, () => []);
+    if (items) {
+      items.forEach((item, i) => {
+        cols[i % columns].push(item);
+      });
+    }
+    return cols;
+  }, [items, columns]);
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-zinc-950 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
@@ -144,7 +153,7 @@ export function Moodboard({ projectId }: MoodboardProps) {
               <div key={colIndex} className="flex flex-col gap-4 flex-1 min-w-[200px]">
                 {col.map((item) => (
                   <div key={item.id} className="relative group rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 break-inside-avoid">
-                    <img src={item.url} alt={item.title} className="w-full h-auto object-cover" loading="lazy" />
+                    <ImageWithSkeleton src={item.url} alt={item.title} className="w-full h-auto object-cover" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4">
                       <div className="flex justify-end gap-2">
                         <Button 
@@ -252,6 +261,9 @@ export function Moodboard({ projectId }: MoodboardProps) {
     </div>
   );
 }
+
+
+
 
 
 
