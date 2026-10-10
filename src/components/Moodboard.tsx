@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { toast } from "sonner";
 import { ImagePreviewModal } from "./ImagePreviewModal";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
 
 function ImageWithSkeleton({ src, alt, className }: { src: string, alt?: string, className?: string }) {
@@ -56,6 +57,41 @@ export function Moodboard({ projectId }: MoodboardProps) {
   const [titleInput, setTitleInput] = useState("");
   const [previewItem, setPreviewItem] = useState<{url: string, name: string} | null>(null);
 
+  const onDragEnd = async (result: DropResult) => {
+    if (!result.destination || !items) return;
+    
+    const sourceColIndex = parseInt(result.source.droppableId);
+    const destColIndex = parseInt(result.destination.droppableId);
+    const sourceIndex = result.source.index;
+    const destIndex = result.destination.index;
+    
+    const draggedItem = columnData[sourceColIndex][sourceIndex];
+    if (!draggedItem) return;
+    
+    const newItems = [...items];
+    const flatSourceIndex = newItems.findIndex(i => i.id === draggedItem.id);
+    newItems.splice(flatSourceIndex, 1);
+    
+    const targetItem = columnData[destColIndex][destIndex];
+    let flatDestIndex = newItems.length;
+    
+    if (targetItem) {
+      flatDestIndex = newItems.findIndex(i => i.id === targetItem.id);
+    }
+    
+    newItems.splice(flatDestIndex, 0, draggedItem);
+    
+    try {
+      const updates = newItems.map((item, index) => ({
+        ...item,
+        order: index
+      }));
+      await db.moodboardItems.bulkPut(updates);
+    } catch (err) {
+      toast.error("Failed to reorder items");
+    }
+  };
+
   const handleDeleteItem = async (id: number) => {
     try {
       await db.moodboardItems.delete(id);
@@ -77,6 +113,7 @@ export function Moodboard({ projectId }: MoodboardProps) {
         projectId,
         url,
         title: asset.name,
+        order: items ? items.length : 0,
         createdAt: new Date(),
       });
       toast.success("Asset added to moodboard");
@@ -87,7 +124,7 @@ export function Moodboard({ projectId }: MoodboardProps) {
   };
 
   const items = useLiveQuery(
-    () => db.moodboardItems.where("projectId").equals(projectId).reverse().sortBy("createdAt"),
+    () => db.moodboardItems.where("projectId").equals(projectId).sortBy("order"),
     [projectId]
   );
 
@@ -100,6 +137,7 @@ export function Moodboard({ projectId }: MoodboardProps) {
         projectId,
         url: urlInput,
         title: titleInput || "External Image",
+        order: items ? items.length : 0,
         createdAt: new Date(),
       });
       setIsUrlModalOpen(false);
@@ -148,38 +186,58 @@ export function Moodboard({ projectId }: MoodboardProps) {
             </p>
           </div>
         ) : (
-          <div className="flex gap-4 items-start w-full">
-            {columnData.map((col, colIndex) => (
-              <div key={colIndex} className="flex flex-col gap-4 flex-1 min-w-[200px]">
-                {col.map((item) => (
-                  <div key={item.id} className="relative group rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 break-inside-avoid">
-                    <ImageWithSkeleton src={item.url} alt={item.title} className="w-full h-auto object-cover" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4">
-                      <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="secondary" 
-                          size="icon" 
-                          className="h-8 w-8 bg-white/90 hover:bg-white text-zinc-900"
-                          onClick={() => setPreviewItem({ url: item.url, name: item.title || "Moodboard Image" })}
-                        >
-                          <Maximize className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="icon" 
-                          className="h-8 w-8"
-                          onClick={() => item.id && handleDeleteItem(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <p className="text-white font-medium text-sm truncate">{item.title}</p>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div className="flex gap-4 items-start w-full">
+              {columnData.map((col, colIndex) => (
+                <Droppable key={colIndex.toString()} droppableId={colIndex.toString()}>
+                  {(provided) => (
+                    <div 
+                      ref={provided.innerRef} 
+                      {...provided.droppableProps} 
+                      className="flex flex-col gap-4 flex-1 min-w-[200px]"
+                    >
+                      {col.map((item, index) => (
+                        <Draggable key={item.id} draggableId={item.id!.toString()} index={index}>
+                          {(provided) => (
+                            <div 
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className="relative group rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 break-inside-avoid"
+                            >
+                              <ImageWithSkeleton src={item.url} alt={item.title} className="w-full h-auto object-cover" />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4">
+                                <div className="flex justify-end gap-2">
+                                  <Button 
+                                    variant="secondary" 
+                                    size="icon" 
+                                    className="h-8 w-8 bg-white/90 hover:bg-white text-zinc-900"
+                                    onClick={() => setPreviewItem({ url: item.url, name: item.title || "Moodboard Image" })}
+                                  >
+                                    <Maximize className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="icon" 
+                                    className="h-8 w-8"
+                                    onClick={() => item.id && handleDeleteItem(item.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <p className="text-white font-medium text-sm truncate">{item.title}</p>
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
                     </div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
+                  )}
+                </Droppable>
+              ))}
+            </div>
+          </DragDropContext>
         )}
       </div>
 
@@ -261,6 +319,11 @@ export function Moodboard({ projectId }: MoodboardProps) {
     </div>
   );
 }
+
+
+
+
+
 
 
 
