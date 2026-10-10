@@ -44,6 +44,7 @@ export interface MoodboardItem {
   projectId: number;
   url: string; // Object URL or external URL
   title?: string;
+  order?: number;
   createdAt: Date;
 }
 
@@ -86,8 +87,19 @@ export class DesignFlowDB extends Dexie {
       assets: "++id, projectId, type, createdAt",
       moodboardItems: "++id, projectId, createdAt",
     });
+
+    // Version 5
+    this.version(5).stores({
+      projects: "++id, status, createdAt",
+      tasks: "++id, projectId, status, priority",
+      briefs: "++id, projectId, status, createdAt",
+      assets: "++id, projectId, type, createdAt",
+      moodboardItems: "++id, projectId, order, createdAt",
+    });
   }
 }
 
 export const db = new DesignFlowDB();
+
+
 
