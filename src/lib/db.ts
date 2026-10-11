@@ -42,9 +42,21 @@ export interface Asset {
 export interface MoodboardItem {
   id?: number;
   projectId: number;
-  url: string; // Object URL or external URL
+  type?: "image" | "note";
+  url?: string; // For images
   title?: string;
+  content?: string; // For sticky notes
+  color?: string; // Sticky note color
+  scale?: "small" | "medium" | "large";
   order?: number;
+  createdAt: Date;
+}
+
+export interface PaletteColor {
+  id?: number;
+  projectId: number;
+  hex: string;
+  name?: string;
   createdAt: Date;
 }
 
@@ -54,6 +66,7 @@ export class DesignFlowDB extends Dexie {
   briefs!: Table<DesignBrief, number>;
   assets!: Table<Asset, number>;
   moodboardItems!: Table<MoodboardItem, number>;
+  paletteColors!: Table<PaletteColor, number>;
 
   constructor() {
     super("DesignFlowDB");
@@ -105,10 +118,21 @@ export class DesignFlowDB extends Dexie {
       assets: "++id, projectId, type, createdAt",
       moodboardItems: "++id, projectId, type, order, createdAt",
     });
+
+    // Version 7
+    this.version(7).stores({
+      projects: "++id, status, createdAt",
+      tasks: "++id, projectId, status, priority",
+      briefs: "++id, projectId, status, createdAt",
+      assets: "++id, projectId, type, createdAt",
+      moodboardItems: "++id, projectId, type, order, createdAt",
+      paletteColors: "++id, projectId, createdAt",
+    });
   }
 }
 
 export const db = new DesignFlowDB();
+
 
 
 
