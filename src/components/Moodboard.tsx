@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Plus, Link as LinkIcon, Image as ImageIcon, Trash2, Maximize, StickyNote, Scaling, Download } from "lucide-react";
+import { Plus, Link as LinkIcon, Image as ImageIcon, Trash2, Maximize, StickyNote, Scaling, Download, Palette } from "lucide-react";
+import { ColorPaletteModal } from "./ColorPaletteModal";
 import html2canvas from "html2canvas";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
@@ -58,6 +59,7 @@ export function Moodboard({ projectId }: MoodboardProps) {
   const [urlInput, setUrlInput] = useState("");
   const [titleInput, setTitleInput] = useState("");
   const [previewItem, setPreviewItem] = useState<{url: string, name: string} | null>(null);
+  const [paletteItem, setPaletteItem] = useState<{ url: string; title?: string } | null>(null);
 
   const onDragEnd = async (result: DropResult) => {
     if (!result.destination || !items) return;
@@ -309,6 +311,15 @@ export function Moodboard({ projectId }: MoodboardProps) {
                                       <Button 
                                         variant="secondary" 
                                         size="icon" 
+                                        title="Extract Color Palette"
+                                        className="h-8 w-8 bg-white/90 hover:bg-white text-zinc-900"
+                                        onClick={() => setPaletteItem({ url: item.url!, title: item.title })}
+                                      >
+                                        <Palette className="h-4 w-4" />
+                                      </Button>
+                                      <Button 
+                                        variant="secondary" 
+                                        size="icon" 
                                         title={`Size: ${item.scale || "medium"}`}
                                         className="h-8 w-8 bg-white/90 hover:bg-white text-zinc-900"
                                         onClick={() => handleToggleScale(item)}
@@ -474,9 +485,21 @@ export function Moodboard({ projectId }: MoodboardProps) {
           onOpenChange={(open) => !open && setPreviewItem(null)}
         />
       )}
+
+      {paletteItem && (
+        <ColorPaletteModal
+          open={!!paletteItem}
+          onOpenChange={(open) => !open && setPaletteItem(null)}
+          imageUrl={paletteItem.url}
+          imageTitle={paletteItem.title}
+        />
+      )}
     </div>
   );
 }
+
+
+
 
 
 
