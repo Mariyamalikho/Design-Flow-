@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { EditProjectModal } from "@/components/EditProjectModal";
 import { AssetManager } from "@/components/AssetManager";
 import { Moodboard } from "@/components/Moodboard";
+import { ProjectColorPalette } from "@/components/ProjectColorPalette";
 import { Download, DownloadCloud } from "lucide-react";
 import { exportProjectToZip } from "@/lib/generators/exportProject";
 
@@ -63,7 +64,7 @@ export default function ProjectDetail() {
       setIsExporting(false);
     }
   };
-  const [activeTab, setActiveTab] = useState<"board" | "brief" | "assets" | "moodboard">("assets"); // Default to assets for testing
+  const [activeTab, setActiveTab] = useState<"board" | "brief" | "assets" | "moodboard" | "colors">("assets"); // Default to assets for testing
 
   useEffect(() => {
     if (project && project.tags) {
@@ -191,8 +192,14 @@ export default function ProjectDetail() {
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "moodboard" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
             >
               Moodboard
-            </button>
-          </div>
+              </button>
+              <button 
+                onClick={() => setActiveTab("colors")}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "colors" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
+              >
+                Colors
+              </button>
+            </div>
         </div>
       </header>
 
@@ -205,7 +212,11 @@ export default function ProjectDetail() {
           <div className="h-full">
             <Moodboard projectId={projectId} />
           </div>
-        ) : activeTab === "board" ? (
+        ) : activeTab === "colors" ? (
+            <div className="h-full">
+              <ProjectColorPalette projectId={projectId} />
+            </div>
+          ) : activeTab === "board" ? (
           <div className="h-full rounded-xl border border-dashed border-zinc-300 dark:border-zinc-800 flex flex-col items-center justify-center text-zinc-500 bg-zinc-50/50 dark:bg-zinc-900/50">
             <LayoutDashboard className="h-10 w-10 mb-4 opacity-20" />
             <p>Kanban Board will be integrated here (Week 10).</p>
@@ -264,6 +275,7 @@ export default function ProjectDetail() {
     </div>
   );
 }
+
 
 
 

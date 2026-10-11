@@ -492,11 +492,13 @@ export function Moodboard({ projectId }: MoodboardProps) {
           onOpenChange={(open) => !open && setPaletteItem(null)}
           imageUrl={paletteItem.url}
           imageTitle={paletteItem.title}
+          projectId={projectId}
         />
       )}
     </div>
   );
 }
+
 
 
 

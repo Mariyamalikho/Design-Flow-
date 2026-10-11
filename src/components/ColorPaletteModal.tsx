@@ -2,20 +2,23 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 import { extractColorsFromImage, generateHarmoniousPalette, checkWCAGCompliance } from "@/lib/colorUtils";
 import { toast } from "sonner";
-import { Copy, Check, Palette } from "lucide-react";
+import { Copy, Check, Palette, BookmarkPlus } from "lucide-react";
+import { db } from "@/lib/db";
 
 interface ColorPaletteModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   imageUrl?: string;
   imageTitle?: string;
+  projectId?: number;
 }
 
 export function ColorPaletteModal({
   open,
   onOpenChange,
   imageUrl,
-  imageTitle
+  imageTitle,
+  projectId
 }: ColorPaletteModalProps) {
   const [extractedColors, setExtractedColors] = useState<string[]>([]);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -36,6 +39,24 @@ export function ColorPaletteModal({
         });
     }
   }, [open, imageUrl]);
+
+  const handleSaveToPalette = async (hex: string) => {
+    if (!projectId) {
+      copyToClipboard(hex);
+      return;
+    }
+    try {
+      await db.paletteColors.add({
+        projectId,
+        hex: hex.toLowerCase(),
+        name: imageTitle ? `From ${imageTitle}` : undefined,
+        createdAt: new Date(),
+      });
+      toast.success(`Saved ${hex} to project palette!`);
+    } catch {
+      toast.error("Failed to save color");
+    }
+  };
 
   const copyToClipboard = (hex: string) => {
     navigator.clipboard.writeText(hex);
@@ -100,8 +121,17 @@ export function ColorPaletteModal({
                     className="flex items-center gap-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400"
                   >
                     {copiedColor === selectedColor ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    {selectedColor}
-                  </button>
+                      {selectedColor}
+                    </button>
+                    {projectId && (
+                      <button
+                        onClick={() => handleSaveToPalette(selectedColor)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline ml-3"
+                      >
+                        <BookmarkPlus className="w-3.5 h-3.5" />
+                        Save to Palette
+                      </button>
+                    )}
                 </div>
 
                 {contrastOnWhite && contrastOnBlack && (
@@ -185,5 +215,7 @@ export function ColorPaletteModal({
     </Dialog>
   );
 }
+
+
 
 
