@@ -190,20 +190,26 @@ export function Moodboard({ projectId }: MoodboardProps) {
             <div className="flex gap-4 items-start w-full">
               {columnData.map((col, colIndex) => (
                 <Droppable key={colIndex.toString()} droppableId={colIndex.toString()}>
-                  {(provided) => (
+                  {(provided, snapshot) => (
                     <div 
                       ref={provided.innerRef} 
                       {...provided.droppableProps} 
-                      className="flex flex-col gap-4 flex-1 min-w-[200px]"
+                      className={`flex flex-col gap-4 flex-1 min-w-[200px] p-2 rounded-xl transition-colors duration-200 ${
+                        snapshot.isDraggingOver ? "bg-indigo-50/50 dark:bg-indigo-950/20 ring-2 ring-indigo-400/30 dark:ring-indigo-600/30" : ""
+                      }`}
                     >
                       {col.map((item, index) => (
                         <Draggable key={item.id} draggableId={item.id!.toString()} index={index}>
-                          {(provided) => (
+                          {(provided, snapshot) => (
                             <div 
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className="relative group rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 break-inside-avoid"
+                              className={`relative group rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 break-inside-avoid cursor-grab active:cursor-grabbing transition-all duration-200 ${
+                                snapshot.isDragging 
+                                  ? "shadow-2xl ring-2 ring-indigo-500 scale-105 rotate-2 z-50 opacity-90" 
+                                  : "hover:shadow-md"
+                              }`}
                             >
                               <ImageWithSkeleton src={item.url} alt={item.title} className="w-full h-auto object-cover" />
                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4">
@@ -319,6 +325,7 @@ export function Moodboard({ projectId }: MoodboardProps) {
     </div>
   );
 }
+
 
 
 
