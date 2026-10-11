@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
-import { extractColorsFromImage, generateHarmoniousPalette } from "@/lib/colorUtils";
+import { extractColorsFromImage, generateHarmoniousPalette, checkWCAGCompliance } from "@/lib/colorUtils";
 import { toast } from "sonner";
 import { Copy, Check, Palette } from "lucide-react";
 
@@ -45,6 +45,8 @@ export function ColorPaletteModal({
   };
 
   const harmonies = selectedColor ? generateHarmoniousPalette(selectedColor) : null;
+  const contrastOnWhite = selectedColor ? checkWCAGCompliance(selectedColor, "#ffffff") : null;
+  const contrastOnBlack = selectedColor ? checkWCAGCompliance(selectedColor, "#000000") : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -101,6 +103,30 @@ export function ColorPaletteModal({
                     {selectedColor}
                   </button>
                 </div>
+
+                {contrastOnWhite && contrastOnBlack && (
+                  <div className="flex gap-3 bg-zinc-50 dark:bg-zinc-900/50 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs">
+                    <div className="flex-1 flex items-center justify-between">
+                      <span className="text-zinc-500">vs White:</span>
+                      <span className="font-mono font-medium">{contrastOnWhite.ratio}:1</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                        contrastOnWhite.AA_normal ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
+                      }`}>
+                        {contrastOnWhite.AA_normal ? "AA PASS" : "AA FAIL"}
+                      </span>
+                    </div>
+                    <div className="w-px bg-zinc-200 dark:bg-zinc-800" />
+                    <div className="flex-1 flex items-center justify-between">
+                      <span className="text-zinc-500">vs Black:</span>
+                      <span className="font-mono font-medium">{contrastOnBlack.ratio}:1</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                        contrastOnBlack.AA_normal ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
+                      }`}>
+                        {contrastOnBlack.AA_normal ? "AA PASS" : "AA FAIL"}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <h5 className="text-xs text-zinc-400 mb-2">Complementary Harmony</h5>
@@ -159,4 +185,5 @@ export function ColorPaletteModal({
     </Dialog>
   );
 }
+
 
