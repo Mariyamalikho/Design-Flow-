@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Plus, Link as LinkIcon, Image as ImageIcon, Trash2, Maximize } from "lucide-react";
+import { Plus, Link as LinkIcon, Image as ImageIcon, Trash2, Maximize, StickyNote, Scaling } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/Button";
@@ -101,6 +101,40 @@ export function Moodboard({ projectId }: MoodboardProps) {
     }
   };
   const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [noteContent, setNoteContent] = useState("");
+  const [noteColor, setNoteColor] = useState("bg-yellow-100 text-yellow-900 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-200 dark:border-yellow-800");
+
+  const handleAddNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!noteContent.trim()) return;
+    try {
+      await db.moodboardItems.add({
+        projectId,
+        type: "note",
+        content: noteContent,
+        color: noteColor,
+        order: items ? items.length : 0,
+        createdAt: new Date(),
+      });
+      setIsNoteModalOpen(false);
+      setNoteContent("");
+      toast.success("Note added to moodboard");
+    } catch (err) {
+      toast.error("Failed to add note");
+    }
+  };
+
+  const handleToggleScale = async (item: any) => {
+    const scales: ("small" | "medium" | "large")[] = ["small", "medium", "large"];
+    const currentScale = item.scale || "medium";
+    const nextScale = scales[(scales.indexOf(currentScale) + 1) % scales.length];
+    try {
+      await db.moodboardItems.update(item.id, { scale: nextScale });
+    } catch (err) {
+      toast.error("Failed to update scale");
+    }
+  };
   const assets = useLiveQuery(
     () => db.assets.where("projectId").equals(projectId).toArray(),
     [projectId]
@@ -171,6 +205,9 @@ export function Moodboard({ projectId }: MoodboardProps) {
           <Button size="sm" onClick={() => setIsAssetModalOpen(true)}>
             <ImageIcon className="w-4 h-4 mr-2" /> Add Asset
           </Button>
+          <Button size="sm" variant="outline" onClick={() => setIsNoteModalOpen(true)}>
+            <StickyNote className="w-4 h-4 mr-2" /> Add Note
+          </Button>
         </div>
       </div>
 
@@ -205,23 +242,59 @@ export function Moodboard({ projectId }: MoodboardProps) {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`relative group rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 break-inside-avoid cursor-grab active:cursor-grabbing transition-all duration-200 ${
+                              className={`relative group rounded-xl overflow-hidden break-inside-avoid cursor-grab active:cursor-grabbing transition-all duration-200 ${
+                                item.type === "note" 
+                                  ? `${item.color || "bg-yellow-100 text-yellow-900 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-200 dark:border-yellow-800"} border shadow-sm min-h-[140px] flex flex-col justify-between` 
+                                  : "bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800"
+                              } ${
                                 snapshot.isDragging 
                                   ? "shadow-2xl ring-2 ring-indigo-500 scale-105 rotate-2 z-50 opacity-90" 
                                   : "hover:shadow-md"
                               }`}
                             >
-                              <ImageWithSkeleton src={item.url} alt={item.title} className="w-full h-auto object-cover" />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4">
-                                <div className="flex justify-end gap-2">
-                                  <Button 
-                                    variant="secondary" 
-                                    size="icon" 
-                                    className="h-8 w-8 bg-white/90 hover:bg-white text-zinc-900"
-                                    onClick={() => setPreviewItem({ url: item.url, name: item.title || "Moodboard Image" })}
-                                  >
-                                    <Maximize className="h-4 w-4" />
-                                  </Button>
+                              {item.type === "note" ? (
+                                <>
+                                  <p className="text-sm font-medium whitespace-pre-wrap p-4">{item.content}</p>
+                                  <div className="flex justify-between items-center px-4 pb-3 pt-2 border-t border-black/5 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span className="text-[10px] opacity-60">Sticky Note</span>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-6 w-6 hover:bg-black/10 dark:hover:bg-white/10"
+                                      onClick={() => item.id && handleDeleteItem(item.id)}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <ImageWithSkeleton 
+                                    src={item.url!} 
+                                    alt={item.title} 
+                                    className={`w-full object-cover ${
+                                      item.scale === "small" ? "h-32" : item.scale === "large" ? "h-80" : "h-auto"
+                                    }`} 
+                                  />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4">
+                                    <div className="flex justify-end gap-2">
+                                      <Button 
+                                        variant="secondary" 
+                                        size="icon" 
+                                        title={`Size: ${item.scale || "medium"}`}
+                                        className="h-8 w-8 bg-white/90 hover:bg-white text-zinc-900"
+                                        onClick={() => handleToggleScale(item)}
+                                      >
+                                        <Scaling className="h-4 w-4" />
+                                      </Button>
+                                      <Button 
+                                        variant="secondary" 
+                                        size="icon" 
+                                        className="h-8 w-8 bg-white/90 hover:bg-white text-zinc-900"
+                                        onClick={() => setPreviewItem({ url: item.url!, name: item.title || "Moodboard Image" })}
+                                      >
+                                        <Maximize className="h-4 w-4" />
+                                      </Button>
                                   <Button 
                                     variant="destructive" 
                                     size="icon" 
@@ -233,9 +306,11 @@ export function Moodboard({ projectId }: MoodboardProps) {
                                 </div>
                                 <p className="text-white font-medium text-sm truncate">{item.title}</p>
                               </div>
-                            </div>
+                            </>
                           )}
-                        </Draggable>
+                        </div>
+                      )}
+                    </Draggable>
                       ))}
                       {provided.placeholder}
                     </div>
@@ -313,7 +388,56 @@ export function Moodboard({ projectId }: MoodboardProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
+      <Dialog open={isNoteModalOpen} onOpenChange={setIsNoteModalOpen}>
+        <DialogContent>
+          <form onSubmit={handleAddNote}>
+            <DialogHeader>
+              <DialogTitle>Add Sticky Note</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="note">Note Text</Label>
+                <textarea
+                  id="note"
+                  rows={4}
+                  className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300"
+                  placeholder="Type a thought, theme keyword, or brand emotion..."
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Note Color</Label>
+                <div className="flex gap-2">
+                  {[
+                    { label: "Yellow", class: "bg-yellow-100 text-yellow-900 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-200 dark:border-yellow-800", dot: "bg-yellow-400" },
+                    { label: "Rose", class: "bg-rose-100 text-rose-900 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800", dot: "bg-rose-400" },
+                    { label: "Sky", class: "bg-sky-100 text-sky-900 border-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:border-sky-800", dot: "bg-sky-400" },
+                    { label: "Emerald", class: "bg-emerald-100 text-emerald-900 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800", dot: "bg-emerald-400" },
+                  ].map((c) => (
+                    <button
+                      key={c.label}
+                      type="button"
+                      onClick={() => setNoteColor(c.class)}
+                      className={`w-8 h-8 rounded-full ${c.dot} border-2 transition-all ${
+                        noteColor === c.class ? "border-zinc-900 dark:border-zinc-100 scale-110 shadow-sm" : "border-transparent"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsNoteModalOpen(false)}>Cancel</Button>
+              <Button type="submit">Add Note</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {previewItem && (
         <ImagePreviewModal
           url={previewItem.url}
@@ -325,6 +449,14 @@ export function Moodboard({ projectId }: MoodboardProps) {
     </div>
   );
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -96,10 +96,20 @@ export class DesignFlowDB extends Dexie {
       assets: "++id, projectId, type, createdAt",
       moodboardItems: "++id, projectId, order, createdAt",
     });
+
+    // Version 6
+    this.version(6).stores({
+      projects: "++id, status, createdAt",
+      tasks: "++id, projectId, status, priority",
+      briefs: "++id, projectId, status, createdAt",
+      assets: "++id, projectId, type, createdAt",
+      moodboardItems: "++id, projectId, type, order, createdAt",
+    });
   }
 }
 
 export const db = new DesignFlowDB();
+
 
 
 
