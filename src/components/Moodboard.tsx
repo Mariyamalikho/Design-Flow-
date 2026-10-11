@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Plus, Link as LinkIcon, Image as ImageIcon, Trash2, Maximize, StickyNote, Scaling } from "lucide-react";
+import { Plus, Link as LinkIcon, Image as ImageIcon, Trash2, Maximize, StickyNote, Scaling, Download } from "lucide-react";
+import html2canvas from "html2canvas";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/Button";
@@ -19,7 +20,8 @@ function ImageWithSkeleton({ src, alt, className }: { src: string, alt?: string,
       {!loaded && <div className={`animate-pulse bg-zinc-200 dark:bg-zinc-800 ${className}`} style={{ minHeight: "200px" }} />}
       <img 
         src={src} 
-        alt={alt} 
+        alt={alt}
+        crossOrigin="anonymous" 
         className={`${className} ${loaded ? "opacity-100" : "opacity-0 absolute"} transition-opacity duration-300`} 
         loading="lazy" 
         onLoad={() => setLoaded(true)} 
@@ -125,6 +127,29 @@ export function Moodboard({ projectId }: MoodboardProps) {
     }
   };
 
+  const handleExportPng = async () => {
+    if (!containerRef.current) return;
+    const toastId = toast.loading("Generating PNG export...");
+    try {
+      const canvas = await html2canvas(containerRef.current, {
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: null,
+        scale: 2, // Hi-DPI resolution
+      });
+      const dataUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = `moodboard-project-${projectId}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.dismiss(toastId);
+      toast.success("Moodboard exported to PNG!");
+    } catch (err) {
+      toast.dismiss(toastId);
+      toast.error("Failed to export. Some external images may restrict CORS access.");
+    }
+  };
+
   const handleToggleScale = async (item: any) => {
     const scales: ("small" | "medium" | "large")[] = ["small", "medium", "large"];
     const currentScale = item.scale || "medium";
@@ -207,6 +232,9 @@ export function Moodboard({ projectId }: MoodboardProps) {
           </Button>
           <Button size="sm" variant="outline" onClick={() => setIsNoteModalOpen(true)}>
             <StickyNote className="w-4 h-4 mr-2" /> Add Note
+          </Button>
+          <Button size="sm" variant="outline" onClick={handleExportPng}>
+            <Download className="w-4 h-4 mr-2" /> Export PNG
           </Button>
         </div>
       </div>
@@ -449,6 +477,10 @@ export function Moodboard({ projectId }: MoodboardProps) {
     </div>
   );
 }
+
+
+
+
 
 
 
