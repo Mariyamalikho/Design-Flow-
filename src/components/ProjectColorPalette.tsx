@@ -6,12 +6,25 @@ import { ColorPreviewCard } from "./ColorPreviewCard";
 import { ColorPreviewModal } from "./ColorPreviewModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Plus, Palette, LayoutGrid, Eye } from "lucide-react";
+import { Plus, Palette, LayoutGrid, Eye, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface ProjectColorPaletteProps {
   projectId: number;
 }
+
+const PRESET_COLORS = [
+  { hex: "#6366f1", label: "Indigo" },
+  { hex: "#3b82f6", label: "Blue" },
+  { hex: "#0ea5e9", label: "Sky" },
+  { hex: "#10b981", label: "Emerald" },
+  { hex: "#f59e0b", label: "Amber" },
+  { hex: "#f43f5e", label: "Rose" },
+  { hex: "#8b5cf6", label: "Violet" },
+  { hex: "#ec4899", label: "Pink" },
+  { hex: "#64748b", label: "Slate" },
+  { hex: "#18181b", label: "Dark" },
+];
 
 export function ProjectColorPalette({ projectId }: ProjectColorPaletteProps) {
   const [customHex, setCustomHex] = useState("#6366f1");
@@ -24,6 +37,17 @@ export function ProjectColorPalette({ projectId }: ProjectColorPaletteProps) {
     () => db.paletteColors.where("projectId").equals(projectId).reverse().sortBy("createdAt"),
     [projectId]
   );
+
+  const handleHexInputChange = (val: string) => {
+    let clean = val.trim();
+    if (!clean.startsWith("#")) {
+      clean = "#" + clean;
+    }
+    // Limit to 7 chars (# + 6 hex digits)
+    if (clean.length <= 7) {
+      setCustomHex(clean);
+    }
+  };
 
   const handleAddColor = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +65,7 @@ export function ProjectColorPalette({ projectId }: ProjectColorPaletteProps) {
       });
       setColorName("");
       setIsAdding(false);
-      toast.success("Color saved to project palette!");
+      toast.success(`Color ${customHex.toUpperCase()} saved to project palette!`);
     } catch {
       toast.error("Failed to save color");
     }
@@ -95,37 +119,71 @@ export function ProjectColorPalette({ projectId }: ProjectColorPaletteProps) {
       </div>
 
       {isAdding && (
-        <form onSubmit={handleAddColor} className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-wrap gap-3 items-center animate-in fade-in duration-150">
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={customHex}
-              onChange={(e) => setCustomHex(e.target.value)}
-              className="w-9 h-9 rounded-lg border border-zinc-300 dark:border-zinc-700 cursor-pointer p-0.5 bg-transparent"
-            />
+        <form 
+          onSubmit={handleAddColor} 
+          className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-4 animate-in fade-in duration-150 overflow-visible relative"
+        >
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            {/* Color Input Picker & HEX Field */}
+            <div className="flex items-center gap-2">
+              <div className="relative overflow-visible shrink-0">
+                <input
+                  type="color"
+                  value={customHex.length === 7 ? customHex : "#6366f1"}
+                  onChange={(e) => setCustomHex(e.target.value)}
+                  className="w-10 h-10 rounded-lg border border-zinc-300 dark:border-zinc-700 cursor-pointer p-0.5 bg-transparent"
+                  title="Choose custom color"
+                />
+              </div>
+
+              <Input
+                value={customHex}
+                onChange={(e) => handleHexInputChange(e.target.value)}
+                placeholder="#6366F1"
+                className="w-28 font-mono text-xs uppercase tracking-wider font-semibold"
+                required
+              />
+            </div>
+
             <Input
-              value={customHex}
-              onChange={(e) => setCustomHex(e.target.value)}
-              placeholder="#6366f1"
-              className="w-28 font-mono text-xs uppercase"
-              required
+              value={colorName}
+              onChange={(e) => setColorName(e.target.value)}
+              placeholder="Color Name (e.g. Primary Brand, Accent Sky)"
+              className="flex-1 min-w-[180px] text-xs"
             />
+
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm">
+                Save Color
+              </Button>
+            </div>
           </div>
 
-          <Input
-            value={colorName}
-            onChange={(e) => setColorName(e.target.value)}
-            placeholder="Color Name (e.g. Primary Indigo)"
-            className="flex-1 min-w-[180px] text-xs"
-          />
-
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" size="sm">
-              Save Color
-            </Button>
+          {/* Quick Presets Bar */}
+          <div className="flex items-center gap-2 pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60 flex-wrap">
+            <span className="text-[11px] font-medium text-zinc-400 flex items-center gap-1 mr-1">
+              <Sparkles className="w-3 h-3 text-amber-500" /> Presets:
+            </span>
+            {PRESET_COLORS.map((preset) => (
+              <button
+                key={preset.hex}
+                type="button"
+                onClick={() => {
+                  setCustomHex(preset.hex);
+                  if (!colorName) setColorName(preset.label);
+                }}
+                className={`w-6 h-6 rounded-full transition-transform hover:scale-110 active:scale-95 shadow-xs border-2 ${
+                  customHex.toLowerCase() === preset.hex.toLowerCase() 
+                    ? "border-zinc-900 dark:border-zinc-100 scale-110" 
+                    : "border-transparent"
+                }`}
+                style={{ backgroundColor: preset.hex }}
+                title={`${preset.label} (${preset.hex})`}
+              />
+            ))}
           </div>
         </form>
       )}
@@ -135,7 +193,7 @@ export function ProjectColorPalette({ projectId }: ProjectColorPaletteProps) {
           <Palette className="w-8 h-8 mx-auto text-zinc-400 mb-2 opacity-40" />
           <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">No colors in palette yet</p>
           <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
-            Add colors manually or extract them directly from your moodboard images!
+            Add colors manually with the color picker or extract them directly from your moodboard images!
           </p>
         </div>
       ) : viewMode === "swatches" ? (
