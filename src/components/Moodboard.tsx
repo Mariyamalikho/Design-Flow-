@@ -272,7 +272,7 @@ export function Moodboard({ projectId }: MoodboardProps) {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`relative group rounded-xl overflow-hidden break-inside-avoid cursor-grab active:cursor-grabbing transition-all duration-200 ${
+                              className={`relative group rounded-xl overflow-hidden break-inside-avoid cursor-grab active:cursor-grabbing touch-none transition-all duration-200 ${
                                 item.type === "note" 
                                   ? `${item.color || "bg-yellow-100 text-yellow-900 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-200 dark:border-yellow-800"} border shadow-sm min-h-[140px] flex flex-col justify-between` 
                                   : "bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800"
