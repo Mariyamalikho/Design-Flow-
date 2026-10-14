@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
 import { toast } from "sonner";
-import { db, Project } from "@/lib/db";
+import { db, type Project } from "@/lib/db";
 
 const editProjectSchema = z.object({
   title: z.string().min(1, "Title is required"),

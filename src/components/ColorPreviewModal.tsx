@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 import { ColorPreviewCard } from "./ColorPreviewCard";
-import { PaletteColor } from "@/lib/db";
+import type { PaletteColor } from "@/lib/db";
 import { Palette } from "lucide-react";
 
 interface ColorPreviewModalProps {

@@ -7,7 +7,7 @@ import {
   hexToRgb, 
   rgbToHsl 
 } from "@/lib/colorUtils";
-import { PaletteColor } from "@/lib/db";
+import type { PaletteColor } from "@/lib/db";
 
 interface ColorPreviewCardProps {
   color: PaletteColor;
