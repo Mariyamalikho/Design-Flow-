@@ -13,7 +13,8 @@ import { EditProjectModal } from "@/components/EditProjectModal";
 import { AssetManager } from "@/components/AssetManager";
 import { Moodboard } from "@/components/Moodboard";
 import { ProjectColorPalette } from "@/components/ProjectColorPalette";
-import { Download, DownloadCloud } from "lucide-react";
+import { TypographyManager } from "@/components/TypographyManager";
+import { DownloadCloud } from "lucide-react";
 import { exportProjectToZip } from "@/lib/generators/exportProject";
 
 export default function ProjectDetail() {
@@ -64,7 +65,7 @@ export default function ProjectDetail() {
       setIsExporting(false);
     }
   };
-  const [activeTab, setActiveTab] = useState<"board" | "brief" | "assets" | "moodboard" | "colors">("assets"); // Default to assets for testing
+  const [activeTab, setActiveTab] = useState<"board" | "brief" | "assets" | "moodboard" | "colors" | "typography">("assets"); // Default to assets for testing
 
   useEffect(() => {
     if (project && project.tags) {
@@ -199,6 +200,12 @@ export default function ProjectDetail() {
               >
                 Colors
               </button>
+              <button 
+                onClick={() => setActiveTab("typography")}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "typography" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
+              >
+                Typography
+              </button>
             </div>
         </div>
       </header>
@@ -215,6 +222,10 @@ export default function ProjectDetail() {
         ) : activeTab === "colors" ? (
             <div className="h-full">
               <ProjectColorPalette projectId={projectId} />
+            </div>
+          ) : activeTab === "typography" ? (
+            <div className="h-full">
+              <TypographyManager projectId={projectId} />
             </div>
           ) : activeTab === "board" ? (
           <div className="h-full rounded-xl border border-dashed border-zinc-300 dark:border-zinc-800 flex flex-col items-center justify-center text-zinc-500 bg-zinc-50/50 dark:bg-zinc-900/50">

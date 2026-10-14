@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FileText, Image as ImageIcon, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { formatFileSize } from "@/lib/fileUtils";
-import { Asset } from "@/lib/db";
+import type { Asset } from "@/lib/db";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/DropdownMenu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";

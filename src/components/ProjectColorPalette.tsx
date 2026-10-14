@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, PaletteColor } from "@/lib/db";
+import { db, type PaletteColor } from "@/lib/db";
 import { ColorSwatch } from "./ColorSwatch";
 import { ColorPreviewCard } from "./ColorPreviewCard";
 import { ColorPreviewModal } from "./ColorPreviewModal";

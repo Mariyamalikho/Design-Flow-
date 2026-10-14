@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { Project, DesignBrief, Task, Asset } from "@/lib/db";
+import type { Project, DesignBrief, Task, Asset } from "@/lib/db";
 import { generateReactRouterLayout } from "./reactRouterGenerator";
 
 export interface ProjectExportData {

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Copy, Check, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { getLuminance, checkWCAGCompliance, hexToRgb } from "@/lib/colorUtils";
-import { PaletteColor, db } from "@/lib/db";
+import { type PaletteColor, db } from "@/lib/db";
 
 interface ColorSwatchProps {
   color: PaletteColor;

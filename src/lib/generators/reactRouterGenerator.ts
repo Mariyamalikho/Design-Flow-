@@ -1,4 +1,4 @@
-import { ProjectExportData } from "./exportProject";
+import type { ProjectExportData } from "./exportProject";
 
 export function generateReactRouterLayout(data: ProjectExportData): Record<string, string> {
   const { project, brief } = data;
