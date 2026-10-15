@@ -93,3 +93,93 @@ export function loadGoogleFonts(fontFamilies: string[]): Promise<boolean[]> {
 export function isFontLoaded(fontFamily: string): boolean {
   return loadedFontsSet.has(fontFamily);
 }
+
+export interface TypographyPreset {
+  id: string;
+  name: string;
+  description: string;
+  headingFont: string;
+  bodyFont: string;
+  headingWeight: number;
+  bodyWeight: number;
+  category: string;
+}
+
+export const TYPOGRAPHY_PRESETS: TypographyPreset[] = [
+  {
+    id: "editorial",
+    name: "Editorial Elegance",
+    description: "Sophisticated serif headlines paired with high-legibility clean sans-serif body.",
+    headingFont: "Playfair Display",
+    bodyFont: "Inter",
+    headingWeight: 700,
+    bodyWeight: 400,
+    category: "Editorial",
+  },
+  {
+    id: "modern-tech",
+    name: "Modern Tech",
+    description: "Geometric sans-serif headlines paired with precision monospace body accents.",
+    headingFont: "Space Grotesk",
+    bodyFont: "Space Mono",
+    headingWeight: 700,
+    bodyWeight: 400,
+    category: "Tech",
+  },
+  {
+    id: "clean-saas",
+    name: "Clean SaaS",
+    description: "Versatile, contemporary sans-serif duo engineered for modern digital interfaces.",
+    headingFont: "Plus Jakarta Sans",
+    bodyFont: "Inter",
+    headingWeight: 700,
+    bodyWeight: 400,
+    category: "Product",
+  },
+  {
+    id: "creative-studio",
+    name: "Bold Creative",
+    description: "Expressive display font paired with balanced geometric typography.",
+    headingFont: "Syne",
+    bodyFont: "Outfit",
+    headingWeight: 700,
+    bodyWeight: 400,
+    category: "Creative",
+  },
+  {
+    id: "warm-friendly",
+    name: "Warm & Friendly",
+    description: "Rounded geometric aesthetics radiating optimism and easy approachability.",
+    headingFont: "Poppins",
+    bodyFont: "DM Sans",
+    headingWeight: 600,
+    bodyWeight: 400,
+    category: "Brand",
+  },
+  {
+    id: "luxury-fashion",
+    name: "Luxury & Editorial",
+    description: "Classical roman proportions combined with delicate serif details.",
+    headingFont: "Cinzel",
+    bodyFont: "Cormorant Garamond",
+    headingWeight: 700,
+    bodyWeight: 400,
+    category: "Luxury",
+  },
+];
+
+export function pxToRem(px: number, base = 16): string {
+  const rem = px / base;
+  return `${Number(rem.toFixed(3))}rem`;
+}
+
+export function calculateTypeScaleRatio(headingPx: number, bodyPx: number): number {
+  if (bodyPx <= 0) return 1;
+  return Number((headingPx / bodyPx).toFixed(2));
+}
+
+export function getRecommendedPairing(fontFamily: string): GoogleFontMeta | undefined {
+  const font = POPULAR_GOOGLE_FONTS.find((f) => f.family.toLowerCase() === fontFamily.toLowerCase());
+  if (!font || !font.popularPairing) return undefined;
+  return POPULAR_GOOGLE_FONTS.find((f) => f.family.toLowerCase() === font.popularPairing?.toLowerCase());
+}

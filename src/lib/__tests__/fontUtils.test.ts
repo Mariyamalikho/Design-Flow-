@@ -4,6 +4,10 @@ import {
   loadGoogleFont,
   loadGoogleFonts,
   isFontLoaded,
+  TYPOGRAPHY_PRESETS,
+  pxToRem,
+  calculateTypeScaleRatio,
+  getRecommendedPairing,
 } from "../fontUtils";
 
 vi.mock("webfontloader", () => ({
@@ -61,4 +65,44 @@ describe("fontUtils", () => {
       expect(isFontLoaded("JetBrains Mono")).toBe(true);
     });
   });
+
+  describe("Typography Presets & Pairings", () => {
+    it("contains diverse typography presets with heading and body fonts", () => {
+      expect(TYPOGRAPHY_PRESETS.length).toBeGreaterThan(4);
+      TYPOGRAPHY_PRESETS.forEach((preset) => {
+        expect(preset.id).toBeDefined();
+        expect(preset.name).toBeDefined();
+        expect(preset.headingFont).toBeDefined();
+        expect(preset.bodyFont).toBeDefined();
+        expect(preset.headingWeight).toBeGreaterThanOrEqual(400);
+        expect(preset.bodyWeight).toBeGreaterThanOrEqual(400);
+      });
+    });
+
+    it("finds recommended pairing when available", () => {
+      const interPairing = getRecommendedPairing("Inter");
+      expect(interPairing).toBeDefined();
+      expect(interPairing?.family).toBe("Playfair Display");
+
+      const unknownPairing = getRecommendedPairing("NonExistentFont");
+      expect(unknownPairing).toBeUndefined();
+    });
+  });
+
+  describe("Typography Math Utilities", () => {
+    it("converts px to rem with default base of 16px", () => {
+      expect(pxToRem(16)).toBe("1rem");
+      expect(pxToRem(32)).toBe("2rem");
+      expect(pxToRem(24)).toBe("1.5rem");
+      expect(pxToRem(14)).toBe("0.875rem");
+    });
+
+    it("calculates type scale ratio accurately", () => {
+      expect(calculateTypeScaleRatio(32, 16)).toBe(2);
+      expect(calculateTypeScaleRatio(36, 16)).toBe(2.25);
+      expect(calculateTypeScaleRatio(24, 16)).toBe(1.5);
+      expect(calculateTypeScaleRatio(36, 0)).toBe(1);
+    });
+  });
 });
+
