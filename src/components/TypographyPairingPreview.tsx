@@ -11,6 +11,9 @@ import {
 import { Slider } from "@/components/ui/Slider";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db, saveBrandIdentity } from "@/lib/db";
+import { toast } from "sonner";
 import { 
   ArrowLeftRight, 
   Sparkles, 
@@ -20,20 +23,29 @@ import {
   Sliders,
   Sun,
   Moon,
-  RotateCcw
+  RotateCcw,
+  Save,
+  CheckCircle2
 } from "lucide-react";
 
 interface TypographyPairingPreviewProps {
+  projectId?: number;
   initialHeadingFont?: string;
   initialBodyFont?: string;
   onSelectPairing?: (headingFont: string, bodyFont: string) => void;
 }
 
 export function TypographyPairingPreview({
+  projectId,
   initialHeadingFont = "Playfair Display",
   initialBodyFont = "Inter",
   onSelectPairing
 }: TypographyPairingPreviewProps) {
+  const savedIdentity = useLiveQuery(
+    () => (projectId ? db.brandIdentities.where("projectId").equals(projectId).first() : undefined),
+    [projectId]
+  );
+
   // Font Selections
   const [headingFont, setHeadingFont] = useState(initialHeadingFont);
   const [bodyFont, setBodyFont] = useState(initialBodyFont);
@@ -57,6 +69,51 @@ export function TypographyPairingPreview({
   const [bodyText, setBodyText] = useState(
     "Design systems bridge the space between aesthetic vision and engineering execution. Deliberate typography establishes hierarchy, optimizes readability across viewports, and shapes the emotional resonance of every screen."
   );
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Sync saved typography from DB
+  useEffect(() => {
+    if (savedIdentity) {
+      if (savedIdentity.headingFont) setHeadingFont(savedIdentity.headingFont);
+      if (savedIdentity.bodyFont) setBodyFont(savedIdentity.bodyFont);
+      if (savedIdentity.headingWeight) setHeadingWeight(savedIdentity.headingWeight);
+      if (savedIdentity.bodyWeight) setBodyWeight(savedIdentity.bodyWeight);
+      if (savedIdentity.headingSize) setHeadingSize(savedIdentity.headingSize);
+      if (savedIdentity.bodySize) setBodySize(savedIdentity.bodySize);
+      if (savedIdentity.headingLineHeight) setHeadingLineHeight(savedIdentity.headingLineHeight);
+      if (savedIdentity.bodyLineHeight) setBodyLineHeight(savedIdentity.bodyLineHeight);
+      if (savedIdentity.letterSpacing) setLetterSpacing(savedIdentity.letterSpacing);
+    }
+  }, [savedIdentity]);
+
+  // Save Typography choices to local IndexedDB
+  const handleSaveTypography = async () => {
+    if (!projectId) {
+      toast.info("Typography preview updated");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await saveBrandIdentity(projectId, {
+        headingFont,
+        bodyFont,
+        headingWeight,
+        bodyWeight,
+        headingSize,
+        bodySize,
+        headingLineHeight,
+        bodyLineHeight,
+        letterSpacing,
+      });
+      toast.success("Typography choices saved to local database!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to save typography settings");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Dynamic Font Loading
   useEffect(() => {
@@ -123,13 +180,33 @@ export function TypographyPairingPreview({
 
   return (
     <div className="space-y-6">
-      {/* Top Presets Bar */}
+      {/* Top Presets Bar & Action */}
       <div className="bg-zinc-50 dark:bg-zinc-900/60 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-2.5">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Curated Type Pairings
-          </span>
-          <span className="text-[11px] text-zinc-400">Click to preview preset combinations</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Curated Type Pairings
+            </span>
+            {savedIdentity && (
+              <Badge variant="outline" className="text-[10px] text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 gap-1 py-0 h-5">
+                <CheckCircle2 className="w-2.5 h-2.5" /> Saved
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-zinc-400 hidden md:inline">Click presets or customize</span>
+            {projectId && (
+              <Button
+                size="sm"
+                onClick={handleSaveTypography}
+                disabled={isSaving}
+                className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500 text-white gap-1.5"
+              >
+                {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                Save Typography Choices
+              </Button>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
           {TYPOGRAPHY_PRESETS.map((preset) => {
