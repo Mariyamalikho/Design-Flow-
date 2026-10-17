@@ -60,6 +60,36 @@ export interface PaletteColor {
   createdAt: Date;
 }
 
+export interface BrandIdentity {
+  id?: number;
+  projectId: number;
+  // Typography
+  headingFont: string;
+  bodyFont: string;
+  headingWeight?: number;
+  bodyWeight?: number;
+  headingSize?: number;
+  bodySize?: number;
+  headingLineHeight?: number;
+  bodyLineHeight?: number;
+  letterSpacing?: string;
+
+  // Mission & Vision
+  tagline?: string;
+  missionStatement?: string;
+  visionStatement?: string;
+  coreValues?: { id: string; title: string; description: string }[];
+
+  // Brand Voice & Tone
+  brandVoice?: string;
+  toneAttributes?: string[];
+  dosAndDonts?: { id: string; doText: string; dontText: string }[];
+  targetAudienceNotes?: string;
+
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export class DesignFlowDB extends Dexie {
   projects!: Table<Project, number>;
   tasks!: Table<Task, number>;
@@ -67,6 +97,7 @@ export class DesignFlowDB extends Dexie {
   assets!: Table<Asset, number>;
   moodboardItems!: Table<MoodboardItem, number>;
   paletteColors!: Table<PaletteColor, number>;
+  brandIdentities!: Table<BrandIdentity, number>;
 
   constructor() {
     super("DesignFlowDB");
@@ -128,10 +159,53 @@ export class DesignFlowDB extends Dexie {
       moodboardItems: "++id, projectId, type, order, createdAt",
       paletteColors: "++id, projectId, createdAt",
     });
+
+    // Version 8: Brand Guidelines & Typography
+    this.version(8).stores({
+      projects: "++id, status, createdAt",
+      tasks: "++id, projectId, status, priority",
+      briefs: "++id, projectId, status, createdAt",
+      assets: "++id, projectId, type, createdAt",
+      moodboardItems: "++id, projectId, type, order, createdAt",
+      paletteColors: "++id, projectId, createdAt",
+      brandIdentities: "++id, projectId, createdAt, updatedAt",
+    });
   }
 }
 
 export const db = new DesignFlowDB();
+
+export async function saveBrandIdentity(
+  projectId: number,
+  updates: Partial<Omit<BrandIdentity, "id" | "projectId" | "createdAt">>
+): Promise<number> {
+  const existing = await db.brandIdentities.where("projectId").equals(projectId).first();
+  const now = new Date();
+  if (existing && existing.id) {
+    await db.brandIdentities.update(existing.id, {
+      ...updates,
+      updatedAt: now,
+    });
+    return existing.id;
+  } else {
+    const id = await db.brandIdentities.add({
+      projectId,
+      headingFont: updates.headingFont || "Playfair Display",
+      bodyFont: updates.bodyFont || "Inter",
+      headingWeight: updates.headingWeight || 700,
+      bodyWeight: updates.bodyWeight || 400,
+      headingSize: updates.headingSize || 36,
+      bodySize: updates.bodySize || 16,
+      headingLineHeight: updates.headingLineHeight || 1.2,
+      bodyLineHeight: updates.bodyLineHeight || 1.6,
+      letterSpacing: updates.letterSpacing || "normal",
+      ...updates,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return id;
+  }
+}
 
 
 

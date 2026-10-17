@@ -204,7 +204,7 @@ export default function ProjectDetail() {
                 onClick={() => setActiveTab("typography")}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "typography" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
               >
-                Typography
+                Typography & Brand
               </button>
             </div>
         </div>
