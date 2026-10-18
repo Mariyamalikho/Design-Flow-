@@ -577,7 +577,9 @@ export function BrandGuidelinesPdfTemplate({
 
           {/* Footer Folio */}
           <div className="flex items-center justify-between border-t border-zinc-100 pt-5 text-[11px] text-zinc-400 font-mono">
-            <span>Typographic Architecture (Scale Ratio: {typeRatio}:1)</span>
+            <span>
+              Typographic Architecture {brandIdentity?.headingFont ? `(${typeRatio}:1 Scale Ratio)` : `· Modern Editorial Preset (${typeRatio}:1 Scale Ratio)`}
+            </span>
             <span>Agency Guidelines · Confidential</span>
           </div>
         </section>

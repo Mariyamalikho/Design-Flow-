@@ -383,6 +383,26 @@ export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps
           )}
         </div>
 
+        {/* Starter Preset Notice if typography choice is unset */}
+        {!brandIdentity?.headingFont && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-900/50 text-xs">
+            <div className="flex items-center gap-2.5 text-indigo-900 dark:text-indigo-200">
+              <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+              <span>
+                Using curated starter typography preset (<strong>{headingFont}</strong> + <strong>{bodyFont}</strong>). Customize your scale, line heights, and Google Fonts pairings in the studio.
+              </span>
+            </div>
+            {onNavigateTab && (
+              <button
+                onClick={() => onNavigateTab("pairing")}
+                className="px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs whitespace-nowrap self-start sm:self-auto shadow-2xs transition-colors"
+              >
+                Customize
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Font Specimen Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 space-y-2">
