@@ -44,6 +44,7 @@ const loadedFontsSet = new Set<string>();
  * Dynamically injects and loads Google Fonts using WebFontLoader with fallback
  */
 export function loadGoogleFont(fontFamily: string, weights = [400, 600, 700]): Promise<boolean> {
+  initFontPreconnect();
   if (loadedFontsSet.has(fontFamily)) {
     return Promise.resolve(true);
   }
@@ -88,6 +89,53 @@ function injectGoogleFontLink(fontFamily: string, weights: number[]) {
 
 export function loadGoogleFonts(fontFamilies: string[]): Promise<boolean[]> {
   return Promise.all(fontFamilies.map((font) => loadGoogleFont(font)));
+}
+
+/**
+ * Injects preconnect hints to Google Fonts domains to eliminate connection latency & FOUT
+ */
+export function initFontPreconnect(): void {
+  if (typeof document === "undefined") return;
+  if (!document.querySelector('link[rel="preconnect"][href="https://fonts.googleapis.com"]')) {
+    const link1 = document.createElement("link");
+    link1.rel = "preconnect";
+    link1.href = "https://fonts.googleapis.com";
+    document.head.appendChild(link1);
+
+    const link2 = document.createElement("link");
+    link2.rel = "preconnect";
+    link2.href = "https://fonts.gstatic.com";
+    link2.crossOrigin = "anonymous";
+    document.head.appendChild(link2);
+  }
+}
+
+/**
+ * Returns matching system fallback fonts for font categories to reduce layout shift (FOUT)
+ */
+export function getFontFallbackStack(category: "sans-serif" | "serif" | "display" | "monospace" = "sans-serif"): string {
+  switch (category) {
+    case "serif":
+      return 'Georgia, Cambria, "Times New Roman", Times, serif';
+    case "monospace":
+      return '"SF Mono", "Segoe UI Mono", "Roboto Mono", Menlo, Courier, monospace';
+    case "display":
+      return 'Impact, "Arial Black", system-ui, sans-serif';
+    case "sans-serif":
+    default:
+      return 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+  }
+}
+
+/**
+ * Creates a robust CSS font-family declaration string with fallback stack to mitigate FOUT
+ */
+export function getFullFontFamilyString(
+  family: string, 
+  category?: "sans-serif" | "serif" | "display" | "monospace"
+): string {
+  const cat = category || (POPULAR_GOOGLE_FONTS.find((f) => f.family.toLowerCase() === family.toLowerCase())?.category || "sans-serif");
+  return `"${family}", ${getFontFallbackStack(cat)}`;
 }
 
 export function isFontLoaded(fontFamily: string): boolean {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, saveBrandIdentity } from "@/lib/db";
 import { Input } from "@/components/ui/Input";
@@ -67,6 +67,8 @@ export function BrandVoiceForm({ projectId }: BrandVoiceFormProps) {
   const [dosAndDonts, setDosAndDonts] = useState<DoDontRule[]>(DEFAULT_DOS_AND_DONTS);
   const [targetAudienceNotes, setTargetAudienceNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const isInitialMount = useRef(true);
 
   // Sync from DB
   useEffect(() => {
@@ -79,8 +81,36 @@ export function BrandVoiceForm({ projectId }: BrandVoiceFormProps) {
       if (brandIdentity.targetAudienceNotes !== undefined) {
         setTargetAudienceNotes(brandIdentity.targetAudienceNotes);
       }
+      setTimeout(() => {
+        isInitialMount.current = false;
+      }, 300);
+    } else {
+      isInitialMount.current = false;
     }
   }, [brandIdentity]);
+
+  // Debounced auto-save for all textareas and inputs
+  useEffect(() => {
+    if (isInitialMount.current) return;
+
+    setAutoSaveStatus("saving");
+    const timer = setTimeout(async () => {
+      try {
+        await saveBrandIdentity(projectId, {
+          brandVoice,
+          toneAttributes,
+          dosAndDonts,
+          targetAudienceNotes,
+        });
+        setAutoSaveStatus("saved");
+      } catch (err) {
+        console.error("Auto-save failed", err);
+        setAutoSaveStatus("idle");
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [brandVoice, toneAttributes, dosAndDonts, targetAudienceNotes, projectId]);
 
   // Toggle Preset Attribute
   const handleTogglePreset = (attr: string) => {
@@ -159,14 +189,27 @@ export function BrandVoiceForm({ projectId }: BrandVoiceFormProps) {
           </p>
         </div>
 
-        <Button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 shadow-xs shrink-0 text-xs h-8"
-        >
-          {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-          Save Brand Voice
-        </Button>
+        <div className="flex items-center gap-3 shrink-0">
+          {autoSaveStatus === "saving" && (
+            <span className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1.5 font-medium">
+              <Loader2 className="w-3 h-3 animate-spin" /> Auto-saving...
+            </span>
+          )}
+          {autoSaveStatus === "saved" && (
+            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
+              <CheckCircle2 className="w-3 h-3" /> Auto-saved
+            </span>
+          )}
+
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 shadow-xs text-xs h-8"
+          >
+            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            Save Brand Voice
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
