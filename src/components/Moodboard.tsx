@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Plus, Link as LinkIcon, Image as ImageIcon, Trash2, Maximize, StickyNote, Scaling, Download, Palette } from "lucide-react";
 import { ColorPaletteModal } from "./ColorPaletteModal";
-import html2canvas from "html2canvas";
+import { exportElementToFile } from "@/lib/exportUtils";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/Button";
@@ -133,20 +133,15 @@ export function Moodboard({ projectId }: MoodboardProps) {
     if (!containerRef.current) return;
     const toastId = toast.loading("Generating PNG export...");
     try {
-      const canvas = await html2canvas(containerRef.current, {
-        useCORS: true,
-        allowTaint: false,
+      await exportElementToFile(containerRef.current, `moodboard-project-${projectId}.png`, {
+        scale: 2,
         backgroundColor: null,
-        scale: 2, // Hi-DPI resolution
+        useCORS: true,
       });
-      const dataUrl = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.download = `moodboard-project-${projectId}.png`;
-      link.href = dataUrl;
-      link.click();
       toast.dismiss(toastId);
       toast.success("Moodboard exported to PNG!");
     } catch (err) {
+      console.error("Moodboard export error:", err);
       toast.dismiss(toastId);
       toast.error("Failed to export. Some external images may restrict CORS access.");
     }

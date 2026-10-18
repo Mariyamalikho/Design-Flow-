@@ -92,12 +92,32 @@
     border-radius: 0 !important;
     border: none !important;
     box-shadow: none !important;
+    overflow: visible !important;
     page-break-after: always;
     break-after: page;
     page-break-inside: avoid;
     break-inside: avoid;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  /* Prevent text and card clipping across PDF page breaks */
+  .brand-deck-slide p,
+  .brand-deck-slide h1,
+  .brand-deck-slide h2,
+  .brand-deck-slide h3,
+  .brand-deck-slide h4,
+  .brand-deck-slide td,
+  .brand-deck-slide th,
+  .brand-deck-slide blockquote,
+  .brand-deck-slide table,
+  .brand-deck-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    orphans: 3;
+    widows: 3;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
   }
 }
 

@@ -231,10 +231,56 @@ export function TypographyManager({ projectId }: TypographyManagerProps) {
 
           {/* Fonts Grid */}
           {filteredFonts.length === 0 ? (
-            <div className="text-center py-14 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
-              <Type className="w-8 h-8 mx-auto text-zinc-400 mb-2 opacity-40" />
-              <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">No matching fonts found</p>
-              <p className="text-xs text-zinc-500 mt-1">Try searching for a different font family or select 'All'.</p>
+            <div className="text-center py-12 px-6 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/30 space-y-4">
+              <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-500 flex items-center justify-center mx-auto shadow-xs border border-indigo-100 dark:border-indigo-900/50">
+                <Type className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  No matching fonts found
+                </p>
+                <p className="text-xs text-zinc-500 max-w-sm mx-auto leading-relaxed">
+                  {searchQuery 
+                    ? `No Google Fonts match "${searchQuery}" in ${selectedCategory === "all" ? "the catalogue" : selectedCategory}.`
+                    : "No Google Fonts match the selected category."}
+                </p>
+              </div>
+
+              {/* Action: Clear Filters */}
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory("all");
+                  }}
+                  className="text-xs h-8 gap-1.5"
+                >
+                  Clear Filters
+                </Button>
+              </div>
+
+              {/* Quick suggestion tags */}
+              <div className="pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60 max-w-md mx-auto">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 block mb-2">
+                  Popular Suggestions:
+                </span>
+                <div className="flex flex-wrap justify-center gap-1.5">
+                  {["Inter", "Playfair Display", "Plus Jakarta Sans", "Syne", "Space Grotesk"].map((suggested) => (
+                    <button
+                      key={suggested}
+                      onClick={() => {
+                        setSearchQuery(suggested);
+                        setSelectedCategory("all");
+                      }}
+                      className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 transition-colors"
+                    >
+                      {suggested}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

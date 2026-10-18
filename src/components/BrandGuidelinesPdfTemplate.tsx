@@ -85,7 +85,7 @@ export function BrandGuidelinesPdfTemplate({
           ========================================================================= */}
       {shouldRenderSlide(0) && (
         <section 
-          className="brand-deck-slide w-full max-w-[1000px] aspect-[297/210] bg-zinc-950 text-white rounded-2xl p-12 sm:p-14 flex flex-col justify-between shadow-2xl relative overflow-hidden mx-auto border border-zinc-800"
+          className="brand-deck-slide w-full max-w-[1000px] aspect-[297/210] bg-zinc-950 text-white rounded-2xl p-12 sm:p-14 flex flex-col justify-between shadow-2xl relative overflow-hidden print:overflow-visible mx-auto border border-zinc-800"
           style={{ fontFamily: bodyFamily }}
         >
           {/* Subtle background ambient glow */}
@@ -156,7 +156,7 @@ export function BrandGuidelinesPdfTemplate({
           ========================================================================= */}
       {shouldRenderSlide(1) && (
         <section 
-          className="brand-deck-slide w-full max-w-[1000px] aspect-[297/210] bg-white text-zinc-900 rounded-2xl p-12 sm:p-14 flex flex-col justify-between shadow-xl relative overflow-hidden mx-auto border border-zinc-200"
+          className="brand-deck-slide w-full max-w-[1000px] aspect-[297/210] bg-white text-zinc-900 rounded-2xl p-12 sm:p-14 flex flex-col justify-between shadow-xl relative overflow-hidden print:overflow-visible mx-auto border border-zinc-200"
           style={{ fontFamily: bodyFamily }}
         >
           {/* Header Folio */}
@@ -251,7 +251,7 @@ export function BrandGuidelinesPdfTemplate({
           ========================================================================= */}
       {shouldRenderSlide(2) && (
         <section 
-          className="brand-deck-slide w-full max-w-[1000px] aspect-[297/210] bg-white text-zinc-900 rounded-2xl p-12 sm:p-14 flex flex-col justify-between shadow-xl relative overflow-hidden mx-auto border border-zinc-200"
+          className="brand-deck-slide w-full max-w-[1000px] aspect-[297/210] bg-white text-zinc-900 rounded-2xl p-12 sm:p-14 flex flex-col justify-between shadow-xl relative overflow-hidden print:overflow-visible mx-auto border border-zinc-200"
           style={{ fontFamily: bodyFamily }}
         >
           {/* Header Folio */}
@@ -368,7 +368,7 @@ export function BrandGuidelinesPdfTemplate({
           ========================================================================= */}
       {shouldRenderSlide(3) && (
         <section 
-          className="brand-deck-slide w-full max-w-[1000px] aspect-[297/210] bg-white text-zinc-900 rounded-2xl p-12 sm:p-14 flex flex-col justify-between shadow-xl relative overflow-hidden mx-auto border border-zinc-200"
+          className="brand-deck-slide w-full max-w-[1000px] aspect-[297/210] bg-white text-zinc-900 rounded-2xl p-12 sm:p-14 flex flex-col justify-between shadow-xl relative overflow-hidden print:overflow-visible mx-auto border border-zinc-200"
           style={{ fontFamily: bodyFamily }}
         >
           {/* Header Folio */}
@@ -456,7 +456,7 @@ export function BrandGuidelinesPdfTemplate({
           ========================================================================= */}
       {shouldRenderSlide(4) && (
         <section 
-          className="brand-deck-slide w-full max-w-[1000px] aspect-[297/210] bg-white text-zinc-900 rounded-2xl p-12 sm:p-14 flex flex-col justify-between shadow-xl relative overflow-hidden mx-auto border border-zinc-200"
+          className="brand-deck-slide w-full max-w-[1000px] aspect-[297/210] bg-white text-zinc-900 rounded-2xl p-12 sm:p-14 flex flex-col justify-between shadow-xl relative overflow-hidden print:overflow-visible mx-auto border border-zinc-200"
           style={{ fontFamily: bodyFamily }}
         >
           {/* Header Folio */}
@@ -577,7 +577,9 @@ export function BrandGuidelinesPdfTemplate({
 
           {/* Footer Folio */}
           <div className="flex items-center justify-between border-t border-zinc-100 pt-5 text-[11px] text-zinc-400 font-mono">
-            <span>Typographic Architecture (Scale Ratio: {typeRatio}:1)</span>
+            <span>
+              Typographic Architecture {brandIdentity?.headingFont ? `(${typeRatio}:1 Scale Ratio)` : `· Modern Editorial Preset (${typeRatio}:1 Scale Ratio)`}
+            </span>
             <span>Agency Guidelines · Confidential</span>
           </div>
         </section>
@@ -588,7 +590,7 @@ export function BrandGuidelinesPdfTemplate({
           ========================================================================= */}
       {shouldRenderSlide(5) && (
         <section 
-          className="brand-deck-slide w-full max-w-[1000px] aspect-[297/210] bg-white text-zinc-900 rounded-2xl p-12 sm:p-14 flex flex-col justify-between shadow-xl relative overflow-hidden mx-auto border border-zinc-200"
+          className="brand-deck-slide w-full max-w-[1000px] aspect-[297/210] bg-white text-zinc-900 rounded-2xl p-12 sm:p-14 flex flex-col justify-between shadow-xl relative overflow-hidden print:overflow-visible mx-auto border border-zinc-200"
           style={{ fontFamily: bodyFamily }}
         >
           {/* Header Folio */}
