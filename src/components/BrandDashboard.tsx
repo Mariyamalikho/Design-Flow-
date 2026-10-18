@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
+import { BrandDeckModal } from "./BrandDeckModal";
 import { 
   loadGoogleFont, 
   getFullFontFamilyString, 
@@ -67,13 +68,15 @@ export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps
     loadGoogleFont(bodyFont, [bodyWeight]);
   }, [headingFont, headingWeight, bodyFont, bodyWeight]);
 
+  const [isDeckModalOpen, setIsDeckModalOpen] = useState(false);
+
   const copyHex = (hex: string) => {
     navigator.clipboard.writeText(hex);
     toast.success(`Copied ${hex} to clipboard!`);
   };
 
   const handlePrint = () => {
-    window.print();
+    setIsDeckModalOpen(true);
   };
 
   // Completeness score
@@ -447,6 +450,13 @@ export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps
           </p>
         </div>
       </div>
+
+      {/* Agency Brand Guidelines Deck Modal Preview & PDF Export */}
+      <BrandDeckModal
+        projectId={projectId}
+        isOpen={isDeckModalOpen}
+        onClose={() => setIsDeckModalOpen(false)}
+      />
     </div>
   );
 }
