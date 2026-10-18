@@ -1,7 +1,17 @@
 import { useState, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db";
+import { db, saveBrandIdentity } from "@/lib/db";
+import { getDefaultBrandIdentity } from "@/lib/brandUtils";
 import { BrandDeckModal } from "./BrandDeckModal";
+import { DownloadFontsModal } from "./DownloadFontsModal";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter 
+} from "@/components/ui/Dialog";
 import { 
   loadGoogleFont, 
   getFullFontFamilyString, 
@@ -26,7 +36,9 @@ import {
   Copy,
   Printer,
   Sliders,
-  ArrowRight
+  ArrowRight,
+  RotateCcw,
+  Download
 } from "lucide-react";
 
 interface BrandDashboardProps {
@@ -69,6 +81,8 @@ export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps
   }, [headingFont, headingWeight, bodyFont, bodyWeight]);
 
   const [isDeckModalOpen, setIsDeckModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isDownloadFontsModalOpen, setIsDownloadFontsModalOpen] = useState(false);
 
   const copyHex = (hex: string) => {
     navigator.clipboard.writeText(hex);
@@ -77,6 +91,18 @@ export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps
 
   const handlePrint = () => {
     setIsDeckModalOpen(true);
+  };
+
+  const handleResetIdentity = async () => {
+    try {
+      const defaults = getDefaultBrandIdentity(projectId);
+      await saveBrandIdentity(projectId, defaults);
+      toast.success("Brand identity guidelines reset to defaults!");
+      setIsResetModalOpen(false);
+    } catch (err) {
+      console.error("Failed to reset brand identity:", err);
+      toast.error("Failed to reset brand identity guidelines.");
+    }
   };
 
   // Completeness score
@@ -124,7 +150,16 @@ export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsResetModalOpen(true)}
+              className="text-xs h-9 gap-1.5 bg-white/10 hover:bg-white/20 text-white border-white/10"
+              title="Reset brand guidelines to default starter values"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Reset Defaults
+            </Button>
             <Button
               variant="secondary"
               size="sm"
@@ -373,14 +408,22 @@ export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps
               Scale: {typeRatio}x
             </Badge>
           </div>
-          {onNavigateTab && (
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => onNavigateTab("pairing")}
-              className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+              onClick={() => setIsDownloadFontsModalOpen(true)}
+              className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-medium"
             >
-              Adjust in Studio <Sliders className="w-3 h-3" />
+              <Download className="w-3.5 h-3.5" /> Download Fonts
             </button>
-          )}
+            {onNavigateTab && (
+              <button
+                onClick={() => onNavigateTab("pairing")}
+                className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 flex items-center gap-1"
+              >
+                Adjust in Studio <Sliders className="w-3 h-3" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Starter Preset Notice if typography choice is unset */}
@@ -476,6 +519,49 @@ export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps
         projectId={projectId}
         isOpen={isDeckModalOpen}
         onClose={() => setIsDeckModalOpen(false)}
+      />
+
+      {/* Confirmation Dialog: Reset Brand Identity to Defaults */}
+      <Dialog open={isResetModalOpen} onOpenChange={setIsResetModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
+              <RotateCcw className="w-4 h-4 text-amber-500" />
+              Reset Brand Identity to Defaults?
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-500 pt-2 leading-relaxed">
+              This will overwrite the current brand guidelines (typography, mission, vision, core values, voice & tone, and editorial rules) with the curated default identity. Custom edits will be replaced.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 pt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsResetModalOpen(false)}
+              className="text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleResetIdentity}
+              className="text-xs gap-1.5 bg-amber-600 hover:bg-amber-500 text-white"
+            >
+              <RotateCcw className="w-3 h-3" /> Confirm Reset
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Download Fonts Modal */}
+      <DownloadFontsModal
+        isOpen={isDownloadFontsModalOpen}
+        onClose={() => setIsDownloadFontsModalOpen(false)}
+        headingFont={headingFont}
+        bodyFont={bodyFont}
+        headingWeight={headingWeight}
+        bodyWeight={bodyWeight}
       />
     </div>
   );
