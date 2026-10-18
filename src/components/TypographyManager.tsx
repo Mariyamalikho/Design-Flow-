@@ -7,6 +7,7 @@ import {
 import { TypographyPairingPreview } from "./TypographyPairingPreview";
 import { BrandVoiceForm } from "./BrandVoiceForm";
 import { MissionVisionForm } from "./MissionVisionForm";
+import { BrandDashboard } from "./BrandDashboard";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -19,7 +20,8 @@ import {
   Columns,
   Library,
   MessageSquare,
-  Compass
+  Compass,
+  LayoutDashboard
 } from "lucide-react";
 
 interface TypographyManagerProps {
@@ -27,7 +29,7 @@ interface TypographyManagerProps {
 }
 
 export function TypographyManager({ projectId }: TypographyManagerProps) {
-  const [activeTab, setActiveTab] = useState<"pairing" | "catalogue" | "voice" | "mission">("pairing");
+  const [activeTab, setActiveTab] = useState<"overview" | "pairing" | "catalogue" | "voice" | "mission">("overview");
   const [headingFont, setHeadingFont] = useState("Playfair Display");
   const [bodyFont, setBodyFont] = useState("Inter");
 
@@ -92,6 +94,17 @@ export function TypographyManager({ projectId }: TypographyManagerProps) {
         {/* View Switcher Tabs */}
         <div className="flex bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-lg shrink-0 overflow-x-auto">
           <button
+            onClick={() => setActiveTab("overview")}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+              activeTab === "overview"
+                ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
+                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+            }`}
+          >
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            Overview
+          </button>
+          <button
             onClick={() => setActiveTab("pairing")}
             className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
               activeTab === "pairing"
@@ -137,6 +150,14 @@ export function TypographyManager({ projectId }: TypographyManagerProps) {
           </button>
         </div>
       </div>
+
+      {/* Tab 0: Overview Dashboard */}
+      {activeTab === "overview" && (
+        <BrandDashboard
+          projectId={projectId}
+          onNavigateTab={(tab) => setActiveTab(tab)}
+        />
+      )}
 
       {/* Tab 1: Pairing Studio */}
       {activeTab === "pairing" && (
