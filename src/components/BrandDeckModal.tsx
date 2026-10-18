@@ -9,7 +9,7 @@ import {
   blobToDataUrl, 
   exportDeckToPdf, 
   buildDeckFileName 
-} from "@/lib/brandPdfUtils";
+} from "@/lib/exportUtils";
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
 import { 
