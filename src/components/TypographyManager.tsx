@@ -8,6 +8,7 @@ import { TypographyPairingPreview } from "./TypographyPairingPreview";
 import { BrandVoiceForm } from "./BrandVoiceForm";
 import { MissionVisionForm } from "./MissionVisionForm";
 import { BrandDashboard } from "./BrandDashboard";
+import { DownloadFontsModal } from "./DownloadFontsModal";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -16,12 +17,13 @@ import {
   Search, 
   Sparkles, 
   Check, 
-  Loader2,
-  Columns,
-  Library,
-  MessageSquare,
-  Compass,
-  LayoutDashboard
+  Loader2, 
+  Columns, 
+  Library, 
+  MessageSquare, 
+  Compass, 
+  LayoutDashboard,
+  Download
 } from "lucide-react";
 
 interface TypographyManagerProps {
@@ -32,6 +34,7 @@ export function TypographyManager({ projectId }: TypographyManagerProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "pairing" | "catalogue" | "voice" | "mission">("overview");
   const [headingFont, setHeadingFont] = useState("Playfair Display");
   const [bodyFont, setBodyFont] = useState("Inter");
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -91,63 +94,75 @@ export function TypographyManager({ projectId }: TypographyManagerProps) {
           </p>
         </div>
 
-        {/* View Switcher Tabs */}
-        <div className="flex bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-lg shrink-0 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
-              activeTab === "overview"
-                ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
-                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
-            }`}
+        {/* View Switcher Tabs & Download Fonts Action */}
+        <div className="flex items-center gap-2">
+          <div className="flex bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-lg shrink-0 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab("overview")}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+                activeTab === "overview"
+                  ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+              }`}
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab("pairing")}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+                activeTab === "pairing"
+                  ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+              }`}
+            >
+              <Columns className="w-3.5 h-3.5" />
+              Pairing Studio
+            </button>
+            <button
+              onClick={() => setActiveTab("catalogue")}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+                activeTab === "catalogue"
+                  ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+              }`}
+            >
+              <Library className="w-3.5 h-3.5" />
+              Fonts ({POPULAR_GOOGLE_FONTS.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("voice")}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+                activeTab === "voice"
+                  ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+              }`}
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              Brand Voice
+            </button>
+            <button
+              onClick={() => setActiveTab("mission")}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+                activeTab === "mission"
+                  ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+              }`}
+            >
+              <Compass className="w-3.5 h-3.5" />
+              Mission & Vision
+            </button>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsDownloadModalOpen(true)}
+            className="text-xs h-9 gap-1.5 shrink-0 hidden md:flex border-zinc-200 dark:border-zinc-800"
+            title="Download font files and installation instructions"
           >
-            <LayoutDashboard className="w-3.5 h-3.5" />
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab("pairing")}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
-              activeTab === "pairing"
-                ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
-                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
-            }`}
-          >
-            <Columns className="w-3.5 h-3.5" />
-            Pairing Studio
-          </button>
-          <button
-            onClick={() => setActiveTab("catalogue")}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
-              activeTab === "catalogue"
-                ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
-                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
-            }`}
-          >
-            <Library className="w-3.5 h-3.5" />
-            Fonts ({POPULAR_GOOGLE_FONTS.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("voice")}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
-              activeTab === "voice"
-                ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
-                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
-            }`}
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            Brand Voice
-          </button>
-          <button
-            onClick={() => setActiveTab("mission")}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
-              activeTab === "mission"
-                ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
-                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
-            }`}
-          >
-            <Compass className="w-3.5 h-3.5" />
-            Mission & Vision
-          </button>
+            <Download className="w-3.5 h-3.5" /> Fonts Guide
+          </Button>
         </div>
       </div>
 
@@ -380,6 +395,14 @@ export function TypographyManager({ projectId }: TypographyManagerProps) {
           )}
         </div>
       )}
+
+      {/* Global Fonts Download & Installation Modal */}
+      <DownloadFontsModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        headingFont={headingFont}
+        bodyFont={bodyFont}
+      />
     </div>
   );
 }
