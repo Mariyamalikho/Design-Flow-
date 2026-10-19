@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { ArrowLeft, MoreVertical, LayoutDashboard, Pencil, Trash2, FileText, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MoreVertical, Pencil, Trash2, FileText, CheckCircle2 } from "lucide-react";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -14,6 +14,7 @@ import { AssetManager } from "@/components/AssetManager";
 import { Moodboard } from "@/components/Moodboard";
 import { ProjectColorPalette } from "@/components/ProjectColorPalette";
 import { TypographyManager } from "@/components/TypographyManager";
+import Tasks from "@/pages/Tasks";
 import { DownloadCloud } from "lucide-react";
 import { exportProjectToZip } from "@/lib/generators/exportProject";
 
@@ -228,9 +229,8 @@ export default function ProjectDetail() {
               <TypographyManager projectId={projectId} />
             </div>
           ) : activeTab === "board" ? (
-          <div className="h-full rounded-xl border border-dashed border-zinc-300 dark:border-zinc-800 flex flex-col items-center justify-center text-zinc-500 bg-zinc-50/50 dark:bg-zinc-900/50">
-            <LayoutDashboard className="h-10 w-10 mb-4 opacity-20" />
-            <p>Kanban Board will be integrated here (Week 10).</p>
+          <div className="h-full">
+            <Tasks embedded projectId={projectId} />
           </div>
         ) : (
           <div className="h-full">

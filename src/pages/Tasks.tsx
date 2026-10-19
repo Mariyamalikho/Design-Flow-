@@ -1,0 +1,463 @@
+import React, { useState, useMemo } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/lib/db";
+import { KanbanColumn } from "@/components/kanban/KanbanColumn";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/Dialog";
+import {
+  Plus,
+  Search,
+  Filter,
+  Kanban,
+  CheckCircle2,
+  Clock,
+  Circle,
+  FolderKanban,
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+export interface TasksProps {
+  embedded?: boolean;
+  projectId?: number;
+}
+
+export default function Tasks({ embedded = false, projectId }: TasksProps) {
+  // Query projects and tasks from Dexie
+  const projects = useLiveQuery(() => db.projects.toArray());
+  const tasks = useLiveQuery(() => {
+    if (projectId !== undefined) {
+      return db.tasks.where("projectId").equals(projectId).toArray();
+    }
+    return db.tasks.toArray();
+  }, [projectId]);
+
+  // Filters state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(
+    projectId !== undefined ? String(projectId) : "all"
+  );
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+
+  // Create Task Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newPriority, setNewPriority] = useState<"low" | "medium" | "high">("medium");
+  const [newStatus, setNewStatus] = useState<"todo" | "in-progress" | "done">("todo");
+  const [newProjectId, setNewProjectId] = useState<number | undefined>(
+    projectId !== undefined ? projectId : undefined
+  );
+
+  // Map project ID to Project Title
+  const projectMap = useMemo(() => {
+    const map: Record<number, string> = {};
+    if (projects) {
+      projects.forEach((p) => {
+        if (p.id) map[p.id] = p.title;
+      });
+    }
+    return map;
+  }, [projects]);
+
+  // Open modal with specific initial column status
+  const handleOpenCreateModal = (initialStatus: "todo" | "in-progress" | "done" = "todo") => {
+    setNewStatus(initialStatus);
+    setNewTitle("");
+    setNewPriority("medium");
+    if (projectId !== undefined) {
+      setNewProjectId(projectId);
+    } else if (projects && projects.length > 0) {
+      setNewProjectId(projects[0].id);
+    }
+    setIsCreateModalOpen(true);
+  };
+
+  // Submit new task
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim()) {
+      toast.error("Please enter a task title");
+      return;
+    }
+
+    const assignedProjectId = projectId ?? newProjectId;
+    if (!assignedProjectId) {
+      toast.error("Please select a project for this task");
+      return;
+    }
+
+    try {
+      await db.tasks.add({
+        projectId: assignedProjectId,
+        title: newTitle.trim(),
+        status: newStatus,
+        priority: newPriority,
+        createdAt: new Date(),
+      });
+      toast.success("Task added to board");
+      setIsCreateModalOpen(false);
+      setNewTitle("");
+    } catch {
+      toast.error("Failed to add task");
+    }
+  };
+
+  // Status transition
+  const handleStatusChange = async (
+    taskId: number,
+    nextStatus: "todo" | "in-progress" | "done"
+  ) => {
+    try {
+      await db.tasks.update(taskId, { status: nextStatus });
+      toast.success("Task updated");
+    } catch {
+      toast.error("Failed to update task");
+    }
+  };
+
+  // Delete task
+  const handleDeleteTask = async (taskId: number) => {
+    try {
+      await db.tasks.delete(taskId);
+      toast.success("Task deleted");
+    } catch {
+      toast.error("Failed to delete task");
+    }
+  };
+
+  // Filter tasks based on search, project selector, and priority
+  const filteredTasks = useMemo(() => {
+    if (!tasks) return [];
+    return tasks.filter((task) => {
+      // Text search
+      const matchesSearch =
+        searchQuery.trim() === "" ||
+        task.title.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Project filter (if not embedded)
+      const matchesProject =
+        projectId !== undefined ||
+        selectedProjectId === "all" ||
+        String(task.projectId) === selectedProjectId;
+
+      // Priority filter
+      const matchesPriority =
+        priorityFilter === "all" || task.priority === priorityFilter;
+
+      return matchesSearch && matchesProject && matchesPriority;
+    });
+  }, [tasks, searchQuery, selectedProjectId, priorityFilter, projectId]);
+
+  // Group into columns
+  const todoTasks = useMemo(
+    () => filteredTasks.filter((t) => t.status === "todo"),
+    [filteredTasks]
+  );
+  const inProgressTasks = useMemo(
+    () => filteredTasks.filter((t) => t.status === "in-progress"),
+    [filteredTasks]
+  );
+  const doneTasks = useMemo(
+    () => filteredTasks.filter((t) => t.status === "done"),
+    [filteredTasks]
+  );
+
+  return (
+    <div className={cn("flex flex-col h-full", !embedded && "p-6 md:p-8 space-y-6")}>
+      {/* Page Header (if not embedded) */}
+      {!embedded && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-xs">
+                <Kanban className="w-5 h-5" />
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+                Task Board
+              </h1>
+            </div>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+              Organize, prioritize, and track project tasks across your creative workflow.
+            </p>
+          </div>
+
+          <Button
+            onClick={() => handleOpenCreateModal("todo")}
+            className="self-start sm:self-auto gap-2 shadow-xs"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Task</span>
+          </Button>
+        </div>
+      )}
+
+      {/* Embedded Action Bar (if embedded inside ProjectDetail) */}
+      {embedded && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              Project Tasks
+            </span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-medium">
+              {filteredTasks.length} total
+            </span>
+          </div>
+
+          <Button
+            size="sm"
+            onClick={() => handleOpenCreateModal("todo")}
+            className="self-start sm:self-auto gap-1.5 h-8 text-xs shadow-xs"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Task</span>
+          </Button>
+        </div>
+      )}
+
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+        <div className="flex flex-1 flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9 text-sm rounded-lg"
+            />
+          </div>
+
+          {/* Project Selector (only when global board) */}
+          {!embedded && projects && projects.length > 0 && (
+            <div className="flex items-center gap-2">
+              <FolderKanban className="w-4 h-4 text-zinc-400 shrink-0 hidden sm:block" />
+              <select
+                aria-label="Filter by project"
+                value={selectedProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                className="h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-zinc-700 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+              >
+                <option value="all">All Projects</option>
+                {projects.map((proj) => (
+                  <option key={proj.id} value={proj.id}>
+                    {proj.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Priority Filter */}
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-zinc-400 shrink-0 hidden sm:block" />
+            <select
+              aria-label="Filter by priority"
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className="h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-zinc-700 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+            >
+              <option value="all">All Priorities</option>
+              <option value="high">High Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="low">Low Priority</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Quick Metric Badges */}
+        <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400 self-end md:self-auto shrink-0 pt-1 md:pt-0">
+          <div className="flex items-center gap-1.5">
+            <Circle className="w-3 h-3 text-indigo-500" />
+            <span>To Do: {todoTasks.length}</span>
+          </div>
+          <span className="text-zinc-300 dark:text-zinc-700">·</span>
+          <div className="flex items-center gap-1.5">
+            <Clock className="w-3 h-3 text-amber-500" />
+            <span>In Progress: {inProgressTasks.length}</span>
+          </div>
+          <span className="text-zinc-300 dark:text-zinc-700">·</span>
+          <div className="flex items-center gap-1.5">
+            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+            <span>Done: {doneTasks.length}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3-Column Kanban Board Shell */}
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-start overflow-x-auto min-h-[420px] pt-2">
+        <KanbanColumn
+          status="todo"
+          title="To Do"
+          tasks={todoTasks}
+          projectMap={projectMap}
+          onStatusChange={handleStatusChange}
+          onDeleteTask={handleDeleteTask}
+          onQuickAddTask={() => handleOpenCreateModal("todo")}
+        />
+        <KanbanColumn
+          status="in-progress"
+          title="In Progress"
+          tasks={inProgressTasks}
+          projectMap={projectMap}
+          onStatusChange={handleStatusChange}
+          onDeleteTask={handleDeleteTask}
+          onQuickAddTask={() => handleOpenCreateModal("in-progress")}
+        />
+        <KanbanColumn
+          status="done"
+          title="Done"
+          tasks={doneTasks}
+          projectMap={projectMap}
+          onStatusChange={handleStatusChange}
+          onDeleteTask={handleDeleteTask}
+          onQuickAddTask={() => handleOpenCreateModal("done")}
+        />
+      </div>
+
+      {/* Create Task Dialog */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <form onSubmit={handleCreateTask}>
+            <DialogHeader>
+              <DialogTitle>Create New Task</DialogTitle>
+              <DialogDescription>
+                Add a task card to your workflow board.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* Task Title */}
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="task-title-input"
+                  className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
+                >
+                  Task Title *
+                </label>
+                <Input
+                  id="task-title-input"
+                  placeholder="e.g. Export vector logo variations"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              {/* Project Selection (if not embedded) */}
+              {!embedded && (
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="task-project-select"
+                    className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
+                  >
+                    Project *
+                  </label>
+                  {projects && projects.length > 0 ? (
+                    <select
+                      id="task-project-select"
+                      aria-label="Task project"
+                      value={newProjectId ?? projects[0]?.id}
+                      onChange={(e) => setNewProjectId(Number(e.target.value))}
+                      className="w-full h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    >
+                      {projects.map((proj) => (
+                        <option key={proj.id} value={proj.id}>
+                          {proj.title}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      No projects available. Create a project first to attach tasks.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Priority Selection */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  Priority
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["low", "medium", "high"] as const).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setNewPriority(p)}
+                      className={cn(
+                        "py-1.5 px-3 rounded-lg text-xs font-medium capitalize border transition-all",
+                        newPriority === p
+                          ? p === "high"
+                            ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800 ring-2 ring-rose-500/20"
+                            : p === "medium"
+                            ? "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 ring-2 ring-amber-500/20"
+                            : "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 ring-2 ring-emerald-500/20"
+                          : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                      )}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Initial Column Status Selection */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  Initial Column
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(
+                    [
+                      { id: "todo", label: "To Do" },
+                      { id: "in-progress", label: "In Progress" },
+                      { id: "done", label: "Done" },
+                    ] as const
+                  ).map((col) => (
+                    <button
+                      key={col.id}
+                      type="button"
+                      onClick={() => setNewStatus(col.id)}
+                      className={cn(
+                        "py-1.5 px-3 rounded-lg text-xs font-medium border transition-all",
+                        newStatus === col.id
+                          ? "bg-indigo-50 text-indigo-700 border-indigo-300 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800 ring-2 ring-indigo-500/20"
+                          : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                      )}
+                    >
+                      {col.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsCreateModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Create Task</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { PenTool, LayoutDashboard, FolderKanban, FileText, Image, Palette } from "lucide-react";
+import { PenTool, LayoutDashboard, FolderKanban, FileText, Image, Palette, Kanban } from "lucide-react";
 
 export function Sidebar() {
   const navItems = [
     { name: "Dashboard", to: "/", icon: LayoutDashboard },
     { name: "Projects", to: "/projects", icon: FolderKanban },
+    { name: "Task Board", to: "/tasks", icon: Kanban },
     { name: "Design Briefs", to: "/briefs", icon: FileText },
     { name: "Moodboards", to: "/moodboards", icon: Image },
     { name: "Brand Identity", to: "/identity", icon: Palette },
