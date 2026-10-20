@@ -135,7 +135,7 @@ describe("Tasks Page", () => {
     const newTaskBtn = screen.getByRole("button", { name: /New Task/i });
     fireEvent.click(newTaskBtn);
 
-    const titleInput = screen.getByPlaceholderText(/Export vector logo variations/i);
+    const titleInput = screen.getByPlaceholderText(/Export responsive logo assets/i);
     fireEvent.change(titleInput, { target: { value: "Build interactive prototypes" } });
 
     const submitBtn = screen.getByRole("button", { name: "Create Task" });
