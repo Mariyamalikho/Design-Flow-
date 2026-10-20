@@ -15,16 +15,9 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { db, type Task } from "@/lib/db";
 import { KanbanColumn } from "@/components/kanban/KanbanColumn";
 import { TaskCard } from "@/components/kanban/TaskCard";
+import { CreateTaskModal } from "@/components/kanban/CreateTaskModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/Dialog";
 import {
   Plus,
   Search,
@@ -62,12 +55,9 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
 
   // Create Task Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newPriority, setNewPriority] = useState<"low" | "medium" | "high">("medium");
-  const [newStatus, setNewStatus] = useState<"todo" | "in-progress" | "done">("todo");
-  const [newProjectId, setNewProjectId] = useState<number | undefined>(
-    projectId !== undefined ? projectId : undefined
-  );
+  const [createModalInitialStatus, setCreateModalInitialStatus] = useState<
+    "todo" | "in-progress" | "done"
+  >("todo");
 
   // Active dragged task for drag overlay
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -96,46 +86,11 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
   }, [projects]);
 
   // Open modal with specific initial column status
-  const handleOpenCreateModal = (initialStatus: "todo" | "in-progress" | "done" = "todo") => {
-    setNewStatus(initialStatus);
-    setNewTitle("");
-    setNewPriority("medium");
-    if (projectId !== undefined) {
-      setNewProjectId(projectId);
-    } else if (projects && projects.length > 0) {
-      setNewProjectId(projects[0].id);
-    }
+  const handleOpenCreateModal = (
+    initialStatus: "todo" | "in-progress" | "done" = "todo"
+  ) => {
+    setCreateModalInitialStatus(initialStatus);
     setIsCreateModalOpen(true);
-  };
-
-  // Submit new task
-  const handleCreateTask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim()) {
-      toast.error("Please enter a task title");
-      return;
-    }
-
-    const assignedProjectId = projectId ?? newProjectId;
-    if (!assignedProjectId) {
-      toast.error("Please select a project for this task");
-      return;
-    }
-
-    try {
-      await db.tasks.add({
-        projectId: assignedProjectId,
-        title: newTitle.trim(),
-        status: newStatus,
-        priority: newPriority,
-        createdAt: new Date(),
-      });
-      toast.success("Task added to board");
-      setIsCreateModalOpen(false);
-      setNewTitle("");
-    } catch {
-      toast.error("Failed to add task");
-    }
   };
 
   // Status transition
@@ -400,9 +355,10 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         </div>
 
         <DragOverlay
-          zIndex={100}
+          zIndex={999}
+          className="z-[999] pointer-events-none select-none drop-shadow-2xl"
           dropAnimation={{
-            duration: 200,
+            duration: 220,
             easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
           }}
         >
@@ -418,140 +374,14 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         </DragOverlay>
       </DndContext>
 
-      {/* Create Task Dialog */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <form onSubmit={handleCreateTask}>
-            <DialogHeader>
-              <DialogTitle>Create New Task</DialogTitle>
-              <DialogDescription>
-                Add a task card to your workflow board.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              {/* Task Title */}
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="task-title-input"
-                  className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
-                >
-                  Task Title *
-                </label>
-                <Input
-                  id="task-title-input"
-                  placeholder="e.g. Export vector logo variations"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
-
-              {/* Project Selection (if not embedded) */}
-              {!embedded && (
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="task-project-select"
-                    className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
-                  >
-                    Project *
-                  </label>
-                  {projects && projects.length > 0 ? (
-                    <select
-                      id="task-project-select"
-                      aria-label="Task project"
-                      value={newProjectId ?? projects[0]?.id}
-                      onChange={(e) => setNewProjectId(Number(e.target.value))}
-                      className="w-full h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      required
-                    >
-                      {projects.map((proj) => (
-                        <option key={proj.id} value={proj.id}>
-                          {proj.title}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <p className="text-xs text-amber-600 dark:text-amber-400">
-                      No projects available. Create a project first to attach tasks.
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Priority Selection */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Priority
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["low", "medium", "high"] as const).map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setNewPriority(p)}
-                      className={cn(
-                        "py-1.5 px-3 rounded-lg text-xs font-medium capitalize border transition-all",
-                        newPriority === p
-                          ? p === "high"
-                            ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800 ring-2 ring-rose-500/20"
-                            : p === "medium"
-                            ? "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 ring-2 ring-amber-500/20"
-                            : "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 ring-2 ring-emerald-500/20"
-                          : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                      )}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Initial Column Status Selection */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Initial Column
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(
-                    [
-                      { id: "todo", label: "To Do" },
-                      { id: "in-progress", label: "In Progress" },
-                      { id: "done", label: "Done" },
-                    ] as const
-                  ).map((col) => (
-                    <button
-                      key={col.id}
-                      type="button"
-                      onClick={() => setNewStatus(col.id)}
-                      className={cn(
-                        "py-1.5 px-3 rounded-lg text-xs font-medium border transition-all",
-                        newStatus === col.id
-                          ? "bg-indigo-50 text-indigo-700 border-indigo-300 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800 ring-2 ring-indigo-500/20"
-                          : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                      )}
-                    >
-                      {col.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsCreateModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Create Task</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Create Task Modal */}
+      <CreateTaskModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        defaultStatus={createModalInitialStatus}
+        projectId={projectId}
+        projects={projects ?? []}
+      />
     </div>
   );
 }
