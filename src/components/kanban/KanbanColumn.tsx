@@ -1,6 +1,8 @@
 import React from "react";
+import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { Task } from "@/lib/db";
-import { TaskCard } from "./TaskCard";
+import { SortableTaskCard } from "./SortableTaskCard";
 import { Button } from "@/components/ui/Button";
 import { Plus, CheckCircle2, Clock, ListPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,21 +25,21 @@ const COLUMN_THEMES = {
     badgeBg: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-400",
     emptyIcon: ListPlus,
     emptyMessage: "No tasks to do",
-    emptyHint: "Add a task to get started",
+    emptyHint: "Add a task or drag one here",
   },
   "in-progress": {
     accentDot: "bg-amber-500",
     badgeBg: "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400",
     emptyIcon: Clock,
     emptyMessage: "Nothing in progress",
-    emptyHint: "Move tasks here when you begin working",
+    emptyHint: "Drag tasks here when you begin working",
   },
   done: {
     accentDot: "bg-emerald-500",
     badgeBg: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400",
     emptyIcon: CheckCircle2,
     emptyMessage: "No completed tasks yet",
-    emptyHint: "Completed tasks will appear here",
+    emptyHint: "Drag completed tasks here",
   },
 };
 
@@ -55,11 +57,24 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   const theme = COLUMN_THEMES[status] || COLUMN_THEMES.todo;
   const EmptyIcon = theme.emptyIcon;
 
+  const { setNodeRef, isOver } = useDroppable({
+    id: status,
+    data: {
+      type: "Column",
+      status,
+    },
+  });
+
+  const taskIds = React.useMemo(() => {
+    return tasks.map((t) => t.id!).filter(Boolean);
+  }, [tasks]);
+
   return (
     <div
       data-testid={`kanban-column-${status}`}
       className={cn(
-        "flex flex-col rounded-2xl bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800/80 p-3 min-w-[280px] w-full flex-1 max-h-full",
+        "flex flex-col rounded-2xl bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800/80 p-3 min-w-[280px] w-full flex-1 max-h-full transition-all duration-200",
+        isOver && "border-indigo-400/80 dark:border-indigo-600/80 bg-indigo-50/30 dark:bg-indigo-950/15 shadow-sm",
         className
       )}
     >
@@ -95,47 +110,57 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         )}
       </div>
 
-      {/* Cards Scroll Container */}
-      <div className="flex-1 space-y-3 overflow-y-auto pr-0.5 min-h-[180px]">
-        {tasks.length > 0 ? (
-          tasks.map((task) => (
-            <TaskCard
-              key={task.id ?? `${task.title}-${task.createdAt.getTime()}`}
-              task={task}
-              projectName={projectMap[task.projectId]}
-              onClick={onTaskClick ? () => onTaskClick(task) : undefined}
-              onStatusChange={
-                onStatusChange && task.id
-                  ? (newStatus) => onStatusChange(task.id!, newStatus)
-                  : undefined
-              }
-              onDelete={
-                onDeleteTask && task.id ? () => onDeleteTask(task.id!) : undefined
-              }
-            />
-          ))
-        ) : (
-          <div className="h-full min-h-[160px] flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800/80 p-6 text-center text-zinc-400 dark:text-zinc-600 bg-white/40 dark:bg-zinc-900/20">
-            <EmptyIcon className="w-8 h-8 mb-2 opacity-40 text-zinc-400 dark:text-zinc-500" />
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-0.5">
-              {theme.emptyMessage}
-            </p>
-            <p className="text-[11px] text-zinc-400 dark:text-zinc-500 max-w-[200px]">
-              {theme.emptyHint}
-            </p>
-            {onQuickAddTask && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onQuickAddTask}
-                className="mt-3 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 h-7 px-2.5"
-              >
-                <Plus className="w-3.5 h-3.5 mr-1" />
-                Add Task
-              </Button>
-            )}
-          </div>
+      {/* Cards Scroll Container & Drop Zone */}
+      <div
+        ref={setNodeRef}
+        data-testid={`kanban-dropzone-${status}`}
+        className={cn(
+          "flex-1 space-y-3 overflow-y-auto pr-0.5 min-h-[200px] rounded-xl transition-colors duration-150",
+          isOver && "bg-indigo-50/50 dark:bg-indigo-950/20"
         )}
+      >
+        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+          {tasks.length > 0 ? (
+            tasks.map((task) => (
+              <SortableTaskCard
+                key={task.id ?? `${task.title}-${task.createdAt.getTime()}`}
+                id={task.id!}
+                task={task}
+                projectName={projectMap[task.projectId]}
+                onClick={onTaskClick ? () => onTaskClick(task) : undefined}
+                onStatusChange={
+                  onStatusChange && task.id
+                    ? (newStatus) => onStatusChange(task.id!, newStatus)
+                    : undefined
+                }
+                onDelete={
+                  onDeleteTask && task.id ? () => onDeleteTask(task.id!) : undefined
+                }
+              />
+            ))
+          ) : (
+            <div className="h-full min-h-[180px] flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800/80 p-6 text-center text-zinc-400 dark:text-zinc-600 bg-white/40 dark:bg-zinc-900/20">
+              <EmptyIcon className="w-8 h-8 mb-2 opacity-40 text-zinc-400 dark:text-zinc-500" />
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-0.5">
+                {theme.emptyMessage}
+              </p>
+              <p className="text-[11px] text-zinc-400 dark:text-zinc-500 max-w-[200px]">
+                {theme.emptyHint}
+              </p>
+              {onQuickAddTask && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onQuickAddTask}
+                  className="mt-3 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 h-7 px-2.5"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  Add Task
+                </Button>
+              )}
+            </div>
+          )}
+        </SortableContext>
       </div>
     </div>
   );
