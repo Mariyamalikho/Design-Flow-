@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
 import {
-  Calendar,
   CheckCircle2,
   Circle,
   Clock,
@@ -23,6 +22,7 @@ import {
   Flame,
   Minus,
   ArrowDown,
+  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,22 +41,25 @@ const PRIORITY_CONFIG = {
   high: {
     label: "High",
     badgeClass:
-      "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900/60",
+      "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-400 dark:border-rose-900/60 font-semibold",
     dotClass: "bg-rose-500",
+    cardBorderClass: "border-l-[3.5px] border-l-rose-500 dark:border-l-rose-500",
     icon: Flame,
   },
   medium: {
     label: "Medium",
     badgeClass:
-      "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/60",
+      "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-900/60 font-medium",
     dotClass: "bg-amber-500",
+    cardBorderClass: "border-l-[3.5px] border-l-amber-500 dark:border-l-amber-500",
     icon: Minus,
   },
   low: {
     label: "Low",
     badgeClass:
-      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/60",
+      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-900/60 font-medium",
     dotClass: "bg-emerald-500",
+    cardBorderClass: "border-l-[3.5px] border-l-emerald-500 dark:border-l-emerald-500",
     icon: ArrowDown,
   },
 };
@@ -147,7 +150,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       className={cn(
         "group relative flex flex-col justify-between rounded-xl border p-4 bg-white dark:bg-zinc-900/90 shadow-xs transition-all duration-200",
         "border-zinc-200/90 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm cursor-grab active:cursor-grabbing",
-        isDone && "bg-zinc-50/70 dark:bg-zinc-900/40 opacity-80",
+        priority.cardBorderClass,
+        isDone && "bg-zinc-50/70 dark:bg-zinc-900/40 opacity-80 border-l-zinc-300 dark:border-l-zinc-700",
         isDragging && "opacity-25 border-dashed border-indigo-400 dark:border-indigo-600 bg-zinc-50/50 dark:bg-zinc-900/30",
         isOverlay && "shadow-2xl ring-2 ring-indigo-500/40 rotate-1 cursor-grabbing bg-white dark:bg-zinc-900 border-indigo-400 dark:border-indigo-600 scale-[1.03] z-[999] pointer-events-none",
         onClick && "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950",
@@ -160,7 +164,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <Badge
             variant="outline"
             className={cn(
-              "px-2 py-0.5 text-[11px] font-medium tracking-tight rounded-md flex items-center gap-1 shadow-none",
+              "px-2 py-0.5 text-[11px] tracking-tight rounded-md flex items-center gap-1 shadow-none transition-colors",
               priority.badgeClass
             )}
           >

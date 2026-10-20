@@ -280,14 +280,24 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             </div>
           )}
 
-          {/* Priority Filter */}
+          {/* Priority Filter with Color Coding */}
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-zinc-400 shrink-0 hidden sm:block" />
             <select
               aria-label="Filter by priority"
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-zinc-700 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+              className={cn(
+                "h-9 px-3 rounded-lg border text-xs focus:outline-none focus:ring-2 font-medium transition-colors",
+                priorityFilter === "high" &&
+                  "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800 focus:ring-rose-500",
+                priorityFilter === "medium" &&
+                  "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 focus:ring-amber-500",
+                priorityFilter === "low" &&
+                  "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 focus:ring-emerald-500",
+                priorityFilter === "all" &&
+                  "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200 focus:ring-indigo-500"
+              )}
             >
               <option value="all">All Priorities</option>
               <option value="high">High Priority</option>
