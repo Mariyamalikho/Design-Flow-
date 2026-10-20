@@ -9,14 +9,19 @@ describe("TaskCard", () => {
     id: 1,
     projectId: 101,
     title: "Design brand styleguide",
+    description: "Export primary vector assets and responsive variants",
     status: "todo",
     priority: "high",
+    dueDate: new Date("2026-10-25T12:00:00Z"),
     createdAt: new Date("2026-10-19T10:00:00Z"),
   };
 
-  it("renders task title and priority badge", () => {
+  it("renders task title, description, and priority badge", () => {
     render(<TaskCard task={sampleTask} />);
     expect(screen.getByText("Design brand styleguide")).toBeDefined();
+    expect(
+      screen.getByText("Export primary vector assets and responsive variants")
+    ).toBeDefined();
     expect(screen.getByText("High")).toBeDefined();
     expect(screen.getByText("To Do")).toBeDefined();
   });
@@ -24,6 +29,21 @@ describe("TaskCard", () => {
   it("displays project name badge when provided", () => {
     render(<TaskCard task={sampleTask} projectName="Fintech Dashboard" />);
     expect(screen.getByText("Fintech Dashboard")).toBeDefined();
+  });
+
+  it("renders due date indicator correctly", () => {
+    render(<TaskCard task={sampleTask} />);
+    expect(screen.getByText(/Due Oct 25/i)).toBeDefined();
+  });
+
+  it("renders overdue indicator when due date is in the past and task is not done", () => {
+    const overdueTask: Task = {
+      ...sampleTask,
+      dueDate: new Date("2026-10-01T12:00:00Z"),
+      status: "in-progress",
+    };
+    render(<TaskCard task={overdueTask} />);
+    expect(screen.getByText(/Overdue/i)).toBeDefined();
   });
 
   it("handles onClick callback when card is clicked", () => {

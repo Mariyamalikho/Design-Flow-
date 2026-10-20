@@ -20,6 +20,9 @@ import {
   Trash2,
   ArrowRight,
   GripVertical,
+  Flame,
+  Minus,
+  ArrowDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,18 +43,21 @@ const PRIORITY_CONFIG = {
     badgeClass:
       "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900/60",
     dotClass: "bg-rose-500",
+    icon: Flame,
   },
   medium: {
     label: "Medium",
     badgeClass:
       "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/60",
     dotClass: "bg-amber-500",
+    icon: Minus,
   },
   low: {
     label: "Low",
     badgeClass:
       "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/60",
     dotClass: "bg-emerald-500",
+    icon: ArrowDown,
   },
 };
 
@@ -72,6 +78,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   className,
 }) => {
   const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium;
+  const PriorityIcon = priority.icon;
   const StatusIcon = STATUS_ICONS[task.status] || Circle;
 
   const formattedDate = React.useMemo(() => {
@@ -85,6 +92,43 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       return "";
     }
   }, [task.createdAt]);
+
+  // Due Date status calculation
+  const dueDateInfo = React.useMemo(() => {
+    if (!task.dueDate) return null;
+    try {
+      const due = task.dueDate instanceof Date ? task.dueDate : new Date(task.dueDate);
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+
+      const diffDays = Math.round(
+        (dueDay.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      const formatted = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+      }).format(due);
+
+      const isOverdue = diffDays < 0 && task.status !== "done";
+      const isDueSoon = (diffDays === 0 || diffDays === 1) && task.status !== "done";
+
+      let label = formatted;
+      if (diffDays === 0) label = "Today";
+      else if (diffDays === 1) label = "Tomorrow";
+      else if (diffDays === -1 && isOverdue) label = "Yesterday";
+
+      return {
+        formatted,
+        label,
+        isOverdue,
+        isDueSoon,
+      };
+    } catch {
+      return null;
+    }
+  }, [task.dueDate, task.status]);
 
   const isDone = task.status === "done";
 
@@ -116,12 +160,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <Badge
             variant="outline"
             className={cn(
-              "px-2 py-0.5 text-[11px] font-medium tracking-tight rounded-md flex items-center gap-1.5 shadow-none",
+              "px-2 py-0.5 text-[11px] font-medium tracking-tight rounded-md flex items-center gap-1 shadow-none",
               priority.badgeClass
             )}
           >
-            <span className={cn("w-1.5 h-1.5 rounded-full", priority.dotClass)} />
-            {priority.label}
+            <PriorityIcon className="w-3 h-3 shrink-0" />
+            <span>{priority.label}</span>
           </Badge>
 
           {projectName && (
@@ -205,12 +249,48 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       {/* Task Title */}
       <h4
         className={cn(
-          "text-sm font-medium text-zinc-900 dark:text-zinc-100 leading-snug line-clamp-3 mb-3 break-words",
+          "text-sm font-medium text-zinc-900 dark:text-zinc-100 leading-snug line-clamp-3 mb-1.5 break-words",
           isDone && "line-through text-zinc-400 dark:text-zinc-500"
         )}
       >
         {task.title}
       </h4>
+
+      {/* Task Description Preview (if present) */}
+      {task.description && (
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-2.5 break-words">
+          {task.description}
+        </p>
+      )}
+
+      {/* Due Date Indicator (if set) */}
+      {dueDateInfo && (
+        <div className="mb-2.5">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border transition-colors",
+              dueDateInfo.isOverdue &&
+                "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-400 dark:border-rose-900/60 font-semibold",
+              dueDateInfo.isDueSoon &&
+                "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-400 dark:border-amber-900/60 font-medium",
+              !dueDateInfo.isOverdue &&
+                !dueDateInfo.isDueSoon &&
+                "bg-zinc-50 text-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-400 border-zinc-200/80 dark:border-zinc-700/60"
+            )}
+            title={dueDateInfo.isOverdue ? "Overdue task" : "Due date"}
+          >
+            <Calendar
+              className={cn(
+                "w-3 h-3 shrink-0",
+                dueDateInfo.isOverdue ? "text-rose-600 dark:text-rose-400" : "text-zinc-400"
+              )}
+            />
+            <span>
+              {dueDateInfo.isOverdue ? `Overdue (${dueDateInfo.label})` : `Due ${dueDateInfo.label}`}
+            </span>
+          </span>
+        </div>
+      )}
 
       {/* Footer Info: Status indicator & Creation Date */}
       <div className="flex items-center justify-between text-xs text-zinc-400 dark:text-zinc-500 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 mt-auto">
@@ -230,7 +310,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         {formattedDate && (
           <div className="flex items-center gap-1 text-[11px]">
-            <Calendar className="w-3 h-3 text-zinc-400" />
+            <Clock className="w-3 h-3 text-zinc-400" />
             <span>{formattedDate}</span>
           </div>
         )}
