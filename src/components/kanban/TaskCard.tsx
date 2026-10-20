@@ -23,13 +23,16 @@ import {
   Minus,
   ArrowDown,
   Calendar,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface TaskCardProps {
   task: Task;
   projectName?: string;
+  searchQuery?: string;
   onClick?: () => void;
+  onEdit?: () => void;
   onStatusChange?: (newStatus: "todo" | "in-progress" | "done") => void;
   onDelete?: () => void;
   isDragging?: boolean;
@@ -70,10 +73,36 @@ const STATUS_ICONS = {
   done: CheckCircle2,
 };
 
+function HighlightMatch({ text, query }: { text: string; query?: string }) {
+  if (!query || !query.trim()) return <>{text}</>;
+  const trimmed = query.trim();
+  const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(${escaped})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === trimmed.toLowerCase() ? (
+          <mark
+            key={i}
+            className="bg-amber-200/90 dark:bg-amber-900/60 text-zinc-900 dark:text-amber-100 rounded-xs px-0.5"
+          >
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+}
+
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
   projectName,
+  searchQuery,
   onClick,
+  onEdit,
   onStatusChange,
   onDelete,
   isDragging = false,
@@ -83,6 +112,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium;
   const PriorityIcon = priority.icon;
   const StatusIcon = STATUS_ICONS[task.status] || Circle;
+
+  const handleCardClick = onClick || onEdit;
 
   const formattedDate = React.useMemo(() => {
     try {
@@ -139,12 +170,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     <div
       role="article"
       aria-label={`Task: ${task.title}`}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
+      tabIndex={handleCardClick ? 0 : undefined}
+      onClick={handleCardClick}
       onKeyDown={(e) => {
-        if (onClick && (e.key === "Enter" || e.key === " ")) {
+        if (handleCardClick && (e.key === "Enter" || e.key === " ")) {
           e.preventDefault();
-          onClick();
+          handleCardClick();
         }
       }}
       className={cn(
@@ -154,7 +185,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         isDone && "bg-zinc-50/70 dark:bg-zinc-900/40 opacity-80 border-l-zinc-300 dark:border-l-zinc-700",
         isDragging && "opacity-25 border-dashed border-indigo-400 dark:border-indigo-600 bg-zinc-50/50 dark:bg-zinc-900/30",
         isOverlay && "shadow-2xl ring-2 ring-indigo-500/40 rotate-1 cursor-grabbing bg-white dark:bg-zinc-900 border-indigo-400 dark:border-indigo-600 scale-[1.03] z-[999] pointer-events-none",
-        onClick && "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950",
+        handleCardClick && "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950",
         className
       )}
     >
@@ -187,7 +218,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         <div className="flex items-center gap-0.5 shrink-0">
           <GripVertical className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
 
-          {(onStatusChange || onDelete) && (
+          {(onEdit || onStatusChange || onDelete) && (
             <div
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
@@ -206,6 +237,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-44">
+                  {onEdit && (
+                    <DropdownMenuItem onClick={onEdit}>
+                      <Pencil className="mr-2 h-3.5 w-3.5 text-zinc-500" />
+                      <span>Edit Task</span>
+                    </DropdownMenuItem>
+                  )}
+                  {onEdit && (onStatusChange || onDelete) && <DropdownMenuSeparator />}
                   {onStatusChange && (
                     <>
                       <DropdownMenuLabel className="text-xs text-zinc-400 font-normal">
@@ -257,13 +295,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           isDone && "line-through text-zinc-400 dark:text-zinc-500"
         )}
       >
-        {task.title}
+        <HighlightMatch text={task.title} query={searchQuery} />
       </h4>
 
       {/* Task Description Preview (if present) */}
       {task.description && (
         <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-2.5 break-words">
-          {task.description}
+          <HighlightMatch text={task.description} query={searchQuery} />
         </p>
       )}
 

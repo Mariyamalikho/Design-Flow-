@@ -16,8 +16,10 @@ import { db, type Task } from "@/lib/db";
 import { KanbanColumn } from "@/components/kanban/KanbanColumn";
 import { TaskCard } from "@/components/kanban/TaskCard";
 import { CreateTaskModal } from "@/components/kanban/CreateTaskModal";
+import { EditTaskModal } from "@/components/kanban/EditTaskModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Badge } from "@/components/ui/Badge";
 import {
   Plus,
   Search,
@@ -27,6 +29,9 @@ import {
   Clock,
   Circle,
   FolderKanban,
+  Layers,
+  X,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -48,16 +53,21 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
 
   // Filters state
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [selectedProjectId, setSelectedProjectId] = useState<string>(
     projectId !== undefined ? String(projectId) : "all"
   );
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
 
   // Create Task Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [createModalInitialStatus, setCreateModalInitialStatus] = useState<
     "todo" | "in-progress" | "done"
   >("todo");
+
+  // Edit Task Modal State
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Active dragged task for drag overlay
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -85,12 +95,18 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
     return map;
   }, [projects]);
 
-  // Open modal with specific initial column status
+  // Open create modal with specific initial column status
   const handleOpenCreateModal = (
     initialStatus: "todo" | "in-progress" | "done" = "todo"
   ) => {
     setCreateModalInitialStatus(initialStatus);
     setIsCreateModalOpen(true);
+  };
+
+  // Open edit modal for specific task
+  const handleOpenEditModal = (task: Task) => {
+    setEditingTask(task);
+    setIsEditModalOpen(true);
   };
 
   // Status transition
@@ -156,14 +172,73 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
     }
   };
 
-  // Filter tasks based on search, project selector, and priority
+  // Compute total task counts per priority and status across all unfiltered tasks
+  const priorityCounts = useMemo(() => {
+    const list = tasks ?? [];
+    return {
+      all: list.length,
+      high: list.filter((t) => t.priority === "high").length,
+      medium: list.filter((t) => t.priority === "medium").length,
+      low: list.filter((t) => t.priority === "low").length,
+    };
+  }, [tasks]);
+
+  const statusCounts = useMemo(() => {
+    const list = tasks ?? [];
+    return {
+      all: list.length,
+      todo: list.filter((t) => t.status === "todo").length,
+      "in-progress": list.filter((t) => t.status === "in-progress").length,
+      done: list.filter((t) => t.status === "done").length,
+    };
+  }, [tasks]);
+
+  // Check if any filter is active
+  const hasActiveFilters = useMemo(() => {
+    return (
+      statusFilter !== "all" ||
+      priorityFilter !== "all" ||
+      (projectId === undefined && selectedProjectId !== "all") ||
+      searchQuery.trim() !== ""
+    );
+  }, [statusFilter, priorityFilter, selectedProjectId, projectId, searchQuery]);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (statusFilter !== "all") count++;
+    if (priorityFilter !== "all") count++;
+    if (projectId === undefined && selectedProjectId !== "all") count++;
+    if (searchQuery.trim() !== "") count++;
+    return count;
+  }, [statusFilter, priorityFilter, selectedProjectId, projectId, searchQuery]);
+
+  // Reset all filters to default
+  const handleResetFilters = () => {
+    setStatusFilter("all");
+    setPriorityFilter("all");
+    setSelectedProjectId("all");
+    setSearchQuery("");
+  };
+
+  // Filter tasks based on search, project selector, status, and priority
   const filteredTasks = useMemo(() => {
     if (!tasks) return [];
+    const query = searchQuery.trim().toLowerCase();
+
     return tasks.filter((task) => {
-      // Text search
-      const matchesSearch =
-        searchQuery.trim() === "" ||
-        task.title.toLowerCase().includes(searchQuery.toLowerCase());
+      // Text search matching title or description or project name
+      let matchesSearch = true;
+      if (query) {
+        const titleMatch = task.title.toLowerCase().includes(query);
+        const descMatch = Boolean(task.description && task.description.toLowerCase().includes(query));
+        const projName = projectMap[task.projectId]?.toLowerCase();
+        const projMatch = Boolean(projName && projName.includes(query));
+        matchesSearch = titleMatch || descMatch || projMatch;
+      }
+
+      // Status filter
+      const matchesStatus =
+        statusFilter === "all" || task.status === statusFilter;
 
       // Project filter (if not embedded)
       const matchesProject =
@@ -175,9 +250,9 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
       const matchesPriority =
         priorityFilter === "all" || task.priority === priorityFilter;
 
-      return matchesSearch && matchesProject && matchesPriority;
+      return matchesSearch && matchesStatus && matchesProject && matchesPriority;
     });
-  }, [tasks, searchQuery, selectedProjectId, priorityFilter, projectId]);
+  }, [tasks, searchQuery, statusFilter, selectedProjectId, priorityFilter, projectId, projectMap]);
 
   // Group into columns
   const todoTasks = useMemo(
@@ -246,84 +321,261 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
       )}
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-        <div className="flex flex-1 flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-          {/* Search Input */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
-            <Input
-              type="text"
-              placeholder="Search tasks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 text-sm rounded-lg"
-            />
-          </div>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+          <div className="flex flex-1 flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-wrap">
+            {/* Search Input with Clear Button and ESC handler */}
+            <div className="relative flex-1 min-w-[200px] max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+              <Input
+                type="text"
+                placeholder="Search tasks by title, notes, or project..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setSearchQuery("");
+                  }
+                }}
+                className="pl-9 pr-8 h-9 text-sm rounded-lg"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-md transition-colors"
+                  aria-label="Clear search"
+                  title="Clear search (Esc)"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
 
-          {/* Project Selector (only when global board) */}
-          {!embedded && projects && projects.length > 0 && (
+            {/* Status Filter */}
             <div className="flex items-center gap-2">
-              <FolderKanban className="w-4 h-4 text-zinc-400 shrink-0 hidden sm:block" />
+              <Layers className="w-4 h-4 text-zinc-400 shrink-0 hidden sm:block" />
               <select
-                aria-label="Filter by project"
-                value={selectedProjectId}
-                onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-zinc-700 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                aria-label="Filter by status"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className={cn(
+                  "h-9 px-3 rounded-lg border text-xs focus:outline-none focus:ring-2 font-medium transition-colors",
+                  statusFilter !== "all"
+                    ? "bg-indigo-50 text-indigo-700 border-indigo-300 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800 focus:ring-indigo-500"
+                    : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200 focus:ring-indigo-500"
+                )}
               >
-                <option value="all">All Projects</option>
-                {projects.map((proj) => (
-                  <option key={proj.id} value={proj.id}>
-                    {proj.title}
-                  </option>
-                ))}
+                <option value="all">All Statuses ({statusCounts.all})</option>
+                <option value="todo">To Do ({statusCounts.todo})</option>
+                <option value="in-progress">In Progress ({statusCounts["in-progress"]})</option>
+                <option value="done">Done ({statusCounts.done})</option>
               </select>
             </div>
-          )}
 
-          {/* Priority Filter with Color Coding */}
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-zinc-400 shrink-0 hidden sm:block" />
-            <select
-              aria-label="Filter by priority"
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              className={cn(
-                "h-9 px-3 rounded-lg border text-xs focus:outline-none focus:ring-2 font-medium transition-colors",
-                priorityFilter === "high" &&
-                  "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800 focus:ring-rose-500",
-                priorityFilter === "medium" &&
-                  "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 focus:ring-amber-500",
-                priorityFilter === "low" &&
-                  "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 focus:ring-emerald-500",
-                priorityFilter === "all" &&
-                  "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200 focus:ring-indigo-500"
-              )}
+            {/* Priority Filter with Color Coding */}
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-zinc-400 shrink-0 hidden sm:block" />
+              <select
+                aria-label="Filter by priority"
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                className={cn(
+                  "h-9 px-3 rounded-lg border text-xs focus:outline-none focus:ring-2 font-medium transition-colors",
+                  priorityFilter === "high" &&
+                    "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800 focus:ring-rose-500",
+                  priorityFilter === "medium" &&
+                    "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 focus:ring-amber-500",
+                  priorityFilter === "low" &&
+                    "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 focus:ring-emerald-500",
+                  priorityFilter === "all" &&
+                    "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200 focus:ring-indigo-500"
+                )}
+              >
+                <option value="all">All Priorities ({priorityCounts.all})</option>
+                <option value="high">High ({priorityCounts.high})</option>
+                <option value="medium">Medium ({priorityCounts.medium})</option>
+                <option value="low">Low ({priorityCounts.low})</option>
+              </select>
+            </div>
+
+            {/* Project Selector (only when global board) */}
+            {!embedded && projects && projects.length > 0 && (
+              <div className="flex items-center gap-2">
+                <FolderKanban className="w-4 h-4 text-zinc-400 shrink-0 hidden sm:block" />
+                <select
+                  aria-label="Filter by project"
+                  value={selectedProjectId}
+                  onChange={(e) => setSelectedProjectId(e.target.value)}
+                  className="h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-zinc-700 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                >
+                  <option value="all">All Projects</option>
+                  {projects.map((proj) => (
+                    <option key={proj.id} value={proj.id}>
+                      {proj.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Reset Filters Action */}
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleResetFilters}
+                className="h-9 text-xs gap-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                title="Reset all filters"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset</span>
+                <Badge
+                  variant="secondary"
+                  className="ml-0.5 px-1.5 py-0 h-4 text-[10px] rounded-full"
+                >
+                  {activeFilterCount}
+                </Badge>
+              </Button>
+            )}
+          </div>
+
+          {/* Quick Metric Badges */}
+          <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400 self-end md:self-auto shrink-0 pt-1 md:pt-0">
+            <div className="flex items-center gap-1.5">
+              <Circle className="w-3 h-3 text-indigo-500" />
+              <span>To Do: {todoTasks.length}</span>
+            </div>
+            <span className="text-zinc-300 dark:text-zinc-700">·</span>
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3 h-3 text-amber-500" />
+              <span>In Progress: {inProgressTasks.length}</span>
+            </div>
+            <span className="text-zinc-300 dark:text-zinc-700">·</span>
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+              <span>Done: {doneTasks.length}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Search Results Feedback Bar */}
+        {searchQuery.trim() !== "" && (
+          <div
+            data-testid="search-results-feedback"
+            className="flex items-center justify-between px-3.5 py-2 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/60 rounded-xl text-xs text-indigo-950 dark:text-indigo-200"
+          >
+            <div className="flex items-center gap-2">
+              <Search className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              <span>
+                Found <strong>{filteredTasks.length}</strong> {filteredTasks.length === 1 ? "task" : "tasks"} matching &ldquo;
+                <span className="font-semibold">{searchQuery}</span>&rdquo;
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 font-medium underline underline-offset-2 cursor-pointer"
             >
-              <option value="all">All Priorities</option>
-              <option value="high">High Priority</option>
-              <option value="medium">Medium Priority</option>
-              <option value="low">Low Priority</option>
-            </select>
+              Clear search
+            </button>
           </div>
-        </div>
+        )}
 
-        {/* Quick Metric Badges */}
-        <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400 self-end md:self-auto shrink-0 pt-1 md:pt-0">
-          <div className="flex items-center gap-1.5">
-            <Circle className="w-3 h-3 text-indigo-500" />
-            <span>To Do: {todoTasks.length}</span>
+        {/* Active Filter Pills Bar */}
+        {hasActiveFilters && (
+          <div className="flex items-center gap-2 flex-wrap pt-0.5 text-xs">
+            <span className="text-zinc-400 dark:text-zinc-500 text-[11px] font-medium">
+              Active filters:
+            </span>
+
+            {statusFilter !== "all" && (
+              <Badge
+                variant="outline"
+                className="gap-1 pl-2 pr-1 py-0.5 text-[11px] bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 rounded-md"
+              >
+                <span>
+                  Status: {statusFilter === "in-progress" ? "In Progress" : statusFilter === "todo" ? "To Do" : "Done"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter("all")}
+                  className="hover:bg-indigo-200/50 dark:hover:bg-indigo-900 rounded p-0.5"
+                  aria-label="Remove status filter"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
+
+            {priorityFilter !== "all" && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "gap-1 pl-2 pr-1 py-0.5 text-[11px] rounded-md capitalize",
+                  priorityFilter === "high" &&
+                    "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800",
+                  priorityFilter === "medium" &&
+                    "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800",
+                  priorityFilter === "low" &&
+                    "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
+                )}
+              >
+                <span>Priority: {priorityFilter}</span>
+                <button
+                  type="button"
+                  onClick={() => setPriorityFilter("all")}
+                  className="rounded p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
+                  aria-label="Remove priority filter"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
+
+            {projectId === undefined && selectedProjectId !== "all" && (
+              <Badge
+                variant="outline"
+                className="gap-1 pl-2 pr-1 py-0.5 text-[11px] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 rounded-md"
+              >
+                <span>Project: {projectMap[Number(selectedProjectId)] || selectedProjectId}</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedProjectId("all")}
+                  className="hover:bg-zinc-200/50 dark:hover:bg-zinc-700 rounded p-0.5"
+                  aria-label="Remove project filter"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
+
+            {searchQuery.trim() !== "" && (
+              <Badge
+                variant="outline"
+                className="gap-1 pl-2 pr-1 py-0.5 text-[11px] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 rounded-md"
+              >
+                <span>Search: &ldquo;{searchQuery}&rdquo;</span>
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="hover:bg-zinc-200/50 dark:hover:bg-zinc-700 rounded p-0.5"
+                  aria-label="Remove search query"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
+
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="text-[11px] text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 underline underline-offset-2 ml-1"
+            >
+              Clear all
+            </button>
           </div>
-          <span className="text-zinc-300 dark:text-zinc-700">·</span>
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3 h-3 text-amber-500" />
-            <span>In Progress: {inProgressTasks.length}</span>
-          </div>
-          <span className="text-zinc-300 dark:text-zinc-700">·</span>
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-            <span>Done: {doneTasks.length}</span>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* 3-Column Kanban Board Shell with Drag and Drop */}
@@ -340,27 +592,39 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             title="To Do"
             tasks={todoTasks}
             projectMap={projectMap}
+            searchQuery={searchQuery}
             onStatusChange={handleStatusChange}
             onDeleteTask={handleDeleteTask}
+            onEditTask={handleOpenEditModal}
             onQuickAddTask={() => handleOpenCreateModal("todo")}
+            isFiltered={hasActiveFilters}
+            onResetFilters={handleResetFilters}
           />
           <KanbanColumn
             status="in-progress"
             title="In Progress"
             tasks={inProgressTasks}
             projectMap={projectMap}
+            searchQuery={searchQuery}
             onStatusChange={handleStatusChange}
             onDeleteTask={handleDeleteTask}
+            onEditTask={handleOpenEditModal}
             onQuickAddTask={() => handleOpenCreateModal("in-progress")}
+            isFiltered={hasActiveFilters}
+            onResetFilters={handleResetFilters}
           />
           <KanbanColumn
             status="done"
             title="Done"
             tasks={doneTasks}
             projectMap={projectMap}
+            searchQuery={searchQuery}
             onStatusChange={handleStatusChange}
             onDeleteTask={handleDeleteTask}
+            onEditTask={handleOpenEditModal}
             onQuickAddTask={() => handleOpenCreateModal("done")}
+            isFiltered={hasActiveFilters}
+            onResetFilters={handleResetFilters}
           />
         </div>
 
@@ -377,6 +641,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
               <TaskCard
                 task={activeTask}
                 projectName={projectMap[activeTask.projectId]}
+                searchQuery={searchQuery}
                 isOverlay
               />
             </div>
@@ -390,6 +655,14 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         onOpenChange={setIsCreateModalOpen}
         defaultStatus={createModalInitialStatus}
         projectId={projectId}
+        projects={projects ?? []}
+      />
+
+      {/* Edit Task Modal */}
+      <EditTaskModal
+        task={editingTask}
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
         projects={projects ?? []}
       />
     </div>
