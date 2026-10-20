@@ -173,24 +173,25 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
   };
 
   // Compute total task counts per priority and status across all unfiltered tasks
-  const rawTasks = tasks ?? [];
   const priorityCounts = useMemo(() => {
+    const list = tasks ?? [];
     return {
-      all: rawTasks.length,
-      high: rawTasks.filter((t) => t.priority === "high").length,
-      medium: rawTasks.filter((t) => t.priority === "medium").length,
-      low: rawTasks.filter((t) => t.priority === "low").length,
+      all: list.length,
+      high: list.filter((t) => t.priority === "high").length,
+      medium: list.filter((t) => t.priority === "medium").length,
+      low: list.filter((t) => t.priority === "low").length,
     };
-  }, [rawTasks]);
+  }, [tasks]);
 
   const statusCounts = useMemo(() => {
+    const list = tasks ?? [];
     return {
-      all: rawTasks.length,
-      todo: rawTasks.filter((t) => t.status === "todo").length,
-      "in-progress": rawTasks.filter((t) => t.status === "in-progress").length,
-      done: rawTasks.filter((t) => t.status === "done").length,
+      all: list.length,
+      todo: list.filter((t) => t.status === "todo").length,
+      "in-progress": list.filter((t) => t.status === "in-progress").length,
+      done: list.filter((t) => t.status === "done").length,
     };
-  }, [rawTasks]);
+  }, [tasks]);
 
   // Check if any filter is active
   const hasActiveFilters = useMemo(() => {
@@ -222,12 +223,18 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
   // Filter tasks based on search, project selector, status, and priority
   const filteredTasks = useMemo(() => {
     if (!tasks) return [];
+    const query = searchQuery.trim().toLowerCase();
+
     return tasks.filter((task) => {
-      // Text search
-      const matchesSearch =
-        searchQuery.trim() === "" ||
-        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        Boolean(task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      // Text search matching title or description or project name
+      let matchesSearch = true;
+      if (query) {
+        const titleMatch = task.title.toLowerCase().includes(query);
+        const descMatch = Boolean(task.description && task.description.toLowerCase().includes(query));
+        const projName = projectMap[task.projectId]?.toLowerCase();
+        const projMatch = Boolean(projName && projName.includes(query));
+        matchesSearch = titleMatch || descMatch || projMatch;
+      }
 
       // Status filter
       const matchesStatus =
@@ -245,7 +252,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
 
       return matchesSearch && matchesStatus && matchesProject && matchesPriority;
     });
-  }, [tasks, searchQuery, statusFilter, selectedProjectId, priorityFilter, projectId]);
+  }, [tasks, searchQuery, statusFilter, selectedProjectId, priorityFilter, projectId, projectMap]);
 
   // Group into columns
   const todoTasks = useMemo(
@@ -317,22 +324,28 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
       <div className="flex flex-col gap-3">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           <div className="flex flex-1 flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-wrap">
-            {/* Search Input */}
+            {/* Search Input with Clear Button and ESC handler */}
             <div className="relative flex-1 min-w-[200px] max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
               <Input
                 type="text"
-                placeholder="Search tasks..."
+                placeholder="Search tasks by title, notes, or project..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 text-sm rounded-lg"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setSearchQuery("");
+                  }
+                }}
+                className="pl-9 pr-8 h-9 text-sm rounded-lg"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-md"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-md transition-colors"
                   aria-label="Clear search"
+                  title="Clear search (Esc)"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -446,9 +459,32 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
           </div>
         </div>
 
+        {/* Search Results Feedback Bar */}
+        {searchQuery.trim() !== "" && (
+          <div
+            data-testid="search-results-feedback"
+            className="flex items-center justify-between px-3.5 py-2 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/60 rounded-xl text-xs text-indigo-950 dark:text-indigo-200"
+          >
+            <div className="flex items-center gap-2">
+              <Search className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              <span>
+                Found <strong>{filteredTasks.length}</strong> {filteredTasks.length === 1 ? "task" : "tasks"} matching &ldquo;
+                <span className="font-semibold">{searchQuery}</span>&rdquo;
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 font-medium underline underline-offset-2 cursor-pointer"
+            >
+              Clear search
+            </button>
+          </div>
+        )}
+
         {/* Active Filter Pills Bar */}
         {hasActiveFilters && (
-          <div className="flex items-center gap-2 flex-wrap pt-1 text-xs">
+          <div className="flex items-center gap-2 flex-wrap pt-0.5 text-xs">
             <span className="text-zinc-400 dark:text-zinc-500 text-[11px] font-medium">
               Active filters:
             </span>
@@ -556,6 +592,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             title="To Do"
             tasks={todoTasks}
             projectMap={projectMap}
+            searchQuery={searchQuery}
             onStatusChange={handleStatusChange}
             onDeleteTask={handleDeleteTask}
             onEditTask={handleOpenEditModal}
@@ -568,6 +605,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             title="In Progress"
             tasks={inProgressTasks}
             projectMap={projectMap}
+            searchQuery={searchQuery}
             onStatusChange={handleStatusChange}
             onDeleteTask={handleDeleteTask}
             onEditTask={handleOpenEditModal}
@@ -580,6 +618,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             title="Done"
             tasks={doneTasks}
             projectMap={projectMap}
+            searchQuery={searchQuery}
             onStatusChange={handleStatusChange}
             onDeleteTask={handleDeleteTask}
             onEditTask={handleOpenEditModal}
@@ -602,6 +641,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
               <TaskCard
                 task={activeTask}
                 projectName={projectMap[activeTask.projectId]}
+                searchQuery={searchQuery}
                 isOverlay
               />
             </div>

@@ -113,13 +113,71 @@ describe("Tasks Page", () => {
     expect(screen.getByText("Done: 1")).toBeDefined();
   });
 
-  it("filters tasks when typing in search input", () => {
+  it("filters tasks when typing in search input by title", () => {
     render(<Tasks />);
 
-    const searchInput = screen.getByPlaceholderText("Search tasks...");
+    const searchInput = screen.getByPlaceholderText(/Search tasks by title/i);
     fireEvent.change(searchInput, { target: { value: "Wireframe" } });
 
+    expect(
+      screen.getByRole("article", { name: /Task: Wireframe onboarding flow/i })
+    ).toBeDefined();
+    expect(screen.queryByText("Design token audit")).toBeNull();
+    expect(screen.queryByText("Export brand typography assets")).toBeNull();
+
+    const feedback = screen.getByTestId("search-results-feedback");
+    expect(feedback).toHaveTextContent(/Found 1 task matching/i);
+    expect(feedback).toHaveTextContent(/Wireframe/i);
+  });
+
+  it("filters tasks when searching by task description", () => {
+    render(<Tasks />);
+
+    const searchInput = screen.getByPlaceholderText(/Search tasks by title/i);
+    fireEvent.change(searchInput, { target: { value: "primitives" } });
+
+    expect(screen.getByText("Design token audit")).toBeDefined();
+    expect(screen.queryByText("Wireframe onboarding flow")).toBeNull();
+    expect(screen.queryByText("Export brand typography assets")).toBeNull();
+  });
+
+  it("clears search query and restores tasks when clear button is clicked", () => {
+    render(<Tasks />);
+
+    const searchInput = screen.getByPlaceholderText(/Search tasks by title/i);
+    fireEvent.change(searchInput, { target: { value: "Wireframe" } });
+    expect(screen.queryByText("Design token audit")).toBeNull();
+
+    const clearBtns = screen.getAllByRole("button", { name: /Clear search/i });
+    fireEvent.click(clearBtns[0]);
+
     expect(screen.getByText("Wireframe onboarding flow")).toBeDefined();
+    expect(screen.getByText("Design token audit")).toBeDefined();
+    expect(screen.getByText("Export brand typography assets")).toBeDefined();
+  });
+
+  it("clears search query on Escape key press", () => {
+    render(<Tasks />);
+
+    const searchInput = screen.getByPlaceholderText(/Search tasks by title/i);
+    fireEvent.change(searchInput, { target: { value: "woff2" } });
+    expect(screen.getByText("Export brand typography assets")).toBeDefined();
+    expect(screen.queryByText("Wireframe onboarding flow")).toBeNull();
+
+    fireEvent.keyDown(searchInput, { key: "Escape" });
+    expect(screen.getByText("Wireframe onboarding flow")).toBeDefined();
+    expect(screen.getByText("Design token audit")).toBeDefined();
+  });
+
+  it("shows empty search feedback when query matches no tasks", () => {
+    render(<Tasks />);
+
+    const searchInput = screen.getByPlaceholderText(/Search tasks by title/i);
+    fireEvent.change(searchInput, { target: { value: "completely-nonexistent-query" } });
+
+    const feedback = screen.getByTestId("search-results-feedback");
+    expect(feedback).toHaveTextContent(/Found 0 tasks matching/i);
+    expect(screen.queryByText("Wireframe onboarding flow")).toBeNull();
     expect(screen.queryByText("Design token audit")).toBeNull();
     expect(screen.queryByText("Export brand typography assets")).toBeNull();
   });

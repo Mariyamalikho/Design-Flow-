@@ -12,6 +12,7 @@ export interface KanbanColumnProps {
   title: string;
   tasks: Task[];
   projectMap?: Record<number, string>;
+  searchQuery?: string;
   onTaskClick?: (task: Task) => void;
   onEditTask?: (task: Task) => void;
   onStatusChange?: (taskId: number, newStatus: "todo" | "in-progress" | "done") => void;
@@ -51,6 +52,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   title,
   tasks,
   projectMap = {},
+  searchQuery,
   onTaskClick,
   onEditTask,
   onStatusChange,
@@ -133,6 +135,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                 id={task.id!}
                 task={task}
                 projectName={projectMap[task.projectId]}
+                searchQuery={searchQuery}
                 onClick={onTaskClick ? () => onTaskClick(task) : undefined}
                 onEdit={onEditTask ? () => onEditTask(task) : undefined}
                 onStatusChange={
@@ -152,7 +155,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                 {isFiltered ? "No matching tasks" : theme.emptyMessage}
               </p>
               <p className="text-[11px] text-zinc-400 dark:text-zinc-500 max-w-[200px]">
-                {isFiltered ? `No tasks in ${title} match your active filters.` : theme.emptyHint}
+                {isFiltered ? `No tasks in ${title} match your active filters or search.` : theme.emptyHint}
               </p>
               {isFiltered && onResetFilters && (
                 <Button

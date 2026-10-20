@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 export interface TaskCardProps {
   task: Task;
   projectName?: string;
+  searchQuery?: string;
   onClick?: () => void;
   onEdit?: () => void;
   onStatusChange?: (newStatus: "todo" | "in-progress" | "done") => void;
@@ -72,9 +73,34 @@ const STATUS_ICONS = {
   done: CheckCircle2,
 };
 
+function HighlightMatch({ text, query }: { text: string; query?: string }) {
+  if (!query || !query.trim()) return <>{text}</>;
+  const trimmed = query.trim();
+  const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(${escaped})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === trimmed.toLowerCase() ? (
+          <mark
+            key={i}
+            className="bg-amber-200/90 dark:bg-amber-900/60 text-zinc-900 dark:text-amber-100 rounded-xs px-0.5"
+          >
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+}
+
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
   projectName,
+  searchQuery,
   onClick,
   onEdit,
   onStatusChange,
@@ -269,13 +295,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           isDone && "line-through text-zinc-400 dark:text-zinc-500"
         )}
       >
-        {task.title}
+        <HighlightMatch text={task.title} query={searchQuery} />
       </h4>
 
       {/* Task Description Preview (if present) */}
       {task.description && (
         <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-2.5 break-words">
-          {task.description}
+          <HighlightMatch text={task.description} query={searchQuery} />
         </p>
       )}
 
