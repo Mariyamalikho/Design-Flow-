@@ -4,7 +4,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import type { Task } from "@/lib/db";
 import { SortableTaskCard } from "./SortableTaskCard";
 import { Button } from "@/components/ui/Button";
-import { Plus, CheckCircle2, Clock, ListPlus } from "lucide-react";
+import { Plus, CheckCircle2, Clock, ListPlus, FilterX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface KanbanColumnProps {
@@ -17,6 +17,8 @@ export interface KanbanColumnProps {
   onStatusChange?: (taskId: number, newStatus: "todo" | "in-progress" | "done") => void;
   onDeleteTask?: (taskId: number) => void;
   onQuickAddTask?: () => void;
+  isFiltered?: boolean;
+  onResetFilters?: () => void;
   className?: string;
 }
 
@@ -54,10 +56,12 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   onStatusChange,
   onDeleteTask,
   onQuickAddTask,
+  isFiltered = false,
+  onResetFilters,
   className,
 }) => {
   const theme = COLUMN_THEMES[status] || COLUMN_THEMES.todo;
-  const EmptyIcon = theme.emptyIcon;
+  const EmptyIcon = isFiltered ? FilterX : theme.emptyIcon;
 
   const { setNodeRef, isOver } = useDroppable({
     id: status,
@@ -145,12 +149,22 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
             <div className="h-full min-h-[180px] flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800/80 p-6 text-center text-zinc-400 dark:text-zinc-600 bg-white/40 dark:bg-zinc-900/20">
               <EmptyIcon className="w-8 h-8 mb-2 opacity-40 text-zinc-400 dark:text-zinc-500" />
               <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-0.5">
-                {theme.emptyMessage}
+                {isFiltered ? "No matching tasks" : theme.emptyMessage}
               </p>
               <p className="text-[11px] text-zinc-400 dark:text-zinc-500 max-w-[200px]">
-                {theme.emptyHint}
+                {isFiltered ? `No tasks in ${title} match your active filters.` : theme.emptyHint}
               </p>
-              {onQuickAddTask && (
+              {isFiltered && onResetFilters && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onResetFilters}
+                  className="mt-3 text-xs h-7 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
+                >
+                  Clear filters
+                </Button>
+              )}
+              {!isFiltered && onQuickAddTask && (
                 <Button
                   variant="outline"
                   size="sm"

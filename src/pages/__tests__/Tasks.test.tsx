@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import React from "react";
 import Tasks from "../Tasks";
 import { db, type Task, type Project } from "@/lib/db";
@@ -29,6 +29,7 @@ const { mockProjects, mockTasks } = vi.hoisted(() => {
       id: 10,
       projectId: 1,
       title: "Wireframe onboarding flow",
+      description: "Sketch initial mobile wireframes",
       status: "todo",
       priority: "high",
       createdAt: new Date("2026-10-19T08:00:00Z"),
@@ -37,6 +38,7 @@ const { mockProjects, mockTasks } = vi.hoisted(() => {
       id: 11,
       projectId: 1,
       title: "Design token audit",
+      description: "Audit spacing and color primitives",
       status: "in-progress",
       priority: "medium",
       createdAt: new Date("2026-10-19T09:00:00Z"),
@@ -45,6 +47,7 @@ const { mockProjects, mockTasks } = vi.hoisted(() => {
       id: 12,
       projectId: 2,
       title: "Export brand typography assets",
+      description: "Generate woff2 fonts for release",
       status: "done",
       priority: "low",
       createdAt: new Date("2026-10-19T10:00:00Z"),
@@ -119,6 +122,58 @@ describe("Tasks Page", () => {
     expect(screen.getByText("Wireframe onboarding flow")).toBeDefined();
     expect(screen.queryByText("Design token audit")).toBeNull();
     expect(screen.queryByText("Export brand typography assets")).toBeNull();
+  });
+
+  it("filters tasks by status dropdown", () => {
+    render(<Tasks />);
+
+    const statusSelect = screen.getByLabelText("Filter by status");
+    fireEvent.change(statusSelect, { target: { value: "in-progress" } });
+
+    expect(screen.queryByText("Wireframe onboarding flow")).toBeNull();
+    expect(screen.getByText("Design token audit")).toBeDefined();
+    expect(screen.queryByText("Export brand typography assets")).toBeNull();
+  });
+
+  it("filters tasks by priority dropdown", () => {
+    render(<Tasks />);
+
+    const prioritySelect = screen.getByLabelText("Filter by priority");
+    fireEvent.change(prioritySelect, { target: { value: "high" } });
+
+    expect(screen.getByText("Wireframe onboarding flow")).toBeDefined();
+    expect(screen.queryByText("Design token audit")).toBeNull();
+    expect(screen.queryByText("Export brand typography assets")).toBeNull();
+  });
+
+  it("resets active filters when Reset button is clicked", () => {
+    render(<Tasks />);
+
+    const prioritySelect = screen.getByLabelText("Filter by priority");
+    fireEvent.change(prioritySelect, { target: { value: "high" } });
+    expect(screen.queryByText("Design token audit")).toBeNull();
+
+    // Reset button should now be visible
+    const resetBtn = screen.getByRole("button", { name: /Reset/i });
+    fireEvent.click(resetBtn);
+
+    // All tasks should be restored
+    expect(screen.getByText("Wireframe onboarding flow")).toBeDefined();
+    expect(screen.getByText("Design token audit")).toBeDefined();
+    expect(screen.getByText("Export brand typography assets")).toBeDefined();
+  });
+
+  it("opens edit task modal when a task card is clicked", async () => {
+    render(<Tasks />);
+
+    const taskCard = screen.getByRole("article", { name: /Task: Wireframe onboarding flow/i });
+    fireEvent.click(taskCard);
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Edit Task" })).toBeDefined();
+      const input = screen.getByLabelText(/Task Title/i) as HTMLInputElement;
+      expect(input.value).toBe("Wireframe onboarding flow");
+    });
   });
 
   it("renders in embedded mode for ProjectDetail without global page title", () => {
