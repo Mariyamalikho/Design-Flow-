@@ -19,6 +19,7 @@ import {
   MoreHorizontal,
   Trash2,
   ArrowRight,
+  GripVertical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,8 @@ export interface TaskCardProps {
   onClick?: () => void;
   onStatusChange?: (newStatus: "todo" | "in-progress" | "done") => void;
   onDelete?: () => void;
+  isDragging?: boolean;
+  isOverlay?: boolean;
   className?: string;
 }
 
@@ -64,6 +67,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onClick,
   onStatusChange,
   onDelete,
+  isDragging = false,
+  isOverlay = false,
   className,
 }) => {
   const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium;
@@ -97,9 +102,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       }}
       className={cn(
         "group relative flex flex-col justify-between rounded-xl border p-4 bg-white dark:bg-zinc-900/90 shadow-xs transition-all duration-200",
-        "border-zinc-200/90 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm",
+        "border-zinc-200/90 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm cursor-grab active:cursor-grabbing",
         isDone && "bg-zinc-50/70 dark:bg-zinc-900/40 opacity-80",
-        onClick && "cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950",
+        isDragging && "opacity-25 border-dashed border-indigo-400 dark:border-indigo-600 bg-zinc-50/50 dark:bg-zinc-900/30",
+        isOverlay && "shadow-2xl ring-2 ring-indigo-500/40 rotate-1 cursor-grabbing bg-white dark:bg-zinc-900 border-indigo-400 dark:border-indigo-600 scale-[1.03] z-[999] pointer-events-none",
+        onClick && "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950",
         className
       )}
     >
@@ -129,65 +136,70 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           )}
         </div>
 
-        {(onStatusChange || onDelete) && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-            className="shrink-0"
-          >
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 opacity-60 group-hover:opacity-100 transition-opacity"
-                  aria-label="Task options"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                {onStatusChange && (
-                  <>
-                    <DropdownMenuLabel className="text-xs text-zinc-400 font-normal">
-                      Move task to
-                    </DropdownMenuLabel>
-                    {task.status !== "todo" && (
-                      <DropdownMenuItem onClick={() => onStatusChange("todo")}>
-                        <ArrowRight className="mr-2 h-3.5 w-3.5 text-zinc-500" />
-                        <span>To Do</span>
+        <div className="flex items-center gap-0.5 shrink-0">
+          <GripVertical className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+          {(onStatusChange || onDelete) && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="shrink-0"
+            >
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 opacity-60 group-hover:opacity-100 transition-opacity"
+                    aria-label="Task options"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  {onStatusChange && (
+                    <>
+                      <DropdownMenuLabel className="text-xs text-zinc-400 font-normal">
+                        Move task to
+                      </DropdownMenuLabel>
+                      {task.status !== "todo" && (
+                        <DropdownMenuItem onClick={() => onStatusChange("todo")}>
+                          <ArrowRight className="mr-2 h-3.5 w-3.5 text-zinc-500" />
+                          <span>To Do</span>
+                        </DropdownMenuItem>
+                      )}
+                      {task.status !== "in-progress" && (
+                        <DropdownMenuItem onClick={() => onStatusChange("in-progress")}>
+                          <ArrowRight className="mr-2 h-3.5 w-3.5 text-amber-500" />
+                          <span>In Progress</span>
+                        </DropdownMenuItem>
+                      )}
+                      {task.status !== "done" && (
+                        <DropdownMenuItem onClick={() => onStatusChange("done")}>
+                          <CheckCircle2 className="mr-2 h-3.5 w-3.5 text-emerald-500" />
+                          <span>Done</span>
+                        </DropdownMenuItem>
+                      )}
+                    </>
+                  )}
+                  {onDelete && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={onDelete}
+                        className="text-rose-600 dark:text-rose-400 focus:text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-950/30"
+                      >
+                        <Trash2 className="mr-2 h-3.5 w-3.5" />
+                        <span>Delete</span>
                       </DropdownMenuItem>
-                    )}
-                    {task.status !== "in-progress" && (
-                      <DropdownMenuItem onClick={() => onStatusChange("in-progress")}>
-                        <ArrowRight className="mr-2 h-3.5 w-3.5 text-amber-500" />
-                        <span>In Progress</span>
-                      </DropdownMenuItem>
-                    )}
-                    {task.status !== "done" && (
-                      <DropdownMenuItem onClick={() => onStatusChange("done")}>
-                        <CheckCircle2 className="mr-2 h-3.5 w-3.5 text-emerald-500" />
-                        <span>Done</span>
-                      </DropdownMenuItem>
-                    )}
-                  </>
-                )}
-                {onDelete && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={onDelete}
-                      className="text-rose-600 dark:text-rose-400 focus:text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-950/30"
-                    >
-                      <Trash2 className="mr-2 h-3.5 w-3.5" />
-                      <span>Delete</span>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Task Title */}

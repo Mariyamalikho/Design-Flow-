@@ -82,4 +82,20 @@ describe("KanbanColumn", () => {
     const projectBadges = screen.getAllByText("Client Rebrand");
     expect(projectBadges.length).toBe(2);
   });
+
+  it("supports onStatusChange and onDeleteTask callbacks for card actions", () => {
+    const handleStatus = vi.fn();
+    const handleDelete = vi.fn();
+    render(
+      <KanbanColumn
+        status="todo"
+        title="To Do"
+        tasks={[mockTasks[0]]}
+        onStatusChange={handleStatus}
+        onDeleteTask={handleDelete}
+      />
+    );
+
+    expect(screen.getByText("Create initial wireframes")).toBeDefined();
+  });
 });

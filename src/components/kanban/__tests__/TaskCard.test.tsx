@@ -44,4 +44,11 @@ describe("TaskCard", () => {
     const title = screen.getByText("Design brand styleguide");
     expect(title.className).toContain("line-through");
   });
+
+  it("renders elevated drag overlay styling when isOverlay is true", () => {
+    render(<TaskCard task={sampleTask} isOverlay />);
+    const card = screen.getByRole("article");
+    expect(card.className).toContain("z-[999]");
+    expect(card.className).toContain("shadow-2xl");
+  });
 });

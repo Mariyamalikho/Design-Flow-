@@ -1,7 +1,20 @@
 import React, { useState, useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db";
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragStartEvent,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { db, type Task } from "@/lib/db";
 import { KanbanColumn } from "@/components/kanban/KanbanColumn";
+import { TaskCard } from "@/components/kanban/TaskCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
@@ -54,6 +67,21 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
   const [newStatus, setNewStatus] = useState<"todo" | "in-progress" | "done">("todo");
   const [newProjectId, setNewProjectId] = useState<number | undefined>(
     projectId !== undefined ? projectId : undefined
+  );
+
+  // Active dragged task for drag overlay
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+  // DnD Sensors: 5px distance constraint allows clicks and dropdown actions without dragging
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
   );
 
   // Map project ID to Project Title
@@ -117,7 +145,12 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
   ) => {
     try {
       await db.tasks.update(taskId, { status: nextStatus });
-      toast.success("Task updated");
+      const statusLabels = {
+        todo: "To Do",
+        "in-progress": "In Progress",
+        done: "Done",
+      };
+      toast.success(`Task moved to ${statusLabels[nextStatus]}`);
     } catch {
       toast.error("Failed to update task");
     }
@@ -130,6 +163,41 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
       toast.success("Task deleted");
     } catch {
       toast.error("Failed to delete task");
+    }
+  };
+
+  // DnD Handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const task = tasks?.find((t) => t.id === Number(active.id));
+    if (task) {
+      setActiveTask(task);
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveTask(null);
+
+    if (!over) return;
+
+    const activeId = Number(active.id);
+    const draggedTask = tasks?.find((t) => t.id === activeId);
+    if (!draggedTask) return;
+
+    // Detect target column directly or from target task
+    let targetStatus: "todo" | "in-progress" | "done" | null = null;
+    if (over.id === "todo" || over.id === "in-progress" || over.id === "done") {
+      targetStatus = over.id as "todo" | "in-progress" | "done";
+    } else {
+      const overTask = tasks?.find((t) => t.id === Number(over.id));
+      if (overTask) {
+        targetStatus = overTask.status;
+      }
+    }
+
+    if (targetStatus && targetStatus !== draggedTask.status) {
+      await handleStatusChange(activeId, targetStatus);
     }
   };
 
@@ -293,36 +361,62 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         </div>
       </div>
 
-      {/* 3-Column Kanban Board Shell */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-start overflow-x-auto min-h-[420px] pt-2">
-        <KanbanColumn
-          status="todo"
-          title="To Do"
-          tasks={todoTasks}
-          projectMap={projectMap}
-          onStatusChange={handleStatusChange}
-          onDeleteTask={handleDeleteTask}
-          onQuickAddTask={() => handleOpenCreateModal("todo")}
-        />
-        <KanbanColumn
-          status="in-progress"
-          title="In Progress"
-          tasks={inProgressTasks}
-          projectMap={projectMap}
-          onStatusChange={handleStatusChange}
-          onDeleteTask={handleDeleteTask}
-          onQuickAddTask={() => handleOpenCreateModal("in-progress")}
-        />
-        <KanbanColumn
-          status="done"
-          title="Done"
-          tasks={doneTasks}
-          projectMap={projectMap}
-          onStatusChange={handleStatusChange}
-          onDeleteTask={handleDeleteTask}
-          onQuickAddTask={() => handleOpenCreateModal("done")}
-        />
-      </div>
+      {/* 3-Column Kanban Board Shell with Drag and Drop */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={() => setActiveTask(null)}
+      >
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-start overflow-x-auto min-h-[420px] pt-2">
+          <KanbanColumn
+            status="todo"
+            title="To Do"
+            tasks={todoTasks}
+            projectMap={projectMap}
+            onStatusChange={handleStatusChange}
+            onDeleteTask={handleDeleteTask}
+            onQuickAddTask={() => handleOpenCreateModal("todo")}
+          />
+          <KanbanColumn
+            status="in-progress"
+            title="In Progress"
+            tasks={inProgressTasks}
+            projectMap={projectMap}
+            onStatusChange={handleStatusChange}
+            onDeleteTask={handleDeleteTask}
+            onQuickAddTask={() => handleOpenCreateModal("in-progress")}
+          />
+          <KanbanColumn
+            status="done"
+            title="Done"
+            tasks={doneTasks}
+            projectMap={projectMap}
+            onStatusChange={handleStatusChange}
+            onDeleteTask={handleDeleteTask}
+            onQuickAddTask={() => handleOpenCreateModal("done")}
+          />
+        </div>
+
+        <DragOverlay
+          zIndex={100}
+          dropAnimation={{
+            duration: 200,
+            easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
+          }}
+        >
+          {activeTask ? (
+            <div className="w-[300px] pointer-events-none">
+              <TaskCard
+                task={activeTask}
+                projectName={projectMap[activeTask.projectId]}
+                isOverlay
+              />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       {/* Create Task Dialog */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>

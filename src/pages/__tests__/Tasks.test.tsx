@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import React from "react";
 import Tasks from "../Tasks";
-import type { Task, Project } from "@/lib/db";
+import { db, type Task, type Project } from "@/lib/db";
 
 const { mockProjects, mockTasks } = vi.hoisted(() => {
   const mockProjects: Project[] = [
@@ -127,5 +127,28 @@ describe("Tasks Page", () => {
     expect(screen.queryByRole("heading", { name: "Task Board" })).toBeNull();
     expect(screen.getByText("Project Tasks")).toBeDefined();
     expect(screen.getByRole("heading", { name: "To Do" })).toBeDefined();
+  });
+
+  it("creates a new task and syncs it to IndexedDB", async () => {
+    render(<Tasks />);
+
+    const newTaskBtn = screen.getByRole("button", { name: /New Task/i });
+    fireEvent.click(newTaskBtn);
+
+    const titleInput = screen.getByPlaceholderText(/Export vector logo variations/i);
+    fireEvent.change(titleInput, { target: { value: "Build interactive prototypes" } });
+
+    const submitBtn = screen.getByRole("button", { name: "Create Task" });
+    fireEvent.click(submitBtn);
+
+    expect(db.tasks.add).toHaveBeenCalledTimes(1);
+    expect(db.tasks.add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Build interactive prototypes",
+        projectId: 1,
+        status: "todo",
+        priority: "medium",
+      })
+    );
   });
 });
