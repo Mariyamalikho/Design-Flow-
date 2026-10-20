@@ -16,6 +16,7 @@ import { db, type Task } from "@/lib/db";
 import { KanbanColumn } from "@/components/kanban/KanbanColumn";
 import { TaskCard } from "@/components/kanban/TaskCard";
 import { CreateTaskModal } from "@/components/kanban/CreateTaskModal";
+import { EditTaskModal } from "@/components/kanban/EditTaskModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
@@ -59,6 +60,10 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
     "todo" | "in-progress" | "done"
   >("todo");
 
+  // Edit Task Modal State
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   // Active dragged task for drag overlay
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
@@ -85,12 +90,18 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
     return map;
   }, [projects]);
 
-  // Open modal with specific initial column status
+  // Open create modal with specific initial column status
   const handleOpenCreateModal = (
     initialStatus: "todo" | "in-progress" | "done" = "todo"
   ) => {
     setCreateModalInitialStatus(initialStatus);
     setIsCreateModalOpen(true);
+  };
+
+  // Open edit modal for specific task
+  const handleOpenEditModal = (task: Task) => {
+    setEditingTask(task);
+    setIsEditModalOpen(true);
   };
 
   // Status transition
@@ -342,6 +353,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             projectMap={projectMap}
             onStatusChange={handleStatusChange}
             onDeleteTask={handleDeleteTask}
+            onEditTask={handleOpenEditModal}
             onQuickAddTask={() => handleOpenCreateModal("todo")}
           />
           <KanbanColumn
@@ -351,6 +363,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             projectMap={projectMap}
             onStatusChange={handleStatusChange}
             onDeleteTask={handleDeleteTask}
+            onEditTask={handleOpenEditModal}
             onQuickAddTask={() => handleOpenCreateModal("in-progress")}
           />
           <KanbanColumn
@@ -360,6 +373,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             projectMap={projectMap}
             onStatusChange={handleStatusChange}
             onDeleteTask={handleDeleteTask}
+            onEditTask={handleOpenEditModal}
             onQuickAddTask={() => handleOpenCreateModal("done")}
           />
         </div>
@@ -390,6 +404,14 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         onOpenChange={setIsCreateModalOpen}
         defaultStatus={createModalInitialStatus}
         projectId={projectId}
+        projects={projects ?? []}
+      />
+
+      {/* Edit Task Modal */}
+      <EditTaskModal
+        task={editingTask}
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
         projects={projects ?? []}
       />
     </div>

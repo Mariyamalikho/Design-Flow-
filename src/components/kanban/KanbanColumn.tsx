@@ -13,6 +13,7 @@ export interface KanbanColumnProps {
   tasks: Task[];
   projectMap?: Record<number, string>;
   onTaskClick?: (task: Task) => void;
+  onEditTask?: (task: Task) => void;
   onStatusChange?: (taskId: number, newStatus: "todo" | "in-progress" | "done") => void;
   onDeleteTask?: (taskId: number) => void;
   onQuickAddTask?: () => void;
@@ -49,6 +50,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   tasks,
   projectMap = {},
   onTaskClick,
+  onEditTask,
   onStatusChange,
   onDeleteTask,
   onQuickAddTask,
@@ -128,6 +130,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                 task={task}
                 projectName={projectMap[task.projectId]}
                 onClick={onTaskClick ? () => onTaskClick(task) : undefined}
+                onEdit={onEditTask ? () => onEditTask(task) : undefined}
                 onStatusChange={
                   onStatusChange && task.id
                     ? (newStatus) => onStatusChange(task.id!, newStatus)
@@ -149,13 +152,13 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
               </p>
               {onQuickAddTask && (
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={onQuickAddTask}
-                  className="mt-3 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 h-7 px-2.5"
+                  className="mt-3 text-xs h-7 gap-1 text-zinc-600 dark:text-zinc-400 border-dashed"
                 >
-                  <Plus className="w-3.5 h-3.5 mr-1" />
-                  Add Task
+                  <Plus className="w-3 h-3" />
+                  <span>Create Task</span>
                 </Button>
               )}
             </div>
