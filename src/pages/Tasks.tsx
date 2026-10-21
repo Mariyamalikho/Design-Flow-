@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   DndContext,
@@ -19,6 +19,10 @@ import { KanbanColumn } from "@/components/kanban/KanbanColumn";
 import { TaskCard } from "@/components/kanban/TaskCard";
 import { CreateTaskModal } from "@/components/kanban/CreateTaskModal";
 import { EditTaskModal } from "@/components/kanban/EditTaskModal";
+import { TaskViewToggle } from "@/components/kanban/TaskViewToggle";
+import { TaskListView } from "@/components/kanban/TaskListView";
+import { TaskTimelineView } from "@/components/kanban/TaskTimelineView";
+import { useTaskBoard } from "@/components/kanban/taskBoardReducer";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -65,26 +69,20 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
     return db.tasks.toArray();
   }, [projectId]);
 
-  // Filters state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [selectedProjectId, setSelectedProjectId] = useState<string>(
-    projectId !== undefined ? String(projectId) : "all"
-  );
-
-  // Create Task Modal State
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [createModalInitialStatus, setCreateModalInitialStatus] = useState<
-    "todo" | "in-progress" | "done"
-  >("todo");
-
-  // Edit Task Modal State
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  // Active dragged task for drag overlay
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  // Complex state managed via task board reducer
+  const { state, actions } = useTaskBoard(projectId);
+  const {
+    searchQuery,
+    statusFilter,
+    priorityFilter,
+    selectedProjectId,
+    viewMode,
+    isCreateModalOpen,
+    createModalInitialStatus,
+    isEditModalOpen,
+    editingTask,
+    activeTask,
+  } = state;
 
   // DnD Sensors: 5px distance constraint allows clicks and dropdown actions without dragging
   const sensors = useSensors(
@@ -113,14 +111,12 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
   const handleOpenCreateModal = (
     initialStatus: "todo" | "in-progress" | "done" = "todo"
   ) => {
-    setCreateModalInitialStatus(initialStatus);
-    setIsCreateModalOpen(true);
+    actions.openCreateModal(initialStatus);
   };
 
   // Open edit modal for specific task
   const handleOpenEditModal = (task: Task) => {
-    setEditingTask(task);
-    setIsEditModalOpen(true);
+    actions.openEditModal(task);
   };
 
   // Status transition
@@ -156,13 +152,13 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
     const { active } = event;
     const task = tasks?.find((t) => t.id === Number(active.id));
     if (task) {
-      setActiveTask(task);
+      actions.dragStart(task);
     }
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    setActiveTask(null);
+    actions.dragEnd();
 
     if (!over) return;
 
@@ -228,10 +224,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
 
   // Reset all filters to default
   const handleResetFilters = () => {
-    setStatusFilter("all");
-    setPriorityFilter("all");
-    setSelectedProjectId("all");
-    setSearchQuery("");
+    actions.resetFilters();
   };
 
   // Filter tasks based on search, project selector, status, and priority
@@ -301,13 +294,16 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             </p>
           </div>
 
-          <Button
-            onClick={() => handleOpenCreateModal("todo")}
-            className="self-start sm:self-auto gap-2 shadow-xs"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Task</span>
-          </Button>
+          <div className="flex items-center gap-3 self-start sm:self-auto">
+            <TaskViewToggle mode={viewMode} onChange={actions.setViewMode} />
+            <Button
+              onClick={() => handleOpenCreateModal("todo")}
+              className="gap-2 shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Task</span>
+            </Button>
+          </div>
         </div>
       )}
 
@@ -323,14 +319,17 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             </span>
           </div>
 
-          <Button
-            size="sm"
-            onClick={() => handleOpenCreateModal("todo")}
-            className="self-start sm:self-auto gap-1.5 h-8 text-xs shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Task</span>
-          </Button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <TaskViewToggle mode={viewMode} onChange={actions.setViewMode} />
+            <Button
+              size="sm"
+              onClick={() => handleOpenCreateModal("todo")}
+              className="gap-1.5 h-8 text-xs shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Task</span>
+            </Button>
+          </div>
         </div>
       )}
 
@@ -345,10 +344,10 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
                 type="text"
                 placeholder="Search tasks by title, notes, or project..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => actions.setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Escape") {
-                    setSearchQuery("");
+                    actions.setSearchQuery("");
                   }
                 }}
                 className="pl-9 pr-8 h-9 text-sm rounded-lg"
@@ -356,7 +355,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
               {searchQuery && (
                 <button
                   type="button"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => actions.setSearchQuery("")}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-md transition-colors"
                   aria-label="Clear search"
                   title="Clear search (Esc)"
@@ -372,7 +371,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
               <select
                 aria-label="Filter by status"
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => actions.setStatusFilter(e.target.value)}
                 className={cn(
                   "h-9 px-3 rounded-lg border text-xs focus:outline-none focus:ring-2 font-medium transition-colors",
                   statusFilter !== "all"
@@ -393,7 +392,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
               <select
                 aria-label="Filter by priority"
                 value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value)}
+                onChange={(e) => actions.setPriorityFilter(e.target.value)}
                 className={cn(
                   "h-9 px-3 rounded-lg border text-xs focus:outline-none focus:ring-2 font-medium transition-colors",
                   priorityFilter === "high" &&
@@ -420,7 +419,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
                 <select
                   aria-label="Filter by project"
                   value={selectedProjectId}
-                  onChange={(e) => setSelectedProjectId(e.target.value)}
+                  onChange={(e) => actions.setSelectedProjectId(e.target.value)}
                   className="h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-zinc-700 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
                 >
                   <option value="all">All Projects</option>
@@ -488,7 +487,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             </div>
             <button
               type="button"
-              onClick={() => setSearchQuery("")}
+              onClick={() => actions.setSearchQuery("")}
               className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 font-medium underline underline-offset-2 cursor-pointer"
             >
               Clear search
@@ -513,7 +512,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setStatusFilter("all")}
+                  onClick={() => actions.setStatusFilter("all")}
                   className="hover:bg-indigo-200/50 dark:hover:bg-indigo-900 rounded p-0.5"
                   aria-label="Remove status filter"
                 >
@@ -538,7 +537,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
                 <span>Priority: {priorityFilter}</span>
                 <button
                   type="button"
-                  onClick={() => setPriorityFilter("all")}
+                  onClick={() => actions.setPriorityFilter("all")}
                   className="rounded p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
                   aria-label="Remove priority filter"
                 >
@@ -555,7 +554,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
                 <span>Project: {projectMap[Number(selectedProjectId)] || selectedProjectId}</span>
                 <button
                   type="button"
-                  onClick={() => setSelectedProjectId("all")}
+                  onClick={() => actions.setSelectedProjectId("all")}
                   className="hover:bg-zinc-200/50 dark:hover:bg-zinc-700 rounded p-0.5"
                   aria-label="Remove project filter"
                 >
@@ -572,7 +571,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
                 <span>Search: &ldquo;{searchQuery}&rdquo;</span>
                 <button
                   type="button"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => actions.setSearchQuery("")}
                   className="hover:bg-zinc-200/50 dark:hover:bg-zinc-700 rounded p-0.5"
                   aria-label="Remove search query"
                 >
@@ -592,78 +591,113 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         )}
       </div>
 
-      {/* 3-Column Kanban Board Shell with Drag and Drop */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragCancel={() => setActiveTask(null)}
-      >
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch overflow-x-auto min-h-[500px] h-full pt-2">
-          <KanbanColumn
-            status="todo"
-            title="To Do"
-            tasks={todoTasks}
-            projectMap={projectMap}
-            searchQuery={searchQuery}
-            onStatusChange={handleStatusChange}
-            onDeleteTask={handleDeleteTask}
-            onEditTask={handleOpenEditModal}
-            onQuickAddTask={() => handleOpenCreateModal("todo")}
-            isFiltered={hasActiveFilters}
-            onResetFilters={handleResetFilters}
-          />
-          <KanbanColumn
-            status="in-progress"
-            title="In Progress"
-            tasks={inProgressTasks}
-            projectMap={projectMap}
-            searchQuery={searchQuery}
-            onStatusChange={handleStatusChange}
-            onDeleteTask={handleDeleteTask}
-            onEditTask={handleOpenEditModal}
-            onQuickAddTask={() => handleOpenCreateModal("in-progress")}
-            isFiltered={hasActiveFilters}
-            onResetFilters={handleResetFilters}
-          />
-          <KanbanColumn
-            status="done"
-            title="Done"
-            tasks={doneTasks}
-            projectMap={projectMap}
-            searchQuery={searchQuery}
-            onStatusChange={handleStatusChange}
-            onDeleteTask={handleDeleteTask}
-            onEditTask={handleOpenEditModal}
-            onQuickAddTask={() => handleOpenCreateModal("done")}
-            isFiltered={hasActiveFilters}
-            onResetFilters={handleResetFilters}
-          />
-        </div>
-
-        <DragOverlay
-          zIndex={999}
-          className="z-[999] pointer-events-none select-none drop-shadow-2xl"
-          dropAnimation={dropAnimationConfig}
+      {/* Kanban Board View */}
+      {viewMode === "kanban" && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => actions.dragEnd()}
         >
-          {activeTask ? (
-            <div className="w-[300px] pointer-events-none">
-              <TaskCard
-                task={activeTask}
-                projectName={projectMap[activeTask.projectId]}
-                searchQuery={searchQuery}
-                isOverlay
-              />
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch overflow-x-auto min-h-[500px] h-full pt-2">
+            <KanbanColumn
+              status="todo"
+              title="To Do"
+              tasks={todoTasks}
+              projectMap={projectMap}
+              searchQuery={searchQuery}
+              onStatusChange={handleStatusChange}
+              onDeleteTask={handleDeleteTask}
+              onEditTask={handleOpenEditModal}
+              onQuickAddTask={() => handleOpenCreateModal("todo")}
+              isFiltered={hasActiveFilters}
+              onResetFilters={handleResetFilters}
+            />
+            <KanbanColumn
+              status="in-progress"
+              title="In Progress"
+              tasks={inProgressTasks}
+              projectMap={projectMap}
+              searchQuery={searchQuery}
+              onStatusChange={handleStatusChange}
+              onDeleteTask={handleDeleteTask}
+              onEditTask={handleOpenEditModal}
+              onQuickAddTask={() => handleOpenCreateModal("in-progress")}
+              isFiltered={hasActiveFilters}
+              onResetFilters={handleResetFilters}
+            />
+            <KanbanColumn
+              status="done"
+              title="Done"
+              tasks={doneTasks}
+              projectMap={projectMap}
+              searchQuery={searchQuery}
+              onStatusChange={handleStatusChange}
+              onDeleteTask={handleDeleteTask}
+              onEditTask={handleOpenEditModal}
+              onQuickAddTask={() => handleOpenCreateModal("done")}
+              isFiltered={hasActiveFilters}
+              onResetFilters={handleResetFilters}
+            />
+          </div>
+
+          <DragOverlay
+            zIndex={999}
+            className="z-[999] pointer-events-none select-none drop-shadow-2xl"
+            dropAnimation={dropAnimationConfig}
+          >
+            {activeTask ? (
+              <div className="w-[300px] pointer-events-none">
+                <TaskCard
+                  task={activeTask}
+                  projectName={projectMap[activeTask.projectId]}
+                  searchQuery={searchQuery}
+                  isOverlay
+                />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      )}
+
+      {/* List View */}
+      {viewMode === "list" && (
+        <TaskListView
+          tasks={filteredTasks}
+          projectMap={projectMap}
+          searchQuery={searchQuery}
+          onStatusChange={handleStatusChange}
+          onDeleteTask={handleDeleteTask}
+          onEditTask={handleOpenEditModal}
+          onQuickAddTask={() => handleOpenCreateModal("todo")}
+          isFiltered={hasActiveFilters}
+          onResetFilters={handleResetFilters}
+        />
+      )}
+
+      {/* Timeline View */}
+      {viewMode === "timeline" && (
+        <TaskTimelineView
+          tasks={filteredTasks}
+          projectMap={projectMap}
+          searchQuery={searchQuery}
+          onStatusChange={handleStatusChange}
+          onDeleteTask={handleDeleteTask}
+          onEditTask={handleOpenEditModal}
+          onQuickAddTask={() => handleOpenCreateModal("todo")}
+          isFiltered={hasActiveFilters}
+          onResetFilters={handleResetFilters}
+          className="pt-2"
+        />
+      )}
 
       {/* Create Task Modal */}
       <CreateTaskModal
         open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
+        onOpenChange={(open) => {
+          if (!open) actions.closeCreateModal();
+        }}
         defaultStatus={createModalInitialStatus}
         projectId={projectId}
         projects={projects ?? []}
@@ -673,7 +707,9 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
       <EditTaskModal
         task={editingTask}
         open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
+        onOpenChange={(open) => {
+          if (!open) actions.closeEditModal();
+        }}
         projects={projects ?? []}
       />
     </div>

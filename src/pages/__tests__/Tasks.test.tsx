@@ -264,4 +264,24 @@ describe("Tasks Page", () => {
       })
     );
   });
+
+  it("switches to list view when List toggle option is clicked", () => {
+    render(<Tasks />);
+
+    const listToggle = screen.getByRole("radio", { name: "List view" });
+    fireEvent.click(listToggle);
+
+    expect(screen.getByTestId("task-list-view")).toBeDefined();
+    expect(screen.getByText("List Overview")).toBeDefined();
+  });
+
+  it("switches to timeline view when Timeline toggle option is clicked", () => {
+    render(<Tasks />);
+
+    const timelineToggle = screen.getByRole("radio", { name: "Timeline view" });
+    fireEvent.click(timelineToggle);
+
+    expect(screen.getByTestId("task-timeline-view")).toBeDefined();
+    expect(screen.getByText("Deliverable Timeline")).toBeDefined();
+  });
 });
