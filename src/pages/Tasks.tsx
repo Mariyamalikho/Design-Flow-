@@ -21,6 +21,7 @@ import { CreateTaskModal } from "@/components/kanban/CreateTaskModal";
 import { EditTaskModal } from "@/components/kanban/EditTaskModal";
 import { TaskViewToggle, type TaskViewMode } from "@/components/kanban/TaskViewToggle";
 import { TaskListView } from "@/components/kanban/TaskListView";
+import { TaskTimelineView } from "@/components/kanban/TaskTimelineView";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -686,28 +687,20 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         />
       )}
 
-      {/* Timeline View Placeholder (built in Day 69 Commit 2) */}
+      {/* Timeline View */}
       {viewMode === "timeline" && (
-        <div
-          data-testid="timeline-view-placeholder"
-          className="flex-1 flex flex-col items-center justify-center min-h-[400px] rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800/80 p-12 text-center bg-white/40 dark:bg-zinc-900/20"
-        >
-          <Clock className="w-10 h-10 mb-3 opacity-30 text-indigo-500" />
-          <h4 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
-            Task Timeline View
-          </h4>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mb-4">
-            Visual chronological roadmap plotted by task due dates and milestones.
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setViewMode("kanban")}
-            className="gap-1.5"
-          >
-            Switch to Kanban Board
-          </Button>
-        </div>
+        <TaskTimelineView
+          tasks={filteredTasks}
+          projectMap={projectMap}
+          searchQuery={searchQuery}
+          onStatusChange={handleStatusChange}
+          onDeleteTask={handleDeleteTask}
+          onEditTask={handleOpenEditModal}
+          onQuickAddTask={() => handleOpenCreateModal("todo")}
+          isFiltered={hasActiveFilters}
+          onResetFilters={handleResetFilters}
+          className="pt-2"
+        />
       )}
 
       {/* Create Task Modal */}

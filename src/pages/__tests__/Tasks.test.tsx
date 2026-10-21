@@ -274,4 +274,14 @@ describe("Tasks Page", () => {
     expect(screen.getByTestId("task-list-view")).toBeDefined();
     expect(screen.getByText("List Overview")).toBeDefined();
   });
+
+  it("switches to timeline view when Timeline toggle option is clicked", () => {
+    render(<Tasks />);
+
+    const timelineToggle = screen.getByRole("radio", { name: "Timeline view" });
+    fireEvent.click(timelineToggle);
+
+    expect(screen.getByTestId("task-timeline-view")).toBeDefined();
+    expect(screen.getByText("Deliverable Timeline")).toBeDefined();
+  });
 });
