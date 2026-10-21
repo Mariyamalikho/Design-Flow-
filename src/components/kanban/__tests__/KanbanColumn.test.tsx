@@ -83,6 +83,19 @@ describe("KanbanColumn", () => {
     expect(projectBadges.length).toBe(2);
   });
 
+  it("applies polished custom scrollbar styling to the dropzone container", () => {
+    render(
+      <KanbanColumn
+        status="todo"
+        title="To Do"
+        tasks={mockTasks}
+      />
+    );
+
+    const dropzone = screen.getByTestId("kanban-dropzone-todo");
+    expect(dropzone.className).toContain("kanban-column-scroll");
+  });
+
   it("supports onStatusChange and onDeleteTask callbacks for card actions", () => {
     const handleStatus = vi.fn();
     const handleDelete = vi.fn();

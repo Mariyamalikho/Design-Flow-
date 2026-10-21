@@ -123,7 +123,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         ref={setNodeRef}
         data-testid={`kanban-dropzone-${status}`}
         className={cn(
-          "flex-1 space-y-3 overflow-y-auto pr-0.5 min-h-[200px] rounded-xl transition-all duration-150",
+          "flex-1 space-y-3 overflow-y-auto pr-1 kanban-column-scroll min-h-[200px] rounded-xl transition-all duration-150",
           isOver && "bg-indigo-50/50 dark:bg-indigo-950/30 ring-1 ring-indigo-500/15"
         )}
       >

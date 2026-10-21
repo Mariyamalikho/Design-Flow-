@@ -51,6 +51,46 @@
   background: #52525b; /* zinc-600 */
 }
 
+/* Kanban Column Custom Polished Scrollbar */
+.kanban-column-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(161, 161, 170, 0.35) transparent;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dark .kanban-column-scroll {
+  scrollbar-color: rgba(113, 113, 122, 0.35) transparent;
+}
+
+.kanban-column-scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.kanban-column-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+
+.kanban-column-scroll::-webkit-scrollbar-thumb {
+  background: rgba(161, 161, 170, 0.35); /* zinc-400 at 35% opacity */
+  border-radius: 9999px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.kanban-column-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(161, 161, 170, 0.7); /* darker on hover */
+}
+
+.dark .kanban-column-scroll::-webkit-scrollbar-thumb {
+  background: rgba(113, 113, 122, 0.35); /* zinc-500 at 35% opacity */
+}
+
+.dark .kanban-column-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(113, 113, 122, 0.75);
+}
+
 /* Print Styles for Agency Decks & Documents */
 @media print {
   @page {
@@ -132,4 +172,3 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
