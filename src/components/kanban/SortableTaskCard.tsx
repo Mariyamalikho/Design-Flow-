@@ -28,9 +28,10 @@ export const SortableTaskCard: React.FC<SortableTaskCardProps> = ({
   });
 
   const style: React.CSSProperties = {
-    transform: CSS.Translate.toString(transform),
-    transition,
+    transform: CSS.Transform.toString(transform),
+    transition: transition || "transform 220ms cubic-bezier(0.2, 0, 0, 1), opacity 180ms ease",
     zIndex: isDragging ? 0 : undefined,
+    willChange: isDragging ? "transform" : undefined,
   };
 
   return (
@@ -39,7 +40,7 @@ export const SortableTaskCard: React.FC<SortableTaskCardProps> = ({
       style={style}
       {...attributes}
       {...listeners}
-      className="touch-none select-none relative"
+      className="touch-none select-none relative transition-transform duration-200"
     >
       <TaskCard
         task={task}

@@ -81,8 +81,8 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     <div
       data-testid={`kanban-column-${status}`}
       className={cn(
-        "flex flex-col rounded-2xl bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800/80 p-3 min-w-[280px] w-full flex-1 max-h-full transition-all duration-200",
-        isOver && "border-indigo-400/80 dark:border-indigo-600/80 bg-indigo-50/30 dark:bg-indigo-950/15 shadow-sm",
+        "flex flex-col rounded-2xl bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800/80 p-3 min-w-[280px] w-full flex-1 max-h-full transition-all duration-200 ease-out",
+        isOver && "border-indigo-400 dark:border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30 ring-2 ring-indigo-500/20 shadow-md scale-[1.005]",
         className
       )}
     >
@@ -123,8 +123,8 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         ref={setNodeRef}
         data-testid={`kanban-dropzone-${status}`}
         className={cn(
-          "flex-1 space-y-3 overflow-y-auto pr-0.5 min-h-[200px] rounded-xl transition-colors duration-150",
-          isOver && "bg-indigo-50/50 dark:bg-indigo-950/20"
+          "flex-1 space-y-3 overflow-y-auto pr-0.5 min-h-[200px] rounded-xl transition-all duration-150",
+          isOver && "bg-indigo-50/50 dark:bg-indigo-950/30 ring-1 ring-indigo-500/15"
         )}
       >
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
