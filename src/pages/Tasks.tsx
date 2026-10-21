@@ -600,7 +600,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         onDragEnd={handleDragEnd}
         onDragCancel={() => setActiveTask(null)}
       >
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-start overflow-x-auto min-h-[420px] pt-2">
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch overflow-x-auto min-h-[500px] h-full pt-2">
           <KanbanColumn
             status="todo"
             title="To Do"

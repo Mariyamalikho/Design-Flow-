@@ -111,4 +111,22 @@ describe("KanbanColumn", () => {
 
     expect(screen.getByText("Create initial wireframes")).toBeDefined();
   });
+
+  it("renders empty column with full-height drop zone and min-height placeholder", () => {
+    render(
+      <KanbanColumn
+        status="done"
+        title="Done"
+        tasks={[]}
+      />
+    );
+
+    const dropzone = screen.getByTestId("kanban-dropzone-done");
+    expect(dropzone.className).toContain("min-h-[350px]");
+    expect(dropzone.className).toContain("h-full");
+
+    const emptyPlaceholder = screen.getByTestId("kanban-empty-done");
+    expect(emptyPlaceholder.className).toContain("min-h-[300px]");
+    expect(emptyPlaceholder.className).toContain("flex-1");
+  });
 });

@@ -81,7 +81,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     <div
       data-testid={`kanban-column-${status}`}
       className={cn(
-        "flex flex-col rounded-2xl bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800/80 p-3 min-w-[280px] w-full flex-1 max-h-full transition-all duration-200 ease-out",
+        "flex flex-col h-full rounded-2xl bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800/80 p-3 min-w-[280px] w-full flex-1 transition-all duration-200 ease-out",
         isOver && "border-indigo-400 dark:border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30 ring-2 ring-indigo-500/20 shadow-md scale-[1.005]",
         className
       )}
@@ -118,12 +118,12 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         )}
       </div>
 
-      {/* Cards Scroll Container & Drop Zone */}
+      {/* Cards Scroll Container & Drop Zone with full height support */}
       <div
         ref={setNodeRef}
         data-testid={`kanban-dropzone-${status}`}
         className={cn(
-          "flex-1 space-y-3 overflow-y-auto pr-1 kanban-column-scroll min-h-[200px] rounded-xl transition-all duration-150",
+          "flex-1 flex flex-col space-y-3 overflow-y-auto pr-1 kanban-column-scroll min-h-[350px] h-full rounded-xl transition-all duration-150",
           isOver && "bg-indigo-50/50 dark:bg-indigo-950/30 ring-1 ring-indigo-500/15"
         )}
       >
@@ -149,15 +149,45 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
               />
             ))
           ) : (
-            <div className="h-full min-h-[180px] flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800/80 p-6 text-center text-zinc-400 dark:text-zinc-600 bg-white/40 dark:bg-zinc-900/20">
-              <EmptyIcon className="w-8 h-8 mb-2 opacity-40 text-zinc-400 dark:text-zinc-500" />
-              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-0.5">
-                {isFiltered ? "No matching tasks" : theme.emptyMessage}
+            <div
+              data-testid={`kanban-empty-${status}`}
+              className={cn(
+                "flex-1 w-full h-full min-h-[300px] flex flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center transition-all duration-200",
+                isOver
+                  ? "border-indigo-400 dark:border-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/40 ring-2 ring-indigo-500/20"
+                  : "border-zinc-200 dark:border-zinc-800/80 text-zinc-400 dark:text-zinc-600 bg-white/40 dark:bg-zinc-900/20"
+              )}
+            >
+              <EmptyIcon
+                className={cn(
+                  "w-8 h-8 mb-2 transition-all duration-200",
+                  isOver
+                    ? "text-indigo-600 dark:text-indigo-400 scale-110 opacity-100"
+                    : "opacity-40 text-zinc-400 dark:text-zinc-500"
+                )}
+              />
+              <p
+                className={cn(
+                  "text-xs font-medium mb-0.5 transition-colors",
+                  isOver
+                    ? "text-indigo-700 dark:text-indigo-300 font-semibold"
+                    : "text-zinc-500 dark:text-zinc-400"
+                )}
+              >
+                {isOver
+                  ? "Drop task here"
+                  : isFiltered
+                  ? "No matching tasks"
+                  : theme.emptyMessage}
               </p>
               <p className="text-[11px] text-zinc-400 dark:text-zinc-500 max-w-[200px]">
-                {isFiltered ? `No tasks in ${title} match your active filters or search.` : theme.emptyHint}
+                {isOver
+                  ? `Release to move to ${title}`
+                  : isFiltered
+                  ? `No tasks in ${title} match your active filters or search.`
+                  : theme.emptyHint}
               </p>
-              {isFiltered && onResetFilters && (
+              {isFiltered && onResetFilters && !isOver && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -167,7 +197,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                   Clear filters
                 </Button>
               )}
-              {!isFiltered && onQuickAddTask && (
+              {!isFiltered && onQuickAddTask && !isOver && (
                 <Button
                   variant="outline"
                   size="sm"
