@@ -8,8 +8,10 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  defaultDropAnimationSideEffects,
   type DragStartEvent,
   type DragEndEvent,
+  type DropAnimation,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { db, type Task } from "@/lib/db";
@@ -40,6 +42,18 @@ export interface TasksProps {
   embedded?: boolean;
   projectId?: number;
 }
+
+const dropAnimationConfig: DropAnimation = {
+  sideEffects: defaultDropAnimationSideEffects({
+    styles: {
+      active: {
+        opacity: "0.35",
+      },
+    },
+  }),
+  duration: 240,
+  easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
+};
 
 export default function Tasks({ embedded = false, projectId }: TasksProps) {
   // Query projects and tasks from Dexie
@@ -586,7 +600,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         onDragEnd={handleDragEnd}
         onDragCancel={() => setActiveTask(null)}
       >
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-start overflow-x-auto min-h-[420px] pt-2">
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch overflow-x-auto min-h-[500px] h-full pt-2">
           <KanbanColumn
             status="todo"
             title="To Do"
@@ -631,10 +645,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         <DragOverlay
           zIndex={999}
           className="z-[999] pointer-events-none select-none drop-shadow-2xl"
-          dropAnimation={{
-            duration: 220,
-            easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
-          }}
+          dropAnimation={dropAnimationConfig}
         >
           {activeTask ? (
             <div className="w-[300px] pointer-events-none">

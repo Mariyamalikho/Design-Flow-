@@ -179,12 +179,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         }
       }}
       className={cn(
-        "group relative flex flex-col justify-between rounded-xl border p-4 bg-white dark:bg-zinc-900/90 shadow-xs transition-all duration-200",
+        "group relative flex flex-col justify-between rounded-xl border p-4 bg-white dark:bg-zinc-900/90 shadow-xs transition-all duration-200 ease-out",
         "border-zinc-200/90 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm cursor-grab active:cursor-grabbing",
         priority.cardBorderClass,
         isDone && "bg-zinc-50/70 dark:bg-zinc-900/40 opacity-80 border-l-zinc-300 dark:border-l-zinc-700",
-        isDragging && "opacity-25 border-dashed border-indigo-400 dark:border-indigo-600 bg-zinc-50/50 dark:bg-zinc-900/30",
-        isOverlay && "shadow-2xl ring-2 ring-indigo-500/40 rotate-1 cursor-grabbing bg-white dark:bg-zinc-900 border-indigo-400 dark:border-indigo-600 scale-[1.03] z-[999] pointer-events-none",
+        isDragging && "opacity-25 border-dashed border-indigo-400 dark:border-indigo-600 bg-zinc-50/50 dark:bg-zinc-900/30 scale-[0.98]",
+        isOverlay && "shadow-2xl ring-2 ring-indigo-500/50 rotate-1 cursor-grabbing bg-white dark:bg-zinc-900 border-indigo-400 dark:border-indigo-600 scale-[1.03] z-[999] pointer-events-none transition-transform duration-200 ease-out",
         handleCardClick && "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950",
         className
       )}

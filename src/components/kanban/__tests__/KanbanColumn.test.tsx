@@ -83,6 +83,19 @@ describe("KanbanColumn", () => {
     expect(projectBadges.length).toBe(2);
   });
 
+  it("applies polished custom scrollbar styling to the dropzone container", () => {
+    render(
+      <KanbanColumn
+        status="todo"
+        title="To Do"
+        tasks={mockTasks}
+      />
+    );
+
+    const dropzone = screen.getByTestId("kanban-dropzone-todo");
+    expect(dropzone.className).toContain("kanban-column-scroll");
+  });
+
   it("supports onStatusChange and onDeleteTask callbacks for card actions", () => {
     const handleStatus = vi.fn();
     const handleDelete = vi.fn();
@@ -97,5 +110,23 @@ describe("KanbanColumn", () => {
     );
 
     expect(screen.getByText("Create initial wireframes")).toBeDefined();
+  });
+
+  it("renders empty column with full-height drop zone and min-height placeholder", () => {
+    render(
+      <KanbanColumn
+        status="done"
+        title="Done"
+        tasks={[]}
+      />
+    );
+
+    const dropzone = screen.getByTestId("kanban-dropzone-done");
+    expect(dropzone.className).toContain("min-h-[350px]");
+    expect(dropzone.className).toContain("h-full");
+
+    const emptyPlaceholder = screen.getByTestId("kanban-empty-done");
+    expect(emptyPlaceholder.className).toContain("min-h-[300px]");
+    expect(emptyPlaceholder.className).toContain("flex-1");
   });
 });
