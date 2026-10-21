@@ -19,6 +19,8 @@ import { KanbanColumn } from "@/components/kanban/KanbanColumn";
 import { TaskCard } from "@/components/kanban/TaskCard";
 import { CreateTaskModal } from "@/components/kanban/CreateTaskModal";
 import { EditTaskModal } from "@/components/kanban/EditTaskModal";
+import { TaskViewToggle, type TaskViewMode } from "@/components/kanban/TaskViewToggle";
+import { TaskListView } from "@/components/kanban/TaskListView";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -72,6 +74,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
   const [selectedProjectId, setSelectedProjectId] = useState<string>(
     projectId !== undefined ? String(projectId) : "all"
   );
+  const [viewMode, setViewMode] = useState<TaskViewMode>("kanban");
 
   // Create Task Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -301,13 +304,16 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             </p>
           </div>
 
-          <Button
-            onClick={() => handleOpenCreateModal("todo")}
-            className="self-start sm:self-auto gap-2 shadow-xs"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Task</span>
-          </Button>
+          <div className="flex items-center gap-3 self-start sm:self-auto">
+            <TaskViewToggle mode={viewMode} onChange={setViewMode} />
+            <Button
+              onClick={() => handleOpenCreateModal("todo")}
+              className="gap-2 shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Task</span>
+            </Button>
+          </div>
         </div>
       )}
 
@@ -323,14 +329,17 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             </span>
           </div>
 
-          <Button
-            size="sm"
-            onClick={() => handleOpenCreateModal("todo")}
-            className="self-start sm:self-auto gap-1.5 h-8 text-xs shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Task</span>
-          </Button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <TaskViewToggle mode={viewMode} onChange={setViewMode} />
+            <Button
+              size="sm"
+              onClick={() => handleOpenCreateModal("todo")}
+              className="gap-1.5 h-8 text-xs shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Task</span>
+            </Button>
+          </div>
         </div>
       )}
 
@@ -592,73 +601,114 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         )}
       </div>
 
-      {/* 3-Column Kanban Board Shell with Drag and Drop */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragCancel={() => setActiveTask(null)}
-      >
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch overflow-x-auto min-h-[500px] h-full pt-2">
-          <KanbanColumn
-            status="todo"
-            title="To Do"
-            tasks={todoTasks}
-            projectMap={projectMap}
-            searchQuery={searchQuery}
-            onStatusChange={handleStatusChange}
-            onDeleteTask={handleDeleteTask}
-            onEditTask={handleOpenEditModal}
-            onQuickAddTask={() => handleOpenCreateModal("todo")}
-            isFiltered={hasActiveFilters}
-            onResetFilters={handleResetFilters}
-          />
-          <KanbanColumn
-            status="in-progress"
-            title="In Progress"
-            tasks={inProgressTasks}
-            projectMap={projectMap}
-            searchQuery={searchQuery}
-            onStatusChange={handleStatusChange}
-            onDeleteTask={handleDeleteTask}
-            onEditTask={handleOpenEditModal}
-            onQuickAddTask={() => handleOpenCreateModal("in-progress")}
-            isFiltered={hasActiveFilters}
-            onResetFilters={handleResetFilters}
-          />
-          <KanbanColumn
-            status="done"
-            title="Done"
-            tasks={doneTasks}
-            projectMap={projectMap}
-            searchQuery={searchQuery}
-            onStatusChange={handleStatusChange}
-            onDeleteTask={handleDeleteTask}
-            onEditTask={handleOpenEditModal}
-            onQuickAddTask={() => handleOpenCreateModal("done")}
-            isFiltered={hasActiveFilters}
-            onResetFilters={handleResetFilters}
-          />
-        </div>
-
-        <DragOverlay
-          zIndex={999}
-          className="z-[999] pointer-events-none select-none drop-shadow-2xl"
-          dropAnimation={dropAnimationConfig}
+      {/* Kanban Board View */}
+      {viewMode === "kanban" && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => setActiveTask(null)}
         >
-          {activeTask ? (
-            <div className="w-[300px] pointer-events-none">
-              <TaskCard
-                task={activeTask}
-                projectName={projectMap[activeTask.projectId]}
-                searchQuery={searchQuery}
-                isOverlay
-              />
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch overflow-x-auto min-h-[500px] h-full pt-2">
+            <KanbanColumn
+              status="todo"
+              title="To Do"
+              tasks={todoTasks}
+              projectMap={projectMap}
+              searchQuery={searchQuery}
+              onStatusChange={handleStatusChange}
+              onDeleteTask={handleDeleteTask}
+              onEditTask={handleOpenEditModal}
+              onQuickAddTask={() => handleOpenCreateModal("todo")}
+              isFiltered={hasActiveFilters}
+              onResetFilters={handleResetFilters}
+            />
+            <KanbanColumn
+              status="in-progress"
+              title="In Progress"
+              tasks={inProgressTasks}
+              projectMap={projectMap}
+              searchQuery={searchQuery}
+              onStatusChange={handleStatusChange}
+              onDeleteTask={handleDeleteTask}
+              onEditTask={handleOpenEditModal}
+              onQuickAddTask={() => handleOpenCreateModal("in-progress")}
+              isFiltered={hasActiveFilters}
+              onResetFilters={handleResetFilters}
+            />
+            <KanbanColumn
+              status="done"
+              title="Done"
+              tasks={doneTasks}
+              projectMap={projectMap}
+              searchQuery={searchQuery}
+              onStatusChange={handleStatusChange}
+              onDeleteTask={handleDeleteTask}
+              onEditTask={handleOpenEditModal}
+              onQuickAddTask={() => handleOpenCreateModal("done")}
+              isFiltered={hasActiveFilters}
+              onResetFilters={handleResetFilters}
+            />
+          </div>
+
+          <DragOverlay
+            zIndex={999}
+            className="z-[999] pointer-events-none select-none drop-shadow-2xl"
+            dropAnimation={dropAnimationConfig}
+          >
+            {activeTask ? (
+              <div className="w-[300px] pointer-events-none">
+                <TaskCard
+                  task={activeTask}
+                  projectName={projectMap[activeTask.projectId]}
+                  searchQuery={searchQuery}
+                  isOverlay
+                />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      )}
+
+      {/* List View */}
+      {viewMode === "list" && (
+        <TaskListView
+          tasks={filteredTasks}
+          projectMap={projectMap}
+          searchQuery={searchQuery}
+          onStatusChange={handleStatusChange}
+          onDeleteTask={handleDeleteTask}
+          onEditTask={handleOpenEditModal}
+          onQuickAddTask={() => handleOpenCreateModal("todo")}
+          isFiltered={hasActiveFilters}
+          onResetFilters={handleResetFilters}
+        />
+      )}
+
+      {/* Timeline View Placeholder (built in Day 69 Commit 2) */}
+      {viewMode === "timeline" && (
+        <div
+          data-testid="timeline-view-placeholder"
+          className="flex-1 flex flex-col items-center justify-center min-h-[400px] rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800/80 p-12 text-center bg-white/40 dark:bg-zinc-900/20"
+        >
+          <Clock className="w-10 h-10 mb-3 opacity-30 text-indigo-500" />
+          <h4 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
+            Task Timeline View
+          </h4>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mb-4">
+            Visual chronological roadmap plotted by task due dates and milestones.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setViewMode("kanban")}
+            className="gap-1.5"
+          >
+            Switch to Kanban Board
+          </Button>
+        </div>
+      )}
 
       {/* Create Task Modal */}
       <CreateTaskModal
