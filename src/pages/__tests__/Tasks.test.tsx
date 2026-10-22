@@ -82,6 +82,7 @@ vi.mock("@/lib/db", () => ({
       add: vi.fn().mockResolvedValue(1),
       update: vi.fn().mockResolvedValue(1),
       delete: vi.fn().mockResolvedValue(1),
+      bulkDelete: vi.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -297,5 +298,19 @@ describe("Tasks Page", () => {
 
     fireEvent.keyDown(window, { key: "n" });
     expect(screen.getByRole("heading", { name: "Create New Task" })).toBeDefined();
+  });
+
+  it("opens confirmation modal and clears all completed tasks", async () => {
+    render(<Tasks />);
+
+    const clearBtn = screen.getByRole("button", { name: /Clear all completed tasks/i });
+    fireEvent.click(clearBtn);
+
+    expect(screen.getByRole("heading", { name: "Clear Completed Deliverables?" })).toBeDefined();
+
+    const confirmBtn = screen.getByRole("button", { name: "Clear Completed" });
+    fireEvent.click(confirmBtn);
+
+    expect(db.tasks.bulkDelete).toHaveBeenCalledWith([12]);
   });
 });

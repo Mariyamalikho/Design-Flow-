@@ -4,7 +4,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import type { Task } from "@/lib/db";
 import { SortableTaskCard } from "./SortableTaskCard";
 import { Button } from "@/components/ui/Button";
-import { Plus, CheckCircle2, Clock, ListPlus, FilterX } from "lucide-react";
+import { Plus, CheckCircle2, Clock, ListPlus, FilterX, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface KanbanColumnProps {
@@ -18,6 +18,7 @@ export interface KanbanColumnProps {
   onStatusChange?: (taskId: number, newStatus: "todo" | "in-progress" | "done") => void;
   onDeleteTask?: (taskId: number) => void;
   onQuickAddTask?: () => void;
+  onClearCompleted?: () => void;
   isFiltered?: boolean;
   onResetFilters?: () => void;
   className?: string;
@@ -58,6 +59,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   onStatusChange,
   onDeleteTask,
   onQuickAddTask,
+  onClearCompleted,
   isFiltered = false,
   onResetFilters,
   className,
@@ -104,18 +106,34 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
           </span>
         </div>
 
-        {onQuickAddTask && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onQuickAddTask}
-            className="h-7 w-7 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200/60 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-            title={`Add task to ${title}`}
-            aria-label={`Add task to ${title}`}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {status === "done" && tasks.length > 0 && onClearCompleted && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClearCompleted}
+              className="h-7 px-2 text-[11px] text-zinc-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors gap-1 font-medium"
+              title="Clear all completed tasks"
+              aria-label="Clear all completed tasks"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Clear all</span>
+            </Button>
+          )}
+
+          {onQuickAddTask && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onQuickAddTask}
+              className="h-7 w-7 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200/60 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+              title={`Add task to ${title}`}
+              aria-label={`Add task to ${title}`}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Cards Scroll Container & Drop Zone with full height support */}

@@ -23,6 +23,7 @@ import { TaskViewToggle } from "@/components/kanban/TaskViewToggle";
 import { TaskListView } from "@/components/kanban/TaskListView";
 import { TaskTimelineView } from "@/components/kanban/TaskTimelineView";
 import { TaskKeyboardShortcutsModal } from "@/components/kanban/TaskKeyboardShortcutsModal";
+import { ClearCompletedTasksModal } from "@/components/kanban/ClearCompletedTasksModal";
 import { useTaskBoard } from "@/components/kanban/taskBoardReducer";
 import { triggerTaskCompletedConfetti } from "@/lib/confettiUtils";
 import { Button } from "@/components/ui/Button";
@@ -89,6 +90,32 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
+  const [isClearCompletedModalOpen, setIsClearCompletedModalOpen] = useState(false);
+  const [isClearingCompleted, setIsClearingCompleted] = useState(false);
+
+  // Clear all completed tasks handler
+  const handleClearCompleted = async () => {
+    try {
+      setIsClearingCompleted(true);
+      const completedTasks =
+        tasks?.filter(
+          (t) => t.status === "done" && (projectId === undefined || t.projectId === projectId)
+        ) ?? [];
+      const ids = completedTasks.map((t) => t.id).filter(Boolean) as number[];
+
+      if (ids.length > 0) {
+        await db.tasks.bulkDelete(ids);
+        toast.success(
+          `Cleared ${ids.length} completed ${ids.length === 1 ? "deliverable" : "deliverables"}`
+        );
+      }
+      setIsClearCompletedModalOpen(false);
+    } catch {
+      toast.error("Failed to clear completed tasks");
+    } finally {
+      setIsClearingCompleted(false);
+    }
+  };
 
   // Global Keyboard Navigation
   useEffect(() => {
@@ -715,6 +742,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
               onDeleteTask={handleDeleteTask}
               onEditTask={handleOpenEditModal}
               onQuickAddTask={() => handleOpenCreateModal("done")}
+              onClearCompleted={() => setIsClearCompletedModalOpen(true)}
               isFiltered={hasActiveFilters}
               onResetFilters={handleResetFilters}
             />
@@ -749,6 +777,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
           onDeleteTask={handleDeleteTask}
           onEditTask={handleOpenEditModal}
           onQuickAddTask={() => handleOpenCreateModal("todo")}
+          onClearCompleted={() => setIsClearCompletedModalOpen(true)}
           isFiltered={hasActiveFilters}
           onResetFilters={handleResetFilters}
         />
@@ -795,6 +824,15 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
       <TaskKeyboardShortcutsModal
         open={isShortcutsModalOpen}
         onOpenChange={setIsShortcutsModalOpen}
+      />
+
+      {/* Clear Completed Tasks Confirmation Modal */}
+      <ClearCompletedTasksModal
+        open={isClearCompletedModalOpen}
+        onOpenChange={setIsClearCompletedModalOpen}
+        completedCount={doneTasks.length}
+        onConfirm={handleClearCompleted}
+        isClearing={isClearingCompleted}
       />
     </div>
   );

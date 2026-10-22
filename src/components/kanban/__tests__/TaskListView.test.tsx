@@ -115,4 +115,21 @@ describe("TaskListView", () => {
     fireEvent.click(screen.getByText("Design brand guidelines"));
     expect(handleEdit).toHaveBeenCalledWith(mockTasks[0]);
   });
+
+  it("renders clear completed button when completed tasks exist", () => {
+    const handleClear = vi.fn();
+    render(
+      <TaskListView
+        tasks={mockTasks}
+        projectMap={projectMap}
+        onClearCompleted={handleClear}
+      />
+    );
+
+    const clearBtn = screen.getByRole("button", { name: "Clear all completed tasks" });
+    expect(clearBtn).toBeDefined();
+
+    fireEvent.click(clearBtn);
+    expect(handleClear).toHaveBeenCalledTimes(1);
+  });
 });
