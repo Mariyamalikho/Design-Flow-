@@ -24,6 +24,7 @@ import { TaskListView } from "@/components/kanban/TaskListView";
 import { TaskTimelineView } from "@/components/kanban/TaskTimelineView";
 import { TaskKeyboardShortcutsModal } from "@/components/kanban/TaskKeyboardShortcutsModal";
 import { useTaskBoard } from "@/components/kanban/taskBoardReducer";
+import { triggerTaskCompletedConfetti } from "@/lib/confettiUtils";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -173,7 +174,15 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         "in-progress": "In Progress",
         done: "Done",
       };
-      toast.success(`Task moved to ${statusLabels[nextStatus]}`);
+
+      if (nextStatus === "done") {
+        triggerTaskCompletedConfetti();
+        toast.success("Task completed! 🎉", {
+          description: "Great job completing this deliverable.",
+        });
+      } else {
+        toast.success(`Task moved to ${statusLabels[nextStatus]}`);
+      }
     } catch {
       toast.error("Failed to update task");
     }

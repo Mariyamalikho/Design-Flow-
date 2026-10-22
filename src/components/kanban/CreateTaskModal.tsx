@@ -21,6 +21,7 @@ import {
   Flame,
 } from "lucide-react";
 import { toast } from "sonner";
+import { triggerTaskCompletedConfetti } from "@/lib/confettiUtils";
 import { cn } from "@/lib/utils";
 
 export interface CreateTaskModalProps {
@@ -105,6 +106,10 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 
       const taskId = await db.tasks.add(newTaskData);
       const createdTask: Task = { ...newTaskData, id: taskId };
+
+      if (status === "done") {
+        triggerTaskCompletedConfetti();
+      }
 
       toast.success("Task created and added to board");
       if (onTaskCreated) {

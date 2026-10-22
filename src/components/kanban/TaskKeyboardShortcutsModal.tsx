@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/Dialog";
-import { Keyboard, Kanban, ListTodo, CalendarDays, Plus, Search, CheckCircle2, ArrowRight, Trash2 } from "lucide-react";
+import { Keyboard } from "lucide-react";
 
 export interface TaskKeyboardShortcutsModalProps {
   open: boolean;
