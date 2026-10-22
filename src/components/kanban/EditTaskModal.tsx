@@ -23,6 +23,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { triggerTaskCompletedConfetti } from "@/lib/confettiUtils";
 import { cn } from "@/lib/utils";
 
 export interface EditTaskModalProps {
@@ -112,6 +113,10 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 
       await db.tasks.update(task.id, updatePayload);
       const updatedTask: Task = { ...task, ...updatePayload };
+
+      if (task.status !== "done" && status === "done") {
+        triggerTaskCompletedConfetti();
+      }
 
       toast.success("Task updated successfully");
       if (onTaskUpdated) {

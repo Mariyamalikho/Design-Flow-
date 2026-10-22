@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   DndContext,
@@ -22,7 +22,10 @@ import { EditTaskModal } from "@/components/kanban/EditTaskModal";
 import { TaskViewToggle } from "@/components/kanban/TaskViewToggle";
 import { TaskListView } from "@/components/kanban/TaskListView";
 import { TaskTimelineView } from "@/components/kanban/TaskTimelineView";
+import { TaskKeyboardShortcutsModal } from "@/components/kanban/TaskKeyboardShortcutsModal";
+import { ClearCompletedTasksModal } from "@/components/kanban/ClearCompletedTasksModal";
 import { useTaskBoard } from "@/components/kanban/taskBoardReducer";
+import { triggerTaskCompletedConfetti } from "@/lib/confettiUtils";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -38,6 +41,7 @@ import {
   Layers,
   X,
   RotateCcw,
+  Keyboard,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -83,6 +87,72 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
     editingTask,
     activeTask,
   } = state;
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
+  const [isClearCompletedModalOpen, setIsClearCompletedModalOpen] = useState(false);
+  const [isClearingCompleted, setIsClearingCompleted] = useState(false);
+
+  // Clear all completed tasks handler
+  const handleClearCompleted = async () => {
+    try {
+      setIsClearingCompleted(true);
+      const completedTasks =
+        tasks?.filter(
+          (t) => t.status === "done" && (projectId === undefined || t.projectId === projectId)
+        ) ?? [];
+      const ids = completedTasks.map((t) => t.id).filter(Boolean) as number[];
+
+      if (ids.length > 0) {
+        await db.tasks.bulkDelete(ids);
+        toast.success(
+          `Cleared ${ids.length} completed ${ids.length === 1 ? "deliverable" : "deliverables"}`
+        );
+      }
+      setIsClearCompletedModalOpen(false);
+    } catch {
+      toast.error("Failed to clear completed tasks");
+    } finally {
+      setIsClearingCompleted(false);
+    }
+  };
+
+  // Global Keyboard Navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInput =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable;
+
+      if (isInput) return;
+
+      if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        e.preventDefault();
+        setIsShortcutsModalOpen((prev) => !prev);
+      } else if (e.key === "/") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      } else if (e.key === "n" || e.key === "c" || e.key === "N" || e.key === "C") {
+        e.preventDefault();
+        actions.openCreateModal("todo");
+      } else if (e.key === "b" || e.key === "B") {
+        e.preventDefault();
+        actions.setViewMode("kanban");
+      } else if (e.key === "l" || e.key === "L") {
+        e.preventDefault();
+        actions.setViewMode("list");
+      } else if (e.key === "t" || e.key === "T") {
+        e.preventDefault();
+        actions.setViewMode("timeline");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [actions]);
 
   // DnD Sensors: 5px distance constraint allows clicks and dropdown actions without dragging
   const sensors = useSensors(
@@ -131,7 +201,15 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         "in-progress": "In Progress",
         done: "Done",
       };
-      toast.success(`Task moved to ${statusLabels[nextStatus]}`);
+
+      if (nextStatus === "done") {
+        triggerTaskCompletedConfetti();
+        toast.success("Task completed! 🎉", {
+          description: "Great job completing this deliverable.",
+        });
+      } else {
+        toast.success(`Task moved to ${statusLabels[nextStatus]}`);
+      }
     } catch {
       toast.error("Failed to update task");
     }
@@ -294,14 +372,30 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 self-start sm:self-auto">
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
             <TaskViewToggle mode={viewMode} onChange={actions.setViewMode} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsShortcutsModalOpen(true)}
+              className="h-9 px-2.5 text-xs gap-1.5 text-zinc-600 dark:text-zinc-400 border-zinc-200/80 dark:border-zinc-800"
+              title="Keyboard Shortcuts (?)"
+              aria-label="Keyboard Shortcuts"
+            >
+              <Keyboard className="w-3.5 h-3.5" />
+              <kbd className="hidden sm:inline-block text-[10px] bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded px-1 font-mono">
+                ?
+              </kbd>
+            </Button>
             <Button
               onClick={() => handleOpenCreateModal("todo")}
               className="gap-2 shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>New Task</span>
+              <kbd className="hidden sm:inline-block ml-0.5 text-[10px] bg-indigo-700/60 text-white border border-indigo-500/50 rounded px-1 font-mono">
+                N
+              </kbd>
             </Button>
           </div>
         </div>
@@ -322,6 +416,16 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <TaskViewToggle mode={viewMode} onChange={actions.setViewMode} />
             <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsShortcutsModalOpen(true)}
+              className="h-8 px-2 text-xs text-zinc-600 dark:text-zinc-400 border-zinc-200/80 dark:border-zinc-800"
+              title="Keyboard Shortcuts (?)"
+              aria-label="Keyboard Shortcuts"
+            >
+              <Keyboard className="w-3.5 h-3.5" />
+            </Button>
+            <Button
               size="sm"
               onClick={() => handleOpenCreateModal("todo")}
               className="gap-1.5 h-8 text-xs shadow-xs"
@@ -341,8 +445,9 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
             <div className="relative flex-1 min-w-[200px] max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
               <Input
+                ref={searchInputRef}
                 type="text"
-                placeholder="Search tasks by title, notes, or project..."
+                placeholder="Search tasks by title, notes, or project... (Press / to focus)"
                 value={searchQuery}
                 onChange={(e) => actions.setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -637,6 +742,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
               onDeleteTask={handleDeleteTask}
               onEditTask={handleOpenEditModal}
               onQuickAddTask={() => handleOpenCreateModal("done")}
+              onClearCompleted={() => setIsClearCompletedModalOpen(true)}
               isFiltered={hasActiveFilters}
               onResetFilters={handleResetFilters}
             />
@@ -671,6 +777,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
           onDeleteTask={handleDeleteTask}
           onEditTask={handleOpenEditModal}
           onQuickAddTask={() => handleOpenCreateModal("todo")}
+          onClearCompleted={() => setIsClearCompletedModalOpen(true)}
           isFiltered={hasActiveFilters}
           onResetFilters={handleResetFilters}
         />
@@ -711,6 +818,21 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
           if (!open) actions.closeEditModal();
         }}
         projects={projects ?? []}
+      />
+
+      {/* Keyboard Shortcuts Cheatsheet Modal */}
+      <TaskKeyboardShortcutsModal
+        open={isShortcutsModalOpen}
+        onOpenChange={setIsShortcutsModalOpen}
+      />
+
+      {/* Clear Completed Tasks Confirmation Modal */}
+      <ClearCompletedTasksModal
+        open={isClearCompletedModalOpen}
+        onOpenChange={setIsClearCompletedModalOpen}
+        completedCount={doneTasks.length}
+        onConfirm={handleClearCompleted}
+        isClearing={isClearingCompleted}
       />
     </div>
   );

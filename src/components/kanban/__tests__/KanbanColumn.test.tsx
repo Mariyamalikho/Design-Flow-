@@ -129,4 +129,22 @@ describe("KanbanColumn", () => {
     expect(emptyPlaceholder.className).toContain("min-h-[300px]");
     expect(emptyPlaceholder.className).toContain("flex-1");
   });
+
+  it("renders clear completed button on Done column when tasks exist", () => {
+    const handleClear = vi.fn();
+    render(
+      <KanbanColumn
+        status="done"
+        title="Done"
+        tasks={[mockTasks[0]]}
+        onClearCompleted={handleClear}
+      />
+    );
+
+    const clearBtn = screen.getByRole("button", { name: "Clear all completed tasks" });
+    expect(clearBtn).toBeDefined();
+
+    fireEvent.click(clearBtn);
+    expect(handleClear).toHaveBeenCalledTimes(1);
+  });
 });

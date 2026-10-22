@@ -72,4 +72,37 @@ describe("TaskCard", () => {
     expect(title.className).toContain("line-through");
     expect(container.firstChild).toBeDefined();
   });
+
+  it("navigates and triggers status change on numeric key press (1, 2, 3)", () => {
+    const handleStatusChange = vi.fn();
+    render(<TaskCard task={sampleTask} onStatusChange={handleStatusChange} />);
+    const card = screen.getByRole("article");
+
+    fireEvent.keyDown(card, { key: "2" });
+    expect(handleStatusChange).toHaveBeenCalledWith("in-progress");
+
+    fireEvent.keyDown(card, { key: "3" });
+    expect(handleStatusChange).toHaveBeenCalledWith("done");
+  });
+
+  it("shifts task to next column on ArrowRight or l key", () => {
+    const handleStatusChange = vi.fn();
+    render(<TaskCard task={sampleTask} onStatusChange={handleStatusChange} />);
+    const card = screen.getByRole("article");
+
+    fireEvent.keyDown(card, { key: "ArrowRight" });
+    expect(handleStatusChange).toHaveBeenCalledWith("in-progress");
+  });
+
+  it("triggers onDelete on Delete or Backspace key press", () => {
+    const handleDelete = vi.fn();
+    render(<TaskCard task={sampleTask} onDelete={handleDelete} />);
+    const card = screen.getByRole("article");
+
+    fireEvent.keyDown(card, { key: "Delete" });
+    expect(handleDelete).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(card, { key: "Backspace" });
+    expect(handleDelete).toHaveBeenCalledTimes(2);
+  });
 });

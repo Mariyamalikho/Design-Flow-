@@ -36,6 +36,7 @@ export interface TaskListViewProps {
   onDeleteTask?: (taskId: number) => void;
   onEditTask?: (task: Task) => void;
   onQuickAddTask?: () => void;
+  onClearCompleted?: () => void;
   isFiltered?: boolean;
   onResetFilters?: () => void;
   className?: string;
@@ -123,6 +124,7 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
   onDeleteTask,
   onEditTask,
   onQuickAddTask,
+  onClearCompleted,
   isFiltered = false,
   onResetFilters,
   className,
@@ -226,6 +228,19 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
               style={{ width: `${progressPercent}%` }}
             />
           </div>
+          {completedCount > 0 && onClearCompleted && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onClearCompleted}
+              className="gap-1.5 text-xs text-zinc-500 hover:text-rose-600 dark:hover:text-rose-400 border-zinc-200 dark:border-zinc-800 hover:border-rose-200 dark:hover:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/30 shrink-0"
+              title="Clear all completed tasks"
+              aria-label="Clear all completed tasks"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Clear Completed</span>
+            </Button>
+          )}
           {onQuickAddTask && (
             <Button
               size="sm"
