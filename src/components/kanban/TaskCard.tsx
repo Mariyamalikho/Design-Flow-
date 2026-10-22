@@ -169,13 +169,67 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   return (
     <div
       role="article"
-      aria-label={`Task: ${task.title}`}
+      aria-label={`Task: ${task.title}. Priority: ${task.priority}. Status: ${task.status}`}
+      aria-keyshortcuts="Enter Space 1 2 3 Delete e"
       tabIndex={handleCardClick ? 0 : undefined}
       onClick={handleCardClick}
       onKeyDown={(e) => {
-        if (handleCardClick && (e.key === "Enter" || e.key === " ")) {
-          e.preventDefault();
-          handleCardClick();
+        // Prevent triggering shortcuts if inside a nested button/input/dropdown
+        const target = e.target as HTMLElement;
+        if (target !== e.currentTarget && (target.tagName === "INPUT" || target.tagName === "BUTTON")) {
+          return;
+        }
+
+        if (e.key === "Enter" || e.key === " ") {
+          if (handleCardClick) {
+            e.preventDefault();
+            handleCardClick();
+          }
+        } else if (e.key === "e" || e.key === "E") {
+          if (onEdit) {
+            e.preventDefault();
+            onEdit();
+          }
+        } else if (e.key === "Delete" || e.key === "Backspace") {
+          if (onDelete) {
+            e.preventDefault();
+            onDelete();
+          }
+        } else if (e.key === "1") {
+          if (onStatusChange && task.status !== "todo") {
+            e.preventDefault();
+            onStatusChange("todo");
+          }
+        } else if (e.key === "2") {
+          if (onStatusChange && task.status !== "in-progress") {
+            e.preventDefault();
+            onStatusChange("in-progress");
+          }
+        } else if (e.key === "3") {
+          if (onStatusChange && task.status !== "done") {
+            e.preventDefault();
+            onStatusChange("done");
+          }
+        } else if (e.key === "ArrowRight" || e.key === "l") {
+          if (onStatusChange) {
+            if (task.status === "todo") {
+              e.preventDefault();
+              onStatusChange("in-progress");
+            } else if (task.status === "in-progress") {
+              e.preventDefault();
+              onStatusChange("done");
+            }
+          }
+        } else if (e.key === "ArrowLeft" || e.key === "h") {
+          if (onStatusChange) {
+            if (task.status === "done") {
+              e.preventDefault();
+              onStatusChange("in-progress");
+            } else if (task.status === "in-progress") {
+              e.preventDefault();
+              onStatusChange("todo");
+            }
+          }
         }
       }}
       className={cn(
@@ -236,11 +290,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuContent align="end" className="w-48">
                   {onEdit && (
-                    <DropdownMenuItem onClick={onEdit}>
-                      <Pencil className="mr-2 h-3.5 w-3.5 text-zinc-500" />
-                      <span>Edit Task</span>
+                    <DropdownMenuItem onClick={onEdit} className="justify-between">
+                      <div className="flex items-center">
+                        <Pencil className="mr-2 h-3.5 w-3.5 text-zinc-500" />
+                        <span>Edit Task</span>
+                      </div>
+                      <kbd className="text-[10px] text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded font-mono">↵</kbd>
                     </DropdownMenuItem>
                   )}
                   {onEdit && (onStatusChange || onDelete) && <DropdownMenuSeparator />}
@@ -250,21 +307,30 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                         Move task to
                       </DropdownMenuLabel>
                       {task.status !== "todo" && (
-                        <DropdownMenuItem onClick={() => onStatusChange("todo")}>
-                          <ArrowRight className="mr-2 h-3.5 w-3.5 text-zinc-500" />
-                          <span>To Do</span>
+                        <DropdownMenuItem onClick={() => onStatusChange("todo")} className="justify-between">
+                          <div className="flex items-center">
+                            <ArrowRight className="mr-2 h-3.5 w-3.5 text-zinc-500" />
+                            <span>To Do</span>
+                          </div>
+                          <kbd className="text-[10px] text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded font-mono">1</kbd>
                         </DropdownMenuItem>
                       )}
                       {task.status !== "in-progress" && (
-                        <DropdownMenuItem onClick={() => onStatusChange("in-progress")}>
-                          <ArrowRight className="mr-2 h-3.5 w-3.5 text-amber-500" />
-                          <span>In Progress</span>
+                        <DropdownMenuItem onClick={() => onStatusChange("in-progress")} className="justify-between">
+                          <div className="flex items-center">
+                            <ArrowRight className="mr-2 h-3.5 w-3.5 text-amber-500" />
+                            <span>In Progress</span>
+                          </div>
+                          <kbd className="text-[10px] text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded font-mono">2</kbd>
                         </DropdownMenuItem>
                       )}
                       {task.status !== "done" && (
-                        <DropdownMenuItem onClick={() => onStatusChange("done")}>
-                          <CheckCircle2 className="mr-2 h-3.5 w-3.5 text-emerald-500" />
-                          <span>Done</span>
+                        <DropdownMenuItem onClick={() => onStatusChange("done")} className="justify-between">
+                          <div className="flex items-center">
+                            <CheckCircle2 className="mr-2 h-3.5 w-3.5 text-emerald-500" />
+                            <span>Done</span>
+                          </div>
+                          <kbd className="text-[10px] text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded font-mono">3</kbd>
                         </DropdownMenuItem>
                       )}
                     </>
@@ -274,10 +340,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={onDelete}
-                        className="text-rose-600 dark:text-rose-400 focus:text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-950/30"
+                        className="justify-between text-rose-600 dark:text-rose-400 focus:text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-950/30"
                       >
-                        <Trash2 className="mr-2 h-3.5 w-3.5" />
-                        <span>Delete</span>
+                        <div className="flex items-center">
+                          <Trash2 className="mr-2 h-3.5 w-3.5" />
+                          <span>Delete</span>
+                        </div>
+                        <kbd className="text-[10px] text-rose-500 bg-rose-50 dark:bg-rose-950/50 px-1 py-0.5 rounded font-mono">Del</kbd>
                       </DropdownMenuItem>
                     </>
                   )}

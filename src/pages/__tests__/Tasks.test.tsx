@@ -284,4 +284,18 @@ describe("Tasks Page", () => {
     expect(screen.getByTestId("task-timeline-view")).toBeDefined();
     expect(screen.getByText("Deliverable Timeline")).toBeDefined();
   });
+
+  it("opens keyboard shortcuts dialog when '?' key is pressed", () => {
+    render(<Tasks />);
+
+    fireEvent.keyDown(window, { key: "?" });
+    expect(screen.getByRole("heading", { name: "Keyboard Shortcuts" })).toBeDefined();
+  });
+
+  it("opens create task modal when 'n' key is pressed", () => {
+    render(<Tasks />);
+
+    fireEvent.keyDown(window, { key: "n" });
+    expect(screen.getByRole("heading", { name: "Create New Task" })).toBeDefined();
+  });
 });
