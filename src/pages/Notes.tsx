@@ -18,6 +18,7 @@ import {
   Filter,
   X,
 } from "lucide-react";
+import { TipTapEditor } from "@/components/notes/TipTapEditor";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -474,21 +475,15 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
               >
                 <div
                   id="note-editor-container"
-                  className="max-w-3xl mx-auto min-h-[400px] prose dark:prose-invert prose-indigo focus:outline-none"
+                  className="max-w-3xl mx-auto min-h-[400px] focus:outline-none"
                   data-testid="note-editor-content"
                 >
-                  {/* TipTap editor or interim content display */}
-                  <div
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={(e) => {
-                      handleUpdateActiveNote({
-                        content: e.currentTarget.innerHTML,
-                      });
+                  <TipTapEditor
+                    key={activeNote.id}
+                    content={activeNote.content}
+                    onChange={(html) => {
+                      handleUpdateActiveNote({ content: html });
                     }}
-                    dangerouslySetInnerHTML={{ __html: activeNote.content }}
-                    className="min-h-[300px] outline-none text-zinc-800 dark:text-zinc-200 leading-relaxed font-sans"
-                    aria-label="Note content editable"
                   />
                 </div>
               </div>
