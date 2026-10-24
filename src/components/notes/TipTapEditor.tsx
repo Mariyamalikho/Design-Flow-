@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
+import { EditorToolbar } from "./EditorToolbar";
 import { cn } from "@/lib/utils";
 
 export interface TipTapEditorProps {
@@ -9,6 +10,7 @@ export interface TipTapEditorProps {
   onChange?: (html: string) => void;
   placeholder?: string;
   editable?: boolean;
+  showToolbar?: boolean;
   className?: string;
   onEditorReady?: (editor: Editor) => void;
   editorRef?: React.MutableRefObject<Editor | null>;
@@ -19,6 +21,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   onChange,
   placeholder = "Write your thoughts, design ideas, or project brief...",
   editable = true,
+  showToolbar = true,
   className,
   onEditorReady,
   editorRef,
@@ -96,10 +99,13 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
 
   return (
     <div
-      className="tiptap-editor-wrapper w-full h-full"
+      className="tiptap-editor-wrapper w-full h-full flex flex-col"
       data-testid="tiptap-editor"
     >
-      <EditorContent editor={editor} />
+      {showToolbar && editable && <EditorToolbar editor={editor} />}
+      <div className="flex-1 overflow-y-auto">
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 };

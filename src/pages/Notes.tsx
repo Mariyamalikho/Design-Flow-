@@ -470,12 +470,12 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
 
               {/* Note Editor Area */}
               <div
-                className="flex-1 overflow-y-auto p-6 md:p-8"
+                className="flex-1 overflow-hidden flex flex-col"
                 data-testid="note-editor-wrapper"
               >
                 <div
                   id="note-editor-container"
-                  className="max-w-3xl mx-auto min-h-[400px] focus:outline-none"
+                  className="flex-1 flex flex-col h-full overflow-hidden focus:outline-none"
                   data-testid="note-editor-content"
                 >
                   <TipTapEditor
@@ -484,6 +484,7 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
                     onChange={(html) => {
                       handleUpdateActiveNote({ content: html });
                     }}
+                    className="p-6 md:p-8 max-w-3xl mx-auto"
                   />
                 </div>
               </div>
