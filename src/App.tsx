@@ -6,6 +6,7 @@ import Projects from "@/pages/Projects";
 import ProjectDetail from "@/pages/ProjectDetail";
 import BriefWizard from "@/pages/BriefWizard";
 import Tasks from "@/pages/Tasks";
+import Notes from "@/pages/Notes";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 function App() {
@@ -18,6 +19,8 @@ function App() {
           <Route path="projects/:id" element={<ProjectDetail />} />
           <Route path="briefs" element={<BriefWizard />} />
           <Route path="tasks" element={<Tasks />} />
+          <Route path="notes" element={<Notes />} />
+          <Route path="notes/:id" element={<Notes />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

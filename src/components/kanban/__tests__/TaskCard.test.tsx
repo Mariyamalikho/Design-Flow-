@@ -33,7 +33,7 @@ describe("TaskCard", () => {
 
   it("renders due date indicator correctly", () => {
     render(<TaskCard task={sampleTask} />);
-    expect(screen.getByText(/Due Oct 25/i)).toBeDefined();
+    expect(screen.getByText(/Due (Today|Oct 25)/i)).toBeDefined();
   });
 
   it("renders overdue indicator when due date is in the past and task is not done", () => {

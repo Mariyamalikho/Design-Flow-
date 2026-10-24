@@ -92,6 +92,17 @@ export interface BrandIdentity {
   updatedAt: Date;
 }
 
+export interface Note {
+  id?: number;
+  projectId?: number;
+  title: string;
+  content: string; // TipTap HTML or markdown string
+  tags?: string[];
+  isPinned?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export class DesignFlowDB extends Dexie {
   projects!: Table<Project, number>;
   tasks!: Table<Task, number>;
@@ -100,6 +111,7 @@ export class DesignFlowDB extends Dexie {
   moodboardItems!: Table<MoodboardItem, number>;
   paletteColors!: Table<PaletteColor, number>;
   brandIdentities!: Table<BrandIdentity, number>;
+  notes!: Table<Note, number>;
 
   constructor() {
     super("DesignFlowDB");
@@ -171,6 +183,18 @@ export class DesignFlowDB extends Dexie {
       moodboardItems: "++id, projectId, type, order, createdAt",
       paletteColors: "++id, projectId, createdAt",
       brandIdentities: "++id, projectId, createdAt, updatedAt",
+    });
+
+    // Version 9: Rich Notes & Brainstorm Canvas
+    this.version(9).stores({
+      projects: "++id, status, createdAt",
+      tasks: "++id, projectId, status, priority",
+      briefs: "++id, projectId, status, createdAt",
+      assets: "++id, projectId, type, createdAt",
+      moodboardItems: "++id, projectId, type, order, createdAt",
+      paletteColors: "++id, projectId, createdAt",
+      brandIdentities: "++id, projectId, createdAt, updatedAt",
+      notes: "++id, projectId, isPinned, createdAt, updatedAt",
     });
   }
 }
