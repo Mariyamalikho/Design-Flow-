@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { TipTapEditor } from "@/components/notes/TipTapEditor";
+import { MarkdownShortcutsModal } from "@/components/notes/MarkdownShortcutsModal";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +43,7 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
   // Queries
   const projects = useLiveQuery(() => db.projects.toArray());
@@ -484,6 +486,7 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
                     onChange={(html) => {
                       handleUpdateActiveNote({ content: html });
                     }}
+                    onOpenMarkdownGuide={() => setIsShortcutsOpen(true)}
                     className="p-6 md:p-8 max-w-3xl mx-auto"
                   />
                 </div>
@@ -513,6 +516,11 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
           )}
         </main>
       </div>
+
+      <MarkdownShortcutsModal
+        open={isShortcutsOpen}
+        onOpenChange={setIsShortcutsOpen}
+      />
     </div>
   );
 }

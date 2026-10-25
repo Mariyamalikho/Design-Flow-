@@ -16,12 +16,14 @@ import {
   Undo2,
   Redo2,
   RemoveFormatting,
+  HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface EditorToolbarProps {
   editor: Editor | null;
   className?: string;
+  onOpenMarkdownGuide?: () => void;
 }
 
 interface ToolbarButtonProps {
@@ -69,6 +71,7 @@ const Divider = () => (
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   editor,
   className,
+  onOpenMarkdownGuide,
 }) => {
   if (!editor) {
     return (
@@ -251,6 +254,19 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
       >
         <RemoveFormatting className="w-4 h-4" />
       </ToolbarButton>
+
+      {onOpenMarkdownGuide && (
+        <>
+          <Divider />
+          <ToolbarButton
+            onClick={onOpenMarkdownGuide}
+            title="Markdown Shortcuts Guide"
+            ariaLabel="Markdown Shortcuts Guide"
+          >
+            <HelpCircle className="w-4 h-4 text-indigo-500" />
+          </ToolbarButton>
+        </>
+      )}
     </div>
   );
 };

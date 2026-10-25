@@ -12,6 +12,7 @@ export interface TipTapEditorProps {
   editable?: boolean;
   showToolbar?: boolean;
   className?: string;
+  onOpenMarkdownGuide?: () => void;
   onEditorReady?: (editor: Editor) => void;
   editorRef?: React.MutableRefObject<Editor | null>;
 }
@@ -23,6 +24,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   editable = true,
   showToolbar = true,
   className,
+  onOpenMarkdownGuide,
   onEditorReady,
   editorRef,
 }) => {
@@ -102,7 +104,12 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
       className="tiptap-editor-wrapper w-full h-full flex flex-col"
       data-testid="tiptap-editor"
     >
-      {showToolbar && editable && <EditorToolbar editor={editor} />}
+      {showToolbar && editable && (
+        <EditorToolbar
+          editor={editor}
+          onOpenMarkdownGuide={onOpenMarkdownGuide}
+        />
+      )}
       <div className="flex-1 overflow-y-auto">
         <EditorContent editor={editor} />
       </div>
