@@ -77,7 +77,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
     }
   }, [editor, editorRef, onEditorReady]);
 
-  // Update content when it changes externally (e.g., selecting a different note)
+  // Update content when it changes externally (e.g., selecting a different note or auto-save sync)
   useEffect(() => {
     if (!editor) return;
 
@@ -87,8 +87,20 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
     }
 
     const currentHTML = editor.getHTML();
-    if (content !== currentHTML) {
-      editor.commands.setContent(content || "", { emitUpdate: false });
+    if (content === currentHTML) {
+      return;
+    }
+
+    // Preserve selection during save / background updates so cursor does not jump
+    const { from, to } = editor.state.selection;
+    editor.commands.setContent(content || "", { emitUpdate: false });
+    try {
+      const maxPos = editor.state.doc.content.size;
+      const newFrom = Math.min(Math.max(0, from), maxPos);
+      const newTo = Math.min(Math.max(0, to), maxPos);
+      editor.commands.setTextSelection({ from: newFrom, to: newTo });
+    } catch {
+      // Fallback if cursor position cannot be restored
     }
   }, [content, editor]);
 

@@ -81,4 +81,63 @@ describe("TipTapEditor", () => {
 
     expect(editorInstance?.isEditable).toBe(false);
   });
+
+  it("preserves cursor selection when external content updates while focused", () => {
+    let editorInstance: Editor | null = null;
+    const { rerender } = render(
+      <TipTapEditor
+        content="<p>Initial design system brainstorm</p>"
+        onEditorReady={(ed) => {
+          editorInstance = ed;
+        }}
+      />
+    );
+
+    expect(editorInstance).not.toBeNull();
+
+    act(() => {
+      editorInstance?.commands.focus();
+      editorInstance?.commands.setTextSelection(5);
+    });
+
+    expect(editorInstance?.state.selection.from).toBe(5);
+
+    // Re-render with slightly updated content (e.g. background save sync)
+    rerender(
+      <TipTapEditor
+        content="<p>Initial design system brainstorm!</p>"
+        onEditorReady={(ed) => {
+          editorInstance = ed;
+        }}
+      />
+    );
+
+    // Cursor position should be preserved at 5
+    expect(editorInstance?.state.selection.from).toBe(5);
+  });
+
+  it("does not reset content when prop equals current editor content", () => {
+    let editorInstance: Editor | null = null;
+    const { rerender } = render(
+      <TipTapEditor
+        content="<p>Same content</p>"
+        onEditorReady={(ed) => {
+          editorInstance = ed;
+        }}
+      />
+    );
+
+    const setContentSpy = vi.spyOn(editorInstance!.commands, "setContent");
+
+    rerender(
+      <TipTapEditor
+        content="<p>Same content</p>"
+        onEditorReady={(ed) => {
+          editorInstance = ed;
+        }}
+      />
+    );
+
+    expect(setContentSpy).not.toHaveBeenCalled();
+  });
 });

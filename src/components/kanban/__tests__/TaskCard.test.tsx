@@ -12,7 +12,7 @@ describe("TaskCard", () => {
     description: "Export primary vector assets and responsive variants",
     status: "todo",
     priority: "high",
-    dueDate: new Date("2026-10-25T12:00:00Z"),
+    dueDate: new Date(),
     createdAt: new Date("2026-10-19T10:00:00Z"),
   };
 

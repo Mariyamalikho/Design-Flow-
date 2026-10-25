@@ -139,6 +139,10 @@ describe("Notes Page", () => {
     });
     fireEvent.click(newNoteButtons[0]);
 
+    // Modal opens; submit creation
+    const submitBtn = screen.getByRole("button", { name: "Create Note" });
+    fireEvent.click(submitBtn);
+
     await waitFor(() => {
       expect(db.notes.add).toHaveBeenCalledTimes(1);
     });
@@ -196,6 +200,12 @@ describe("Notes Page", () => {
 
     const deleteButtons = screen.getAllByTitle("Delete note");
     fireEvent.click(deleteButtons[0]);
+
+    // Modal opens; confirm deletion
+    const confirmDeleteBtn = screen.getByRole("button", {
+      name: "Delete Note",
+    });
+    fireEvent.click(confirmDeleteBtn);
 
     await waitFor(() => {
       expect(db.notes.delete).toHaveBeenCalledWith(1);
