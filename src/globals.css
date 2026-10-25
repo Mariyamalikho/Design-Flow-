@@ -172,3 +172,179 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ==========================================================================
+   ProseMirror & TipTap Rich Text Editor Theme Styles
+   ========================================================================== */
+.tiptap-editor-wrapper .ProseMirror {
+  outline: none;
+  min-height: 320px;
+  caret-color: #6366f1;
+}
+
+/* Custom Text Selection */
+.tiptap-editor-wrapper .ProseMirror ::selection {
+  background-color: #e0e7ff;
+  color: #1e1b4b;
+}
+
+.dark .tiptap-editor-wrapper .ProseMirror ::selection {
+  background-color: #312e81;
+  color: #e0e7ff;
+}
+
+/* Placeholder Styling */
+.tiptap-editor-wrapper .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #a1a1aa;
+  pointer-events: none;
+  height: 0;
+  font-style: normal;
+}
+
+.dark .tiptap-editor-wrapper .ProseMirror p.is-editor-empty:first-child::before {
+  color: #71717a;
+}
+
+/* Typography Hierarchy */
+.tiptap-editor-wrapper .ProseMirror h1 {
+  font-size: 1.875rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #09090b;
+}
+
+.dark .tiptap-editor-wrapper .ProseMirror h1 {
+  color: #fafafa;
+}
+
+.tiptap-editor-wrapper .ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #18181b;
+}
+
+.dark .tiptap-editor-wrapper .ProseMirror h2 {
+  color: #f4f4f5;
+}
+
+.tiptap-editor-wrapper .ProseMirror h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  margin-top: 1rem;
+  margin-bottom: 0.35rem;
+  color: #27272a;
+}
+
+.dark .tiptap-editor-wrapper .ProseMirror h3 {
+  color: #e4e4e7;
+}
+
+/* Paragraphs & Text */
+.tiptap-editor-wrapper .ProseMirror p {
+  line-height: 1.75;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Blockquotes */
+.tiptap-editor-wrapper .ProseMirror blockquote {
+  border-left: 3px solid #6366f1;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #52525b;
+}
+
+.dark .tiptap-editor-wrapper .ProseMirror blockquote {
+  border-left-color: #818cf8;
+  color: #a1a1aa;
+}
+
+/* Lists */
+.tiptap-editor-wrapper .ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.tiptap-editor-wrapper .ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.tiptap-editor-wrapper .ProseMirror li {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.65;
+}
+
+/* Code & Preformatted Blocks */
+.tiptap-editor-wrapper .ProseMirror code {
+  background-color: #f4f4f5;
+  color: #4f46e5;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.dark .tiptap-editor-wrapper .ProseMirror code {
+  background-color: #27272a;
+  color: #a5b4fc;
+}
+
+.tiptap-editor-wrapper .ProseMirror pre {
+  background-color: #18181b;
+  color: #f4f4f5;
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  border: 1px solid #27272a;
+}
+
+.dark .tiptap-editor-wrapper .ProseMirror pre {
+  background-color: #09090b;
+  border-color: #27272a;
+}
+
+.tiptap-editor-wrapper .ProseMirror pre code {
+  background-color: transparent !important;
+  color: inherit !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  font-size: 0.875rem !important;
+}
+
+/* Horizontal Rule */
+.tiptap-editor-wrapper .ProseMirror hr {
+  border: none;
+  border-top: 1px solid #e4e4e7;
+  margin: 1.75rem 0;
+}
+
+.dark .tiptap-editor-wrapper .ProseMirror hr {
+  border-top-color: #27272a;
+}
+
+/* Editor Dropcursor & Gapcursor */
+.tiptap-editor-wrapper .ProseMirror-dropcursor {
+  border-color: #6366f1 !important;
+}
+
+.tiptap-editor-wrapper .ProseMirror-gapcursor:after {
+  border-top-color: #6366f1 !important;
+}
+
