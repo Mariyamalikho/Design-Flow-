@@ -17,9 +17,11 @@ import {
   FileText,
   Filter,
   X,
+  Loader2,
 } from "lucide-react";
 import { TipTapEditor } from "@/components/notes/TipTapEditor";
 import { MarkdownShortcutsModal } from "@/components/notes/MarkdownShortcutsModal";
+import { useNoteAutoSave } from "@/hooks/useNoteAutoSave";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -41,9 +43,13 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
   const [selectedProjectId, setSelectedProjectId] = useState<number | "all">(
     projectId ?? "all"
   );
-  const [isSaving, setIsSaving] = useState(false);
-  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+
+  // Debounced auto-save hook
+  const { saveStatus, lastSaved, queueUpdate, flushSave } = useNoteAutoSave({
+    noteId: activeNoteId,
+    debounceMs: 500,
+  });
 
   // Queries
   const projects = useLiveQuery(() => db.projects.toArray());
@@ -94,6 +100,18 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
     return allNotes.find((n) => n.id === activeNoteId) || null;
   }, [allNotes, activeNoteId]);
 
+  // Content statistics
+  const noteStats = useMemo(() => {
+    if (!activeNote?.content) {
+      return { words: 0, characters: 0, readTimeMinutes: 1 };
+    }
+    const text = activeNote.content.replace(/<[^>]*>/g, " ").trim();
+    const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+    const characters = text.length;
+    const readTimeMinutes = Math.max(1, Math.ceil(words / 200));
+    return { words, characters, readTimeMinutes };
+  }, [activeNote?.content]);
+
   // Project map for quick lookup
   const projectMap = useMemo(() => {
     const map = new Map<number, string>();
@@ -130,23 +148,10 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
     }
   };
 
-  const handleUpdateActiveNote = async (
+  const handleUpdateActiveNote = (
     updates: Partial<Omit<Note, "id" | "createdAt">>
   ) => {
-    if (!activeNote?.id) return;
-    try {
-      setIsSaving(true);
-      const now = new Date();
-      await db.notes.update(activeNote.id, {
-        ...updates,
-        updatedAt: now,
-      });
-      setLastSavedTime(now);
-    } catch (err) {
-      console.error("Failed to update note:", err);
-    } finally {
-      setIsSaving(false);
-    }
+    queueUpdate(updates);
   };
 
   const handleTogglePin = async (e: React.MouseEvent, note: Note) => {
@@ -456,15 +461,36 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
                   </Button>
 
                   {/* Save Status Indicator */}
-                  <div className="flex items-center gap-1 text-[11px] text-zinc-400">
-                    {isSaving ? (
-                      <span>Saving...</span>
-                    ) : lastSavedTime ? (
-                      <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                        <Check className="w-3 h-3" /> Saved
+                  <div
+                    className="flex items-center gap-1.5 text-[11px]"
+                    data-testid="note-save-status"
+                  >
+                    {saveStatus === "saving" && (
+                      <span className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-medium">
+                        <Loader2 className="w-3 h-3 animate-spin" /> Saving...
                       </span>
-                    ) : (
-                      <span>Auto-save on</span>
+                    )}
+                    {saveStatus === "saved" && (
+                      <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                        <Check className="w-3 h-3" /> Saved to device
+                      </span>
+                    )}
+                    {saveStatus === "unsaved" && (
+                      <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />{" "}
+                        Unsaved changes
+                      </span>
+                    )}
+                    {saveStatus === "idle" && (
+                      <span className="flex items-center gap-1 text-zinc-400">
+                        {lastSaved ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-500" /> Saved
+                          </>
+                        ) : (
+                          "Auto-save on"
+                        )}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -489,6 +515,38 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
                     onOpenMarkdownGuide={() => setIsShortcutsOpen(true)}
                     className="p-6 md:p-8 max-w-3xl mx-auto"
                   />
+                </div>
+
+                {/* Editor Footer Status Bar */}
+                <div
+                  className="px-6 py-2 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 shrink-0 select-none"
+                  data-testid="editor-footer-status"
+                >
+                  <div className="flex items-center gap-3">
+                    <span>{noteStats.words} words</span>
+                    <span>•</span>
+                    <span>{noteStats.characters} characters</span>
+                    <span>•</span>
+                    <span>{noteStats.readTimeMinutes} min read</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => flushSave()}
+                      className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                      title="Save immediately (Ctrl+S)"
+                    >
+                      Save now (Ctrl+S)
+                    </button>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsShortcutsOpen(true)}
+                      className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+                    >
+                      Shortcuts (?)
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

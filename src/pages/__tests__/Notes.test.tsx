@@ -151,14 +151,26 @@ describe("Notes Page", () => {
     const titleInput = screen.getByDisplayValue("Design System Tokens");
     fireEvent.change(titleInput, { target: { value: "Updated Tokens Title" } });
 
-    await waitFor(() => {
-      expect(db.notes.update).toHaveBeenCalledWith(
-        1,
-        expect.objectContaining({
-          title: "Updated Tokens Title",
-        })
-      );
-    });
+    await waitFor(
+      () => {
+        expect(db.notes.update).toHaveBeenCalledWith(
+          1,
+          expect.objectContaining({
+            title: "Updated Tokens Title",
+          })
+        );
+      },
+      { timeout: 2000 }
+    );
+  });
+
+  it("renders content statistics and save status in active editor", () => {
+    render(<Notes />);
+
+    expect(screen.getByTestId("note-save-status")).toBeDefined();
+    expect(screen.getByTestId("editor-footer-status")).toBeDefined();
+    expect(screen.getByText(/words/i)).toBeDefined();
+    expect(screen.getByText(/characters/i)).toBeDefined();
   });
 
   it("toggles pin status on note", async () => {
