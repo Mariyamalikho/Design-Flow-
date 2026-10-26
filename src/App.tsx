@@ -7,6 +7,7 @@ import ProjectDetail from "@/pages/ProjectDetail";
 import BriefWizard from "@/pages/BriefWizard";
 import Tasks from "@/pages/Tasks";
 import Notes from "@/pages/Notes";
+import Canvas from "@/pages/Canvas";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 function App() {
@@ -21,6 +22,8 @@ function App() {
           <Route path="tasks" element={<Tasks />} />
           <Route path="notes" element={<Notes />} />
           <Route path="notes/:id" element={<Notes />} />
+          <Route path="canvas" element={<Canvas />} />
+          <Route path="canvas/:id" element={<Canvas />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { PenTool, LayoutDashboard, FolderKanban, FileText, Image, Palette, Kanban, StickyNote } from "lucide-react";
+import { PenTool, LayoutDashboard, FolderKanban, FileText, Image, Palette, Kanban, StickyNote, Sparkles } from "lucide-react";
 
 export function Sidebar() {
   const navItems = [
@@ -7,6 +7,7 @@ export function Sidebar() {
     { name: "Projects", to: "/projects", icon: FolderKanban },
     { name: "Task Board", to: "/tasks", icon: Kanban },
     { name: "Notes", to: "/notes", icon: StickyNote },
+    { name: "Brainstorm Canvas", to: "/canvas", icon: Sparkles },
     { name: "Design Briefs", to: "/briefs", icon: FileText },
     { name: "Moodboards", to: "/moodboards", icon: Image },
     { name: "Brand Identity", to: "/identity", icon: Palette },
