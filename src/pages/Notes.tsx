@@ -22,6 +22,9 @@ import {
 import { TipTapEditor } from "@/components/notes/TipTapEditor";
 import { MarkdownShortcutsModal } from "@/components/notes/MarkdownShortcutsModal";
 import { NoteListSidebar } from "@/components/notes/NoteListSidebar";
+import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
+import { RenameNoteModal } from "@/components/notes/RenameNoteModal";
+import { DeleteNoteModal } from "@/components/notes/DeleteNoteModal";
 import { useNoteAutoSave } from "@/hooks/useNoteAutoSave";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -46,6 +49,9 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
   );
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [noteToRename, setNoteToRename] = useState<Note | null>(null);
+  const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
 
   // Debounced auto-save hook
   const { saveStatus, lastSaved, queueUpdate, flushSave } = useNoteAutoSave({
@@ -102,14 +108,20 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
 
   // Actions
   const handleCreateNote = async () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateFromModal = async (data: {
+    title: string;
+    content: string;
+    projectId?: number;
+  }) => {
     try {
       const now = new Date();
-      const defaultProjId =
-        selectedProjectId === "all" ? undefined : selectedProjectId;
       const newId = await db.notes.add({
-        title: "Untitled Note",
-        content: "<p>Start writing your thoughts, design ideas, or project brief...</p>",
-        projectId: defaultProjId,
+        title: data.title,
+        content: data.content,
+        projectId: data.projectId,
         isPinned: false,
         createdAt: now,
         updatedAt: now,
@@ -124,6 +136,44 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
     } catch (err) {
       console.error("Failed to create note:", err);
       toast.error("Failed to create note");
+    }
+  };
+
+  const handleRenameNote = async (noteId: number, newTitle: string) => {
+    try {
+      const now = new Date();
+      await db.notes.update(noteId, {
+        title: newTitle,
+        updatedAt: now,
+      });
+      toast.success("Note renamed");
+    } catch (err) {
+      console.error("Failed to rename note:", err);
+      toast.error("Failed to rename note");
+    }
+  };
+
+  const handleDuplicateNote = async (note: Note) => {
+    try {
+      const now = new Date();
+      const newId = await db.notes.add({
+        title: `Copy of ${note.title || "Untitled Note"}`,
+        content: note.content,
+        projectId: note.projectId,
+        isPinned: false,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      const numId = Number(newId);
+      setActiveNoteId(numId);
+      if (!embedded) {
+        navigate(`/notes/${numId}`);
+      }
+      toast.success("Note duplicated");
+    } catch (err) {
+      console.error("Failed to duplicate note:", err);
+      toast.error("Failed to duplicate note");
     }
   };
 
@@ -147,8 +197,15 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
     }
   };
 
-  const handleDeleteNote = async (e: React.MouseEvent, noteId: number) => {
+  const handleDeleteNote = (e: React.MouseEvent, noteId: number) => {
     e.stopPropagation();
+    const target = allNotes.find((n) => n.id === noteId);
+    if (target) {
+      setNoteToDelete(target);
+    }
+  };
+
+  const handleConfirmDelete = async (noteId: number) => {
     try {
       await db.notes.delete(noteId);
       if (activeNoteId === noteId) {
@@ -227,6 +284,8 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
           onCreateNote={handleCreateNote}
           onTogglePin={handleTogglePin}
           onDeleteNote={handleDeleteNote}
+          onRenameNote={setNoteToRename}
+          onDuplicateNote={handleDuplicateNote}
           projects={projects}
           selectedProjectId={selectedProjectId}
           onProjectChange={setSelectedProjectId}
@@ -417,6 +476,34 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
       <MarkdownShortcutsModal
         open={isShortcutsOpen}
         onOpenChange={setIsShortcutsOpen}
+      />
+
+      <CreateNoteModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        onSubmit={handleCreateFromModal}
+        projects={projects}
+        defaultProjectId={
+          selectedProjectId === "all" ? undefined : selectedProjectId
+        }
+      />
+
+      <RenameNoteModal
+        open={Boolean(noteToRename)}
+        onOpenChange={(open) => {
+          if (!open) setNoteToRename(null);
+        }}
+        note={noteToRename}
+        onRename={handleRenameNote}
+      />
+
+      <DeleteNoteModal
+        open={Boolean(noteToDelete)}
+        onOpenChange={(open) => {
+          if (!open) setNoteToDelete(null);
+        }}
+        note={noteToDelete}
+        onConfirmDelete={handleConfirmDelete}
       />
     </div>
   );
