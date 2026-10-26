@@ -1,10 +1,71 @@
-import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import React from "react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import Canvas from "../Canvas";
+import { db, type CanvasNodeItem } from "@/lib/db";
+
+const { mockCanvasNodes } = vi.hoisted(() => {
+  const mockCanvasNodes: CanvasNodeItem[] = [
+    {
+      id: 1,
+      x: 120,
+      y: 100,
+      title: "🎨 Design System Architecture",
+      content: "Establish primary design tokens, typography scales, and zinc/indigo dark mode palettes.",
+      color: "indigo",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 2,
+      x: 480,
+      y: 160,
+      title: "⚡ Interactive Flowchart",
+      content: "Connect user onboarding journey to the visual brief wizard and live dashboard metrics.",
+      color: "amber",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 3,
+      x: 240,
+      y: 380,
+      title: "💡 Brainstorming Prompts",
+      content: "Freeform visual node layout for rapid sketching, moodboard curation, and wireframes.",
+      color: "purple",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ];
+
+  return { mockCanvasNodes };
+});
+
+vi.mock("dexie-react-hooks", () => ({
+  useLiveQuery: () => {
+    return mockCanvasNodes;
+  },
+}));
+
+vi.mock("@/lib/db", () => ({
+  db: {
+    canvasNodes: {
+      toArray: vi.fn().mockResolvedValue(mockCanvasNodes),
+      count: vi.fn().mockResolvedValue(mockCanvasNodes.length),
+      bulkAdd: vi.fn().mockResolvedValue([1, 2, 3]),
+      add: vi.fn().mockResolvedValue(4),
+      update: vi.fn().mockResolvedValue(1),
+      delete: vi.fn().mockResolvedValue(1),
+    },
+  },
+}));
 
 describe("Canvas Page", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   const renderCanvas = (route = "/canvas") => {
     return render(
       <MemoryRouter initialEntries={[route]}>
@@ -50,13 +111,63 @@ describe("Canvas Page", () => {
     expect(screen.getByTestId("canvas-viewport").className).toContain("cursor-default");
   });
 
-  it("adds new idea nodes when clicking Add Idea button", () => {
+  it("adds new idea nodes to database when clicking Add Idea button", async () => {
     renderCanvas();
 
     const addBtn = screen.getByRole("button", { name: /add idea/i });
     fireEvent.click(addBtn);
 
-    expect(screen.getByText("💡 Idea Node #4")).toBeDefined();
+    await waitFor(() => {
+      expect(db.canvasNodes.add).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: expect.stringContaining("Idea Node #"),
+          color: expect.any(String),
+        })
+      );
+    });
+  });
+
+  it("deletes idea node from database when delete button is clicked", async () => {
+    renderCanvas();
+
+    const nodeCard = screen.getByTestId("canvas-node-1");
+    expect(nodeCard).toBeDefined();
+
+    const deleteBtns = screen.getAllByTitle("Delete node");
+    fireEvent.click(deleteBtns[0]);
+
+    await waitFor(() => {
+      expect(db.canvasNodes.delete).toHaveBeenCalledWith(1);
+    });
+  });
+
+  it("syncs node position to database when node drag ends", async () => {
+    renderCanvas();
+
+    const nodeCard = screen.getByTestId("canvas-node-1");
+
+    fireEvent.pointerDown(nodeCard, {
+      clientX: 120,
+      clientY: 100,
+      button: 0,
+    });
+
+    fireEvent.pointerMove(nodeCard, {
+      clientX: 200,
+      clientY: 180,
+    });
+
+    fireEvent.pointerUp(nodeCard);
+
+    await waitFor(() => {
+      expect(db.canvasNodes.update).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          x: 200,
+          y: 180,
+        })
+      );
+    });
   });
 
   it("resets pan coordinates and zoom level when Reset View is clicked", () => {
@@ -113,5 +224,34 @@ describe("Canvas Page", () => {
     });
 
     expect(plane.style.transform).toMatch(/scale\(1\.\d+\)/);
+  });
+
+  it("renders dot grid background and origin indicator on canvas plane", () => {
+    renderCanvas();
+
+    const viewport = screen.getByTestId("canvas-viewport");
+    expect(viewport.style.backgroundImage).toContain("radial-gradient");
+    expect(screen.getByTestId("canvas-origin-indicator")).toBeDefined();
+  });
+
+  it("cycles grid mode between dots, lines, and none when grid toggle is clicked", () => {
+    renderCanvas();
+
+    const viewport = screen.getByTestId("canvas-viewport");
+    const gridToggle = screen.getByTestId("canvas-grid-toggle");
+
+    expect(viewport.style.backgroundImage).toContain("radial-gradient");
+
+    // Click to cycle to lines
+    fireEvent.click(gridToggle);
+    expect(viewport.style.backgroundImage).toContain("linear-gradient");
+
+    // Click to cycle to none
+    fireEvent.click(gridToggle);
+    expect(viewport.style.backgroundImage).toBe("");
+
+    // Click to cycle back to dots
+    fireEvent.click(gridToggle);
+    expect(viewport.style.backgroundImage).toContain("radial-gradient");
   });
 });

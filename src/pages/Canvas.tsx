@@ -1,5 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db, type CanvasNodeItem } from "@/lib/db";
 import {
   Sparkles,
   MousePointer,
@@ -10,25 +12,24 @@ import {
   ZoomIn,
   ZoomOut,
   HelpCircle,
+  Grid,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { useCanvasPanning, type CanvasTool } from "@/hooks/useCanvasPanning";
 import { useCanvasZoom } from "@/hooks/useCanvasZoom";
+import {
+  CanvasNodeCard,
+  type CanvasNodeData,
+  type CanvasNodeColor,
+} from "@/components/canvas/CanvasNodeCard";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export interface CanvasNode {
-  id: string;
-  x: number;
-  y: number;
-  title: string;
-  content: string;
-  color?: "indigo" | "amber" | "emerald" | "purple" | "rose" | "zinc";
-}
+export type CanvasGridMode = "dots" | "lines" | "none";
 
-const INITIAL_NODES: CanvasNode[] = [
+const SEED_NODES: Omit<CanvasNodeItem, "id" | "createdAt" | "updatedAt">[] = [
   {
-    id: "node-1",
     x: 120,
     y: 100,
     title: "🎨 Design System Architecture",
@@ -36,7 +37,6 @@ const INITIAL_NODES: CanvasNode[] = [
     color: "indigo",
   },
   {
-    id: "node-2",
     x: 480,
     y: 160,
     title: "⚡ Interactive Flowchart",
@@ -44,7 +44,6 @@ const INITIAL_NODES: CanvasNode[] = [
     color: "amber",
   },
   {
-    id: "node-3",
     x: 240,
     y: 380,
     title: "💡 Brainstorming Prompts",
@@ -53,55 +52,46 @@ const INITIAL_NODES: CanvasNode[] = [
   },
 ];
 
-const COLOR_CLASSES: Record<
-  NonNullable<CanvasNode["color"]>,
-  { bg: string; border: string; text: string; header: string }
-> = {
-  indigo: {
-    bg: "bg-indigo-50/80 dark:bg-indigo-950/40",
-    border: "border-indigo-200 dark:border-indigo-800/70",
-    text: "text-indigo-900 dark:text-indigo-200",
-    header: "text-indigo-700 dark:text-indigo-400 font-semibold",
-  },
-  amber: {
-    bg: "bg-amber-50/80 dark:bg-amber-950/40",
-    border: "border-amber-200 dark:border-amber-800/70",
-    text: "text-amber-900 dark:text-amber-200",
-    header: "text-amber-700 dark:text-amber-400 font-semibold",
-  },
-  emerald: {
-    bg: "bg-emerald-50/80 dark:bg-emerald-950/40",
-    border: "border-emerald-200 dark:border-emerald-800/70",
-    text: "text-emerald-900 dark:text-emerald-200",
-    header: "text-emerald-700 dark:text-emerald-400 font-semibold",
-  },
-  purple: {
-    bg: "bg-purple-50/80 dark:bg-purple-950/40",
-    border: "border-purple-200 dark:border-purple-800/70",
-    text: "text-purple-900 dark:text-purple-200",
-    header: "text-purple-700 dark:text-purple-400 font-semibold",
-  },
-  rose: {
-    bg: "bg-rose-50/80 dark:bg-rose-950/40",
-    border: "border-rose-200 dark:border-rose-800/70",
-    text: "text-rose-900 dark:text-rose-200",
-    header: "text-rose-700 dark:text-rose-400 font-semibold",
-  },
-  zinc: {
-    bg: "bg-zinc-50 dark:bg-zinc-900/60",
-    border: "border-zinc-200 dark:border-zinc-800",
-    text: "text-zinc-800 dark:text-zinc-200",
-    header: "text-zinc-900 dark:text-zinc-100 font-semibold",
-  },
-};
-
 export default function Canvas() {
   const { id } = useParams<{ id?: string }>();
-  const [nodes, setNodes] = useState<CanvasNode[]>(INITIAL_NODES);
   const [activeTool, setActiveTool] = useState<CanvasTool>("select");
+  const [selectedNodeId, setSelectedNodeId] = useState<string | number | null>(null);
+  const [gridMode, setGridMode] = useState<CanvasGridMode>("dots");
   const [isSpacePressed, setIsSpacePressed] = useState<boolean>(false);
+  const [localNodeOverrides, setLocalNodeOverrides] = useState<
+    Record<number, { x: number; y: number }>
+  >({});
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
+
+  // Queries: Dexie reactive query for canvas nodes
+  const dbNodes = useLiveQuery(() => db.canvasNodes.toArray());
+
+  // Seed default nodes if table is initially empty
+  useEffect(() => {
+    let isMounted = true;
+    const seed = async () => {
+      try {
+        const count = await db.canvasNodes.count();
+        if (count === 0 && isMounted) {
+          const now = new Date();
+          await db.canvasNodes.bulkAdd(
+            SEED_NODES.map((n) => ({
+              ...n,
+              createdAt: now,
+              updatedAt: now,
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Failed to seed initial canvas nodes:", err);
+      }
+    };
+    seed();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Infinite panning hook
   const {
@@ -155,28 +145,136 @@ export default function Canvas() {
     resetZoom();
   }, [resetPan, resetZoom]);
 
-  const handleAddNode = useCallback(() => {
-    const nextIndex = nodes.length + 1;
-    const colors: Array<CanvasNode["color"]> = [
+  // Merge live database nodes with local drag coordinate overrides
+  const displayNodes = useMemo(() => {
+    if (!dbNodes) return [];
+    return dbNodes.map((n) => {
+      const override = n.id ? localNodeOverrides[n.id] : undefined;
+      return {
+        ...n,
+        id: n.id ?? 0,
+        x: override ? override.x : n.x,
+        y: override ? override.y : n.y,
+      };
+    });
+  }, [dbNodes, localNodeOverrides]);
+
+  const handleMoveNode = useCallback(
+    (nodeId: string | number, newX: number, newY: number) => {
+      const numId = Number(nodeId);
+      setLocalNodeOverrides((prev) => ({
+        ...prev,
+        [numId]: { x: newX, y: newY },
+      }));
+    },
+    []
+  );
+
+  const handleMoveEndNode = useCallback(
+    async (nodeId: string | number, finalX: number, finalY: number) => {
+      const numId = Number(nodeId);
+      try {
+        await db.canvasNodes.update(numId, {
+          x: finalX,
+          y: finalY,
+          updatedAt: new Date(),
+        });
+      } catch (err) {
+        console.error("Failed to sync node position to database:", err);
+      } finally {
+        setLocalNodeOverrides((prev) => {
+          const next = { ...prev };
+          delete next[numId];
+          return next;
+        });
+      }
+    },
+    []
+  );
+
+  const handleUpdateNode = useCallback(
+    async (nodeId: string | number, updates: Partial<CanvasNodeData>) => {
+      const numId = Number(nodeId);
+      try {
+        await db.canvasNodes.update(numId, {
+          ...updates,
+          updatedAt: new Date(),
+        });
+      } catch (err) {
+        console.error("Failed to update canvas node:", err);
+      }
+    },
+    []
+  );
+
+  const handleDeleteNode = useCallback(async (nodeId: string | number) => {
+    const numId = Number(nodeId);
+    try {
+      await db.canvasNodes.delete(numId);
+      setSelectedNodeId((current) => (current === nodeId ? null : current));
+      toast.success("Idea node deleted");
+    } catch (err) {
+      console.error("Failed to delete canvas node:", err);
+      toast.error("Failed to delete node");
+    }
+  }, []);
+
+  const handleAddNode = useCallback(async () => {
+    const colors: CanvasNodeColor[] = [
       "indigo",
       "amber",
       "emerald",
       "purple",
       "rose",
     ];
-    const pickedColor = colors[nodes.length % colors.length] || "indigo";
+    const count = (dbNodes?.length || 0) + 1;
+    const pickedColor = colors[count % colors.length] || "indigo";
+    const now = new Date();
 
-    const newNode: CanvasNode = {
-      id: `node-${Date.now()}`,
-      x: 180 + (nodes.length % 5) * 60,
-      y: 180 + (nodes.length % 5) * 40,
-      title: `💡 Idea Node #${nextIndex}`,
-      content: "Click to write your brainstorming thoughts, task items, or architectural notes.",
-      color: pickedColor,
+    try {
+      const newId = await db.canvasNodes.add({
+        title: `💡 Idea Node #${count}`,
+        content: "Click to write your brainstorming thoughts, task items, or architectural notes.",
+        x: 180 + (count % 5) * 60,
+        y: 180 + (count % 5) * 40,
+        color: pickedColor,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      setSelectedNodeId(Number(newId));
+      toast.success("Idea node added");
+    } catch (err) {
+      console.error("Failed to add canvas node:", err);
+      toast.error("Failed to add idea node");
+    }
+  }, [dbNodes?.length]);
+
+  // Compute dynamic dot grid styles matching pan and zoom
+  const backgroundStyle = useMemo<React.CSSProperties>(() => {
+    if (gridMode === "none") {
+      return {};
+    }
+
+    const gridSize = Math.round(28 * zoom);
+    const dotRadius = Math.max(1, Number((1.2 * zoom).toFixed(1)));
+    const dotOpacity = Math.min(0.35, Math.max(0.15, 0.25 * Math.min(zoom, 1.5)));
+
+    if (gridMode === "lines") {
+      return {
+        backgroundPosition: `${pan.x}px ${pan.y}px`,
+        backgroundSize: `${gridSize}px ${gridSize}px`,
+        backgroundImage:
+          "linear-gradient(to right, rgba(148, 163, 184, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(148, 163, 184, 0.15) 1px, transparent 1px)",
+      };
+    }
+
+    return {
+      backgroundPosition: `${pan.x}px ${pan.y}px`,
+      backgroundSize: `${gridSize}px ${gridSize}px`,
+      backgroundImage: `radial-gradient(circle, rgba(148, 163, 184, ${dotOpacity}) ${dotRadius}px, transparent ${dotRadius}px)`,
     };
-
-    setNodes((prev) => [...prev, newNode]);
-  }, [nodes.length]);
+  }, [gridMode, pan.x, pan.y, zoom]);
 
   return (
     <div
@@ -267,27 +365,31 @@ export default function Canvas() {
         </div>
       </header>
 
-      {/* Main Canvas Viewport */}
+      {/* Main Canvas Viewport with Synchronized Dot Grid */}
       <div
         ref={viewportRef}
         data-testid="canvas-viewport"
-        onPointerDown={handlePointerDown}
+        onPointerDown={(e) => {
+          if (
+            e.target === e.currentTarget ||
+            (e.target as HTMLElement).dataset.testid === "canvas-plane"
+          ) {
+            setSelectedNodeId(null);
+          }
+          handlePointerDown(e);
+        }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         className={cn(
-          "flex-1 overflow-hidden relative touch-none",
+          "flex-1 overflow-hidden relative touch-none transition-[background-color] duration-150",
           isPanning
             ? "cursor-grabbing"
             : canPan
             ? "cursor-grab"
             : "cursor-default"
         )}
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(148, 163, 184, 0.25) 1.2px, transparent 1.2px)",
-          backgroundSize: "28px 28px",
-        }}
+        style={backgroundStyle}
       >
         {/* Infinite Transform Container */}
         <div
@@ -297,31 +399,30 @@ export default function Canvas() {
             transform: `translate3d(${pan.x}px, ${pan.y}px, 0px) scale(${zoom})`,
           }}
         >
-          {nodes.map((node) => {
-            const colorStyle = COLOR_CLASSES[node.color || "indigo"];
-            return (
-              <div
-                key={node.id}
-                data-testid={`canvas-node-${node.id}`}
-                className={cn(
-                  "absolute w-64 rounded-xl border p-4 shadow-sm backdrop-blur-sm transition-shadow hover:shadow-md cursor-pointer",
-                  colorStyle.bg,
-                  colorStyle.border,
-                  colorStyle.text
-                )}
-                style={{
-                  transform: `translate3d(${node.x}px, ${node.y}px, 0px)`,
-                }}
-              >
-                <h4 className={cn("text-sm mb-1.5", colorStyle.header)}>
-                  {node.title}
-                </h4>
-                <p className="text-xs leading-relaxed opacity-90 line-clamp-4">
-                  {node.content}
-                </p>
-              </div>
-            );
-          })}
+          {/* Origin crosshair indicator at (0, 0) */}
+          <div
+            data-testid="canvas-origin-indicator"
+            className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center opacity-30 dark:opacity-40"
+            style={{ left: 0, top: 0 }}
+          >
+            <div className="w-px h-6 bg-indigo-500 absolute" />
+            <div className="h-px w-6 bg-indigo-500 absolute" />
+            <div className="w-2 h-2 rounded-full border border-indigo-500" />
+          </div>
+
+          {displayNodes.map((node) => (
+            <CanvasNodeCard
+              key={node.id}
+              node={node}
+              zoom={zoom}
+              isSelected={selectedNodeId === node.id}
+              onSelect={setSelectedNodeId}
+              onMove={handleMoveNode}
+              onMoveEnd={handleMoveEndNode}
+              onUpdate={handleUpdateNode}
+              onDelete={handleDeleteNode}
+            />
+          ))}
         </div>
       </div>
 
@@ -360,6 +461,28 @@ export default function Canvas() {
             <ZoomIn className="w-3.5 h-3.5" />
           </Button>
         </div>
+
+        <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800" />
+
+        {/* Grid mode toggle button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            const nextMode: Record<CanvasGridMode, CanvasGridMode> = {
+              dots: "lines",
+              lines: "none",
+              none: "dots",
+            };
+            setGridMode((m) => nextMode[m]);
+          }}
+          className="h-7 px-2 text-xs gap-1.5 text-zinc-600 dark:text-zinc-300 capitalize"
+          title="Toggle grid background (Dots, Lines, None)"
+          data-testid="canvas-grid-toggle"
+        >
+          <Grid className="w-3.5 h-3.5 text-zinc-500" />
+          <span className="hidden sm:inline">{gridMode}</span>
+        </Button>
 
         <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800" />
 

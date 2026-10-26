@@ -103,6 +103,19 @@ export interface Note {
   updatedAt: Date;
 }
 
+export interface CanvasNodeItem {
+  id?: number;
+  projectId?: number;
+  boardId?: string;
+  x: number;
+  y: number;
+  title: string;
+  content: string;
+  color: "indigo" | "amber" | "emerald" | "purple" | "rose" | "zinc";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export class DesignFlowDB extends Dexie {
   projects!: Table<Project, number>;
   tasks!: Table<Task, number>;
@@ -112,6 +125,7 @@ export class DesignFlowDB extends Dexie {
   paletteColors!: Table<PaletteColor, number>;
   brandIdentities!: Table<BrandIdentity, number>;
   notes!: Table<Note, number>;
+  canvasNodes!: Table<CanvasNodeItem, number>;
 
   constructor() {
     super("DesignFlowDB");
@@ -195,6 +209,19 @@ export class DesignFlowDB extends Dexie {
       paletteColors: "++id, projectId, createdAt",
       brandIdentities: "++id, projectId, createdAt, updatedAt",
       notes: "++id, projectId, isPinned, createdAt, updatedAt",
+    });
+
+    // Version 10: Canvas Nodes Persistence
+    this.version(10).stores({
+      projects: "++id, status, createdAt",
+      tasks: "++id, projectId, status, priority",
+      briefs: "++id, projectId, status, createdAt",
+      assets: "++id, projectId, type, createdAt",
+      moodboardItems: "++id, projectId, type, order, createdAt",
+      paletteColors: "++id, projectId, createdAt",
+      brandIdentities: "++id, projectId, createdAt, updatedAt",
+      notes: "++id, projectId, isPinned, createdAt, updatedAt",
+      canvasNodes: "++id, projectId, boardId, updatedAt",
     });
   }
 }
