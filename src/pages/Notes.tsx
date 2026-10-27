@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, type Note } from "@/lib/db";
 import { Button } from "@/components/ui/Button";
@@ -18,6 +18,7 @@ import {
   Filter,
   X,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { TipTapEditor } from "@/components/notes/TipTapEditor";
 import { MarkdownShortcutsModal } from "@/components/notes/MarkdownShortcutsModal";
@@ -257,6 +258,17 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link to="/canvas">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs text-zinc-700 dark:text-zinc-300"
+                title="Switch to visual Brainstorm Canvas"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+                Canvas
+              </Button>
+            </Link>
             <Button
               onClick={handleCreateNote}
               className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
