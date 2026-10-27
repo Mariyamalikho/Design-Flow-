@@ -9,12 +9,11 @@ import {
   StickyNote,
   ZoomIn,
   ZoomOut,
-  Maximize2,
   HelpCircle,
-  FolderKanban,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { useCanvasPanning, type CanvasTool } from "@/hooks/useCanvasPanning";
 import { cn } from "@/lib/utils";
 
 export interface CanvasNode {
@@ -25,8 +24,6 @@ export interface CanvasNode {
   content: string;
   color?: "indigo" | "amber" | "emerald" | "purple" | "rose" | "zinc";
 }
-
-export type CanvasTool = "select" | "pan";
 
 const INITIAL_NODES: CanvasNode[] = [
   {
@@ -101,11 +98,24 @@ export default function Canvas() {
   const { id } = useParams<{ id?: string }>();
   const [nodes, setNodes] = useState<CanvasNode[]>(INITIAL_NODES);
   const [activeTool, setActiveTool] = useState<CanvasTool>("select");
-  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState<number>(1);
   const [isSpacePressed, setIsSpacePressed] = useState<boolean>(false);
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
+
+  // Infinite panning hook
+  const {
+    pan,
+    isPanning,
+    canPan,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    resetPan,
+  } = useCanvasPanning({
+    activeTool,
+    isSpacePressed,
+  });
 
   // Handle Spacebar toggling pan mode
   useEffect(() => {
@@ -133,9 +143,9 @@ export default function Canvas() {
   }, []);
 
   const handleResetView = useCallback(() => {
-    setPan({ x: 0, y: 0 });
+    resetPan();
     setZoom(1);
-  }, []);
+  }, [resetPan]);
 
   const handleAddNode = useCallback(() => {
     const nextIndex = nodes.length + 1;
@@ -253,9 +263,17 @@ export default function Canvas() {
       <div
         ref={viewportRef}
         data-testid="canvas-viewport"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
         className={cn(
-          "flex-1 overflow-hidden relative cursor-default",
-          (activeTool === "pan" || isSpacePressed) && "cursor-grab active:cursor-grabbing"
+          "flex-1 overflow-hidden relative touch-none",
+          isPanning
+            ? "cursor-grabbing"
+            : canPan
+            ? "cursor-grab"
+            : "cursor-default"
         )}
         style={{
           backgroundImage:

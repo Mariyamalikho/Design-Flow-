@@ -73,4 +73,30 @@ describe("Canvas Page", () => {
     expect(screen.getByTestId("canvas-zoom-indicator").textContent).toBe("100%");
     expect(screen.getByTestId("canvas-pan-coordinates").textContent).toBe("X: 0 Y: 0");
   });
+
+  it("updates canvas plane transform and coordinates during panning drag", () => {
+    renderCanvas();
+
+    const panBtn = screen.getByRole("button", { name: /pan/i });
+    fireEvent.click(panBtn);
+
+    const viewport = screen.getByTestId("canvas-viewport");
+    const plane = screen.getByTestId("canvas-plane");
+
+    fireEvent.pointerDown(viewport, {
+      button: 0,
+      clientX: 200,
+      clientY: 200,
+    });
+
+    fireEvent.pointerMove(viewport, {
+      clientX: 260,
+      clientY: 310,
+    });
+
+    expect(screen.getByTestId("canvas-pan-coordinates").textContent).toBe("X: 60 Y: 110");
+    expect(plane.style.transform).toContain("translate3d(60px, 110px, 0px)");
+
+    fireEvent.pointerUp(viewport);
+  });
 });
