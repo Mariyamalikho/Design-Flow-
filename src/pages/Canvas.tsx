@@ -23,6 +23,7 @@ import {
   type CanvasNodeData,
   type CanvasNodeColor,
 } from "@/components/canvas/CanvasNodeCard";
+import { CanvasConnectionLine } from "@/components/canvas/CanvasConnectionLine";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -37,15 +38,15 @@ const SEED_NODES: Omit<CanvasNodeItem, "id" | "createdAt" | "updatedAt">[] = [
     color: "indigo",
   },
   {
-    x: 480,
-    y: 160,
+    x: 520,
+    y: 140,
     title: "⚡ Interactive Flowchart",
     content: "Connect user onboarding journey to the visual brief wizard and live dashboard metrics.",
     color: "amber",
   },
   {
-    x: 240,
-    y: 380,
+    x: 320,
+    y: 400,
     title: "💡 Brainstorming Prompts",
     content: "Freeform visual node layout for rapid sketching, moodboard curation, and wireframes.",
     color: "purple",
@@ -56,6 +57,7 @@ export default function Canvas() {
   const { id } = useParams<{ id?: string }>();
   const [activeTool, setActiveTool] = useState<CanvasTool>("select");
   const [selectedNodeId, setSelectedNodeId] = useState<string | number | null>(null);
+  const [connectingFromId, setConnectingFromId] = useState<string | number | null>(null);
   const [gridMode, setGridMode] = useState<CanvasGridMode>("dots");
   const [isSpacePressed, setIsSpacePressed] = useState<boolean>(false);
   const [localNodeOverrides, setLocalNodeOverrides] = useState<
@@ -64,10 +66,11 @@ export default function Canvas() {
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
 
-  // Queries: Dexie reactive query for canvas nodes
+  // Queries: Dexie reactive query for canvas nodes and connection lines
   const dbNodes = useLiveQuery(() => db.canvasNodes.toArray());
+  const dbConnections = useLiveQuery(() => db.canvasConnections.toArray());
 
-  // Seed default nodes if table is initially empty
+  // Seed default nodes and starter connections if tables are empty
   useEffect(() => {
     let isMounted = true;
     const seed = async () => {
@@ -75,16 +78,36 @@ export default function Canvas() {
         const count = await db.canvasNodes.count();
         if (count === 0 && isMounted) {
           const now = new Date();
-          await db.canvasNodes.bulkAdd(
+          const nodeIds = await db.canvasNodes.bulkAdd(
             SEED_NODES.map((n) => ({
               ...n,
               createdAt: now,
               updatedAt: now,
-            }))
+            })),
+            { allKeys: true }
           );
+
+          if (nodeIds && nodeIds.length >= 3) {
+            await db.canvasConnections.bulkAdd([
+              {
+                fromNodeId: Number(nodeIds[0]),
+                toNodeId: Number(nodeIds[1]),
+                label: "Architects",
+                style: "solid",
+                createdAt: now,
+              },
+              {
+                fromNodeId: Number(nodeIds[0]),
+                toNodeId: Number(nodeIds[2]),
+                label: "Inspires",
+                style: "dashed",
+                createdAt: now,
+              },
+            ]);
+          }
         }
       } catch (err) {
-        console.error("Failed to seed initial canvas nodes:", err);
+        console.error("Failed to seed initial canvas nodes & connections:", err);
       }
     };
     seed();
@@ -159,6 +182,17 @@ export default function Canvas() {
     });
   }, [dbNodes, localNodeOverrides]);
 
+  // Map of node positions for instantaneous SVG curve calculations
+  const nodePositionMap = useMemo(() => {
+    const map: Record<number, { x: number; y: number }> = {};
+    displayNodes.forEach((n) => {
+      if (n.id) {
+        map[Number(n.id)] = { x: n.x, y: n.y };
+      }
+    });
+    return map;
+  }, [displayNodes]);
+
   const handleMoveNode = useCallback(
     (nodeId: string | number, newX: number, newY: number) => {
       const numId = Number(nodeId);
@@ -211,7 +245,19 @@ export default function Canvas() {
     const numId = Number(nodeId);
     try {
       await db.canvasNodes.delete(numId);
+      // Clean up connected lines
+      const related = await db.canvasConnections
+        .where("fromNodeId")
+        .equals(numId)
+        .or("toNodeId")
+        .equals(numId)
+        .toArray();
+      for (const rel of related) {
+        if (rel.id) await db.canvasConnections.delete(rel.id);
+      }
+
       setSelectedNodeId((current) => (current === nodeId ? null : current));
+      setConnectingFromId((current) => (current === nodeId ? null : current));
       toast.success("Idea node deleted");
     } catch (err) {
       console.error("Failed to delete canvas node:", err);
@@ -249,6 +295,43 @@ export default function Canvas() {
       toast.error("Failed to add idea node");
     }
   }, [dbNodes?.length]);
+
+  // Connection creation logic
+  const handleStartConnect = useCallback((nodeId: string | number) => {
+    setConnectingFromId(nodeId);
+    toast.info("Click another node to connect");
+  }, []);
+
+  const handleSelectNode = useCallback(
+    async (nodeId: string | number) => {
+      if (connectingFromId && connectingFromId !== nodeId) {
+        try {
+          await db.canvasConnections.add({
+            fromNodeId: Number(connectingFromId),
+            toNodeId: Number(nodeId),
+            createdAt: new Date(),
+          });
+          toast.success("Nodes connected");
+        } catch (err) {
+          console.error("Failed to create connection:", err);
+        } finally {
+          setConnectingFromId(null);
+        }
+      } else {
+        setSelectedNodeId(nodeId);
+      }
+    },
+    [connectingFromId]
+  );
+
+  const handleDeleteConnection = useCallback(async (connId: number) => {
+    try {
+      await db.canvasConnections.delete(connId);
+      toast.success("Connection removed");
+    } catch (err) {
+      console.error("Failed to delete connection:", err);
+    }
+  }, []);
 
   // Compute dynamic dot grid styles matching pan and zoom
   const backgroundStyle = useMemo<React.CSSProperties>(() => {
@@ -375,6 +458,7 @@ export default function Canvas() {
             (e.target as HTMLElement).dataset.testid === "canvas-plane"
           ) {
             setSelectedNodeId(null);
+            setConnectingFromId(null);
           }
           handlePointerDown(e);
         }}
@@ -387,6 +471,8 @@ export default function Canvas() {
             ? "cursor-grabbing"
             : canPan
             ? "cursor-grab"
+            : connectingFromId
+            ? "cursor-crosshair"
             : "cursor-default"
         )}
         style={backgroundStyle}
@@ -397,6 +483,8 @@ export default function Canvas() {
           className="absolute inset-0 origin-top-left transition-transform duration-75 ease-out will-change-transform"
           style={{
             transform: `translate3d(${pan.x}px, ${pan.y}px, 0px) scale(${zoom})`,
+            transformStyle: "preserve-3d",
+            backfaceVisibility: "hidden",
           }}
         >
           {/* Origin crosshair indicator at (0, 0) */}
@@ -410,13 +498,36 @@ export default function Canvas() {
             <div className="w-2 h-2 rounded-full border border-indigo-500" />
           </div>
 
+          {/* SVG Connection Lines Layer */}
+          <svg
+            className="absolute inset-0 pointer-events-none overflow-visible w-full h-full"
+            data-testid="canvas-connections-svg"
+          >
+            {dbConnections?.map((conn) => {
+              const fromNode = nodePositionMap[conn.fromNodeId];
+              const toNode = nodePositionMap[conn.toNodeId];
+              return (
+                <CanvasConnectionLine
+                  key={conn.id}
+                  connection={conn}
+                  fromNode={fromNode}
+                  toNode={toNode}
+                  onDelete={handleDeleteConnection}
+                />
+              );
+            })}
+          </svg>
+
+          {/* Node Cards Layer */}
           {displayNodes.map((node) => (
             <CanvasNodeCard
               key={node.id}
               node={node}
               zoom={zoom}
               isSelected={selectedNodeId === node.id}
-              onSelect={setSelectedNodeId}
+              isConnectingSource={connectingFromId === node.id}
+              onSelect={handleSelectNode}
+              onStartConnect={handleStartConnect}
               onMove={handleMoveNode}
               onMoveEnd={handleMoveEndNode}
               onUpdate={handleUpdateNode}

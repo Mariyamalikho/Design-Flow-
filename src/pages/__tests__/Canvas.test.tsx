@@ -3,9 +3,9 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import React from "react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import Canvas from "../Canvas";
-import { db, type CanvasNodeItem } from "@/lib/db";
+import { db, type CanvasNodeItem, type CanvasConnectionItem } from "@/lib/db";
 
-const { mockCanvasNodes } = vi.hoisted(() => {
+const { mockCanvasNodes, mockCanvasConnections } = vi.hoisted(() => {
   const mockCanvasNodes: CanvasNodeItem[] = [
     {
       id: 1,
@@ -39,27 +39,58 @@ const { mockCanvasNodes } = vi.hoisted(() => {
     },
   ];
 
-  return { mockCanvasNodes };
+  const mockCanvasConnections: CanvasConnectionItem[] = [
+    {
+      id: 10,
+      fromNodeId: 1,
+      toNodeId: 2,
+      label: "Architecture Flow",
+      createdAt: new Date(),
+    },
+  ];
+
+  return { mockCanvasNodes, mockCanvasConnections };
 });
 
 vi.mock("dexie-react-hooks", () => ({
-  useLiveQuery: () => {
+  useLiveQuery: (querier: () => unknown) => {
+    const fnStr = querier.toString();
+    if (fnStr.includes("canvasConnections")) {
+      return mockCanvasConnections;
+    }
     return mockCanvasNodes;
   },
 }));
 
-vi.mock("@/lib/db", () => ({
-  db: {
-    canvasNodes: {
-      toArray: vi.fn().mockResolvedValue(mockCanvasNodes),
-      count: vi.fn().mockResolvedValue(mockCanvasNodes.length),
-      bulkAdd: vi.fn().mockResolvedValue([1, 2, 3]),
-      add: vi.fn().mockResolvedValue(4),
-      update: vi.fn().mockResolvedValue(1),
-      delete: vi.fn().mockResolvedValue(1),
+vi.mock("@/lib/db", () => {
+  const mockWhereClause = {
+    equals: vi.fn().mockReturnThis(),
+    or: vi.fn().mockReturnThis(),
+    toArray: vi.fn().mockResolvedValue([]),
+  };
+
+  return {
+    db: {
+      canvasNodes: {
+        toArray: vi.fn().mockResolvedValue(mockCanvasNodes),
+        count: vi.fn().mockResolvedValue(mockCanvasNodes.length),
+        bulkAdd: vi.fn().mockResolvedValue([1, 2, 3]),
+        add: vi.fn().mockResolvedValue(4),
+        update: vi.fn().mockResolvedValue(1),
+        delete: vi.fn().mockResolvedValue(1),
+      },
+      canvasConnections: {
+        toArray: vi.fn().mockResolvedValue(mockCanvasConnections),
+        count: vi.fn().mockResolvedValue(mockCanvasConnections.length),
+        bulkAdd: vi.fn().mockResolvedValue([10]),
+        add: vi.fn().mockResolvedValue(11),
+        update: vi.fn().mockResolvedValue(1),
+        delete: vi.fn().mockResolvedValue(1),
+        where: vi.fn().mockReturnValue(mockWhereClause),
+      },
     },
-  },
-}));
+  };
+});
 
 describe("Canvas Page", () => {
   beforeEach(() => {
@@ -95,6 +126,14 @@ describe("Canvas Page", () => {
     expect(screen.getByText("💡 Brainstorming Prompts")).toBeDefined();
   });
 
+  it("renders SVG connection lines layer between nodes", () => {
+    renderCanvas();
+
+    expect(screen.getByTestId("canvas-connections-svg")).toBeDefined();
+    expect(screen.getByTestId("canvas-connection-10")).toBeDefined();
+    expect(screen.getByText("Architecture Flow")).toBeDefined();
+  });
+
   it("switches active tool between Select and Pan", () => {
     renderCanvas();
 
@@ -127,7 +166,7 @@ describe("Canvas Page", () => {
     });
   });
 
-  it("deletes idea node from database when delete button is clicked", async () => {
+  it("deletes idea node and cleans up related connections from database", async () => {
     renderCanvas();
 
     const nodeCard = screen.getByTestId("canvas-node-1");
@@ -138,6 +177,39 @@ describe("Canvas Page", () => {
 
     await waitFor(() => {
       expect(db.canvasNodes.delete).toHaveBeenCalledWith(1);
+      expect(db.canvasConnections.where).toHaveBeenCalledWith("fromNodeId");
+    });
+  });
+
+  it("deletes a connection when delete connection button is clicked", async () => {
+    renderCanvas();
+
+    const deleteConnBtn = screen.getByTestId("delete-connection-10");
+    fireEvent.click(deleteConnBtn);
+
+    await waitFor(() => {
+      expect(db.canvasConnections.delete).toHaveBeenCalledWith(10);
+    });
+  });
+
+  it("connects two nodes when clicking connect icon and selecting target node", async () => {
+    renderCanvas();
+
+    const connectBtns = screen.getAllByTitle("Connect to another node");
+    // Click connect on node 1
+    fireEvent.click(connectBtns[0]);
+
+    // Click on node 3
+    const targetNode = screen.getByTestId("canvas-node-3");
+    fireEvent.pointerDown(targetNode);
+
+    await waitFor(() => {
+      expect(db.canvasConnections.add).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fromNodeId: 1,
+          toNodeId: 3,
+        })
+      );
     });
   });
 
