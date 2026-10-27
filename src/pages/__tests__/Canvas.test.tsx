@@ -99,4 +99,19 @@ describe("Canvas Page", () => {
 
     fireEvent.pointerUp(viewport);
   });
+
+  it("zooms on wheel event and updates scale in plane transform", () => {
+    renderCanvas();
+
+    const viewport = screen.getByTestId("canvas-viewport");
+    const plane = screen.getByTestId("canvas-plane");
+
+    fireEvent.wheel(viewport, {
+      deltaY: -100,
+      clientX: 300,
+      clientY: 300,
+    });
+
+    expect(plane.style.transform).toMatch(/scale\(1\.\d+\)/);
+  });
 });

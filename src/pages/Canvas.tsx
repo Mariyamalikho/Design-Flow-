@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { useCanvasPanning, type CanvasTool } from "@/hooks/useCanvasPanning";
+import { useCanvasZoom } from "@/hooks/useCanvasZoom";
 import { cn } from "@/lib/utils";
 
 export interface CanvasNode {
@@ -98,7 +99,6 @@ export default function Canvas() {
   const { id } = useParams<{ id?: string }>();
   const [nodes, setNodes] = useState<CanvasNode[]>(INITIAL_NODES);
   const [activeTool, setActiveTool] = useState<CanvasTool>("select");
-  const [zoom, setZoom] = useState<number>(1);
   const [isSpacePressed, setIsSpacePressed] = useState<boolean>(false);
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -106,6 +106,7 @@ export default function Canvas() {
   // Infinite panning hook
   const {
     pan,
+    setPan,
     isPanning,
     canPan,
     handlePointerDown,
@@ -115,6 +116,13 @@ export default function Canvas() {
   } = useCanvasPanning({
     activeTool,
     isSpacePressed,
+  });
+
+  // Wheel zoom hook
+  const { zoom, zoomIn, zoomOut, resetZoom } = useCanvasZoom({
+    pan,
+    setPan,
+    viewportRef,
   });
 
   // Handle Spacebar toggling pan mode
@@ -144,8 +152,8 @@ export default function Canvas() {
 
   const handleResetView = useCallback(() => {
     resetPan();
-    setZoom(1);
-  }, [resetPan]);
+    resetZoom();
+  }, [resetPan, resetZoom]);
 
   const handleAddNode = useCallback(() => {
     const nextIndex = nodes.length + 1;
@@ -327,22 +335,25 @@ export default function Canvas() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setZoom((z) => Math.max(0.25, Number((z - 0.1).toFixed(2))))}
+            onClick={zoomOut}
             className="h-7 w-7 p-0"
             title="Zoom out (-)"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </Button>
-          <span
+          <button
+            type="button"
+            onClick={resetZoom}
             data-testid="canvas-zoom-indicator"
-            className="min-w-[46px] text-center font-semibold text-zinc-800 dark:text-zinc-200"
+            className="min-w-[46px] text-center font-semibold text-zinc-800 dark:text-zinc-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            title="Click to reset zoom to 100%"
           >
             {Math.round(zoom * 100)}%
-          </span>
+          </button>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setZoom((z) => Math.min(3, Number((z + 0.1).toFixed(2))))}
+            onClick={zoomIn}
             className="h-7 w-7 p-0"
             title="Zoom in (+)"
           >
