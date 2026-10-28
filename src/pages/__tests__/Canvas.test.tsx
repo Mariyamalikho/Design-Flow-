@@ -225,4 +225,33 @@ describe("Canvas Page", () => {
 
     expect(plane.style.transform).toMatch(/scale\(1\.\d+\)/);
   });
+
+  it("renders dot grid background and origin indicator on canvas plane", () => {
+    renderCanvas();
+
+    const viewport = screen.getByTestId("canvas-viewport");
+    expect(viewport.style.backgroundImage).toContain("radial-gradient");
+    expect(screen.getByTestId("canvas-origin-indicator")).toBeDefined();
+  });
+
+  it("cycles grid mode between dots, lines, and none when grid toggle is clicked", () => {
+    renderCanvas();
+
+    const viewport = screen.getByTestId("canvas-viewport");
+    const gridToggle = screen.getByTestId("canvas-grid-toggle");
+
+    expect(viewport.style.backgroundImage).toContain("radial-gradient");
+
+    // Click to cycle to lines
+    fireEvent.click(gridToggle);
+    expect(viewport.style.backgroundImage).toContain("linear-gradient");
+
+    // Click to cycle to none
+    fireEvent.click(gridToggle);
+    expect(viewport.style.backgroundImage).toBe("");
+
+    // Click to cycle back to dots
+    fireEvent.click(gridToggle);
+    expect(viewport.style.backgroundImage).toContain("radial-gradient");
+  });
 });

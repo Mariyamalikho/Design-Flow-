@@ -12,6 +12,7 @@ import {
   ZoomIn,
   ZoomOut,
   HelpCircle,
+  Grid,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -24,6 +25,8 @@ import {
 } from "@/components/canvas/CanvasNodeCard";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+export type CanvasGridMode = "dots" | "lines" | "none";
 
 const SEED_NODES: Omit<CanvasNodeItem, "id" | "createdAt" | "updatedAt">[] = [
   {
@@ -53,6 +56,7 @@ export default function Canvas() {
   const { id } = useParams<{ id?: string }>();
   const [activeTool, setActiveTool] = useState<CanvasTool>("select");
   const [selectedNodeId, setSelectedNodeId] = useState<string | number | null>(null);
+  const [gridMode, setGridMode] = useState<CanvasGridMode>("dots");
   const [isSpacePressed, setIsSpacePressed] = useState<boolean>(false);
   const [localNodeOverrides, setLocalNodeOverrides] = useState<
     Record<number, { x: number; y: number }>
@@ -246,6 +250,32 @@ export default function Canvas() {
     }
   }, [dbNodes?.length]);
 
+  // Compute dynamic dot grid styles matching pan and zoom
+  const backgroundStyle = useMemo<React.CSSProperties>(() => {
+    if (gridMode === "none") {
+      return {};
+    }
+
+    const gridSize = Math.round(28 * zoom);
+    const dotRadius = Math.max(1, Number((1.2 * zoom).toFixed(1)));
+    const dotOpacity = Math.min(0.35, Math.max(0.15, 0.25 * Math.min(zoom, 1.5)));
+
+    if (gridMode === "lines") {
+      return {
+        backgroundPosition: `${pan.x}px ${pan.y}px`,
+        backgroundSize: `${gridSize}px ${gridSize}px`,
+        backgroundImage:
+          "linear-gradient(to right, rgba(148, 163, 184, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(148, 163, 184, 0.15) 1px, transparent 1px)",
+      };
+    }
+
+    return {
+      backgroundPosition: `${pan.x}px ${pan.y}px`,
+      backgroundSize: `${gridSize}px ${gridSize}px`,
+      backgroundImage: `radial-gradient(circle, rgba(148, 163, 184, ${dotOpacity}) ${dotRadius}px, transparent ${dotRadius}px)`,
+    };
+  }, [gridMode, pan.x, pan.y, zoom]);
+
   return (
     <div
       className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-zinc-50 dark:bg-zinc-950 select-none relative"
@@ -335,7 +365,7 @@ export default function Canvas() {
         </div>
       </header>
 
-      {/* Main Canvas Viewport */}
+      {/* Main Canvas Viewport with Synchronized Dot Grid */}
       <div
         ref={viewportRef}
         data-testid="canvas-viewport"
@@ -352,18 +382,14 @@ export default function Canvas() {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         className={cn(
-          "flex-1 overflow-hidden relative touch-none",
+          "flex-1 overflow-hidden relative touch-none transition-[background-color] duration-150",
           isPanning
             ? "cursor-grabbing"
             : canPan
             ? "cursor-grab"
             : "cursor-default"
         )}
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(148, 163, 184, 0.25) 1.2px, transparent 1.2px)",
-          backgroundSize: "28px 28px",
-        }}
+        style={backgroundStyle}
       >
         {/* Infinite Transform Container */}
         <div
@@ -373,6 +399,17 @@ export default function Canvas() {
             transform: `translate3d(${pan.x}px, ${pan.y}px, 0px) scale(${zoom})`,
           }}
         >
+          {/* Origin crosshair indicator at (0, 0) */}
+          <div
+            data-testid="canvas-origin-indicator"
+            className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center opacity-30 dark:opacity-40"
+            style={{ left: 0, top: 0 }}
+          >
+            <div className="w-px h-6 bg-indigo-500 absolute" />
+            <div className="h-px w-6 bg-indigo-500 absolute" />
+            <div className="w-2 h-2 rounded-full border border-indigo-500" />
+          </div>
+
           {displayNodes.map((node) => (
             <CanvasNodeCard
               key={node.id}
@@ -424,6 +461,28 @@ export default function Canvas() {
             <ZoomIn className="w-3.5 h-3.5" />
           </Button>
         </div>
+
+        <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800" />
+
+        {/* Grid mode toggle button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            const nextMode: Record<CanvasGridMode, CanvasGridMode> = {
+              dots: "lines",
+              lines: "none",
+              none: "dots",
+            };
+            setGridMode((m) => nextMode[m]);
+          }}
+          className="h-7 px-2 text-xs gap-1.5 text-zinc-600 dark:text-zinc-300 capitalize"
+          title="Toggle grid background (Dots, Lines, None)"
+          data-testid="canvas-grid-toggle"
+        >
+          <Grid className="w-3.5 h-3.5 text-zinc-500" />
+          <span className="hidden sm:inline">{gridMode}</span>
+        </Button>
 
         <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800" />
 
