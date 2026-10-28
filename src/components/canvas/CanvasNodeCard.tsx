@@ -32,6 +32,7 @@ export interface CanvasNodeCardProps {
   isSelected?: boolean;
   onSelect?: (id: string | number) => void;
   onMove?: (id: string | number, x: number, y: number) => void;
+  onMoveEnd?: (id: string | number, x: number, y: number) => void;
   onUpdate?: (id: string | number, updates: Partial<CanvasNodeData>) => void;
   onDelete?: (id: string | number) => void;
   className?: string;
@@ -104,6 +105,7 @@ export const CanvasNodeCard: React.FC<CanvasNodeCardProps> = ({
   isSelected = false,
   onSelect,
   onMove,
+  onMoveEnd,
   onUpdate,
   onDelete,
   className,
@@ -172,6 +174,11 @@ export const CanvasNodeCard: React.FC<CanvasNodeCardProps> = ({
     [node.id, onMove, zoom]
   );
 
+  const lastPosRef = useRef<{ x: number; y: number }>({ x: node.x, y: node.y });
+  React.useEffect(() => {
+    lastPosRef.current = { x: node.x, y: node.y };
+  }, [node.x, node.y]);
+
   const handlePointerUp = useCallback(
     (e: React.PointerEvent) => {
       if (startDragRef.current) {
@@ -183,9 +190,10 @@ export const CanvasNodeCard: React.FC<CanvasNodeCardProps> = ({
         }
         startDragRef.current = null;
         setIsDragging(false);
+        onMoveEnd?.(node.id, lastPosRef.current.x, lastPosRef.current.y);
       }
     },
-    []
+    [node.id, onMoveEnd]
   );
 
   return (

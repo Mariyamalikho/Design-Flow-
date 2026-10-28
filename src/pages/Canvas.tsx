@@ -1,5 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db, type CanvasNodeItem } from "@/lib/db";
 import {
   Sparkles,
   MousePointer,
@@ -20,15 +22,11 @@ import {
   type CanvasNodeData,
   type CanvasNodeColor,
 } from "@/components/canvas/CanvasNodeCard";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export interface CanvasNode extends CanvasNodeData {
-  color?: CanvasNodeColor;
-}
-
-const INITIAL_NODES: CanvasNode[] = [
+const SEED_NODES: Omit<CanvasNodeItem, "id" | "createdAt" | "updatedAt">[] = [
   {
-    id: "node-1",
     x: 120,
     y: 100,
     title: "🎨 Design System Architecture",
@@ -36,7 +34,6 @@ const INITIAL_NODES: CanvasNode[] = [
     color: "indigo",
   },
   {
-    id: "node-2",
     x: 480,
     y: 160,
     title: "⚡ Interactive Flowchart",
@@ -44,7 +41,6 @@ const INITIAL_NODES: CanvasNode[] = [
     color: "amber",
   },
   {
-    id: "node-3",
     x: 240,
     y: 380,
     title: "💡 Brainstorming Prompts",
@@ -55,12 +51,43 @@ const INITIAL_NODES: CanvasNode[] = [
 
 export default function Canvas() {
   const { id } = useParams<{ id?: string }>();
-  const [nodes, setNodes] = useState<CanvasNode[]>(INITIAL_NODES);
   const [activeTool, setActiveTool] = useState<CanvasTool>("select");
   const [selectedNodeId, setSelectedNodeId] = useState<string | number | null>(null);
   const [isSpacePressed, setIsSpacePressed] = useState<boolean>(false);
+  const [localNodeOverrides, setLocalNodeOverrides] = useState<
+    Record<number, { x: number; y: number }>
+  >({});
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
+
+  // Queries: Dexie reactive query for canvas nodes
+  const dbNodes = useLiveQuery(() => db.canvasNodes.toArray());
+
+  // Seed default nodes if table is initially empty
+  useEffect(() => {
+    let isMounted = true;
+    const seed = async () => {
+      try {
+        const count = await db.canvasNodes.count();
+        if (count === 0 && isMounted) {
+          const now = new Date();
+          await db.canvasNodes.bulkAdd(
+            SEED_NODES.map((n) => ({
+              ...n,
+              createdAt: now,
+              updatedAt: now,
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Failed to seed initial canvas nodes:", err);
+      }
+    };
+    seed();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Infinite panning hook
   const {
@@ -114,31 +141,81 @@ export default function Canvas() {
     resetZoom();
   }, [resetPan, resetZoom]);
 
+  // Merge live database nodes with local drag coordinate overrides
+  const displayNodes = useMemo(() => {
+    if (!dbNodes) return [];
+    return dbNodes.map((n) => {
+      const override = n.id ? localNodeOverrides[n.id] : undefined;
+      return {
+        ...n,
+        id: n.id ?? 0,
+        x: override ? override.x : n.x,
+        y: override ? override.y : n.y,
+      };
+    });
+  }, [dbNodes, localNodeOverrides]);
+
   const handleMoveNode = useCallback(
     (nodeId: string | number, newX: number, newY: number) => {
-      setNodes((prev) =>
-        prev.map((n) => (n.id === nodeId ? { ...n, x: newX, y: newY } : n))
-      );
+      const numId = Number(nodeId);
+      setLocalNodeOverrides((prev) => ({
+        ...prev,
+        [numId]: { x: newX, y: newY },
+      }));
+    },
+    []
+  );
+
+  const handleMoveEndNode = useCallback(
+    async (nodeId: string | number, finalX: number, finalY: number) => {
+      const numId = Number(nodeId);
+      try {
+        await db.canvasNodes.update(numId, {
+          x: finalX,
+          y: finalY,
+          updatedAt: new Date(),
+        });
+      } catch (err) {
+        console.error("Failed to sync node position to database:", err);
+      } finally {
+        setLocalNodeOverrides((prev) => {
+          const next = { ...prev };
+          delete next[numId];
+          return next;
+        });
+      }
     },
     []
   );
 
   const handleUpdateNode = useCallback(
-    (nodeId: string | number, updates: Partial<CanvasNodeData>) => {
-      setNodes((prev) =>
-        prev.map((n) => (n.id === nodeId ? { ...n, ...updates } : n))
-      );
+    async (nodeId: string | number, updates: Partial<CanvasNodeData>) => {
+      const numId = Number(nodeId);
+      try {
+        await db.canvasNodes.update(numId, {
+          ...updates,
+          updatedAt: new Date(),
+        });
+      } catch (err) {
+        console.error("Failed to update canvas node:", err);
+      }
     },
     []
   );
 
-  const handleDeleteNode = useCallback((nodeId: string | number) => {
-    setNodes((prev) => prev.filter((n) => n.id !== nodeId));
-    setSelectedNodeId((current) => (current === nodeId ? null : current));
+  const handleDeleteNode = useCallback(async (nodeId: string | number) => {
+    const numId = Number(nodeId);
+    try {
+      await db.canvasNodes.delete(numId);
+      setSelectedNodeId((current) => (current === nodeId ? null : current));
+      toast.success("Idea node deleted");
+    } catch (err) {
+      console.error("Failed to delete canvas node:", err);
+      toast.error("Failed to delete node");
+    }
   }, []);
 
-  const handleAddNode = useCallback(() => {
-    const nextIndex = nodes.length + 1;
+  const handleAddNode = useCallback(async () => {
     const colors: CanvasNodeColor[] = [
       "indigo",
       "amber",
@@ -146,20 +223,28 @@ export default function Canvas() {
       "purple",
       "rose",
     ];
-    const pickedColor = colors[nodes.length % colors.length] || "indigo";
+    const count = (dbNodes?.length || 0) + 1;
+    const pickedColor = colors[count % colors.length] || "indigo";
+    const now = new Date();
 
-    const newNode: CanvasNode = {
-      id: `node-${Date.now()}`,
-      x: 180 + (nodes.length % 5) * 60,
-      y: 180 + (nodes.length % 5) * 40,
-      title: `💡 Idea Node #${nextIndex}`,
-      content: "Click to write your brainstorming thoughts, task items, or architectural notes.",
-      color: pickedColor,
-    };
+    try {
+      const newId = await db.canvasNodes.add({
+        title: `💡 Idea Node #${count}`,
+        content: "Click to write your brainstorming thoughts, task items, or architectural notes.",
+        x: 180 + (count % 5) * 60,
+        y: 180 + (count % 5) * 40,
+        color: pickedColor,
+        createdAt: now,
+        updatedAt: now,
+      });
 
-    setNodes((prev) => [...prev, newNode]);
-    setSelectedNodeId(newNode.id);
-  }, [nodes.length]);
+      setSelectedNodeId(Number(newId));
+      toast.success("Idea node added");
+    } catch (err) {
+      console.error("Failed to add canvas node:", err);
+      toast.error("Failed to add idea node");
+    }
+  }, [dbNodes?.length]);
 
   return (
     <div
@@ -255,7 +340,10 @@ export default function Canvas() {
         ref={viewportRef}
         data-testid="canvas-viewport"
         onPointerDown={(e) => {
-          if (e.target === e.currentTarget || (e.target as HTMLElement).dataset.testid === "canvas-plane") {
+          if (
+            e.target === e.currentTarget ||
+            (e.target as HTMLElement).dataset.testid === "canvas-plane"
+          ) {
             setSelectedNodeId(null);
           }
           handlePointerDown(e);
@@ -285,7 +373,7 @@ export default function Canvas() {
             transform: `translate3d(${pan.x}px, ${pan.y}px, 0px) scale(${zoom})`,
           }}
         >
-          {nodes.map((node) => (
+          {displayNodes.map((node) => (
             <CanvasNodeCard
               key={node.id}
               node={node}
@@ -293,6 +381,7 @@ export default function Canvas() {
               isSelected={selectedNodeId === node.id}
               onSelect={setSelectedNodeId}
               onMove={handleMoveNode}
+              onMoveEnd={handleMoveEndNode}
               onUpdate={handleUpdateNode}
               onDelete={handleDeleteNode}
             />
