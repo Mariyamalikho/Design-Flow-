@@ -15,15 +15,15 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { useCanvasPanning, type CanvasTool } from "@/hooks/useCanvasPanning";
 import { useCanvasZoom } from "@/hooks/useCanvasZoom";
+import {
+  CanvasNodeCard,
+  type CanvasNodeData,
+  type CanvasNodeColor,
+} from "@/components/canvas/CanvasNodeCard";
 import { cn } from "@/lib/utils";
 
-export interface CanvasNode {
-  id: string;
-  x: number;
-  y: number;
-  title: string;
-  content: string;
-  color?: "indigo" | "amber" | "emerald" | "purple" | "rose" | "zinc";
+export interface CanvasNode extends CanvasNodeData {
+  color?: CanvasNodeColor;
 }
 
 const INITIAL_NODES: CanvasNode[] = [
@@ -53,52 +53,11 @@ const INITIAL_NODES: CanvasNode[] = [
   },
 ];
 
-const COLOR_CLASSES: Record<
-  NonNullable<CanvasNode["color"]>,
-  { bg: string; border: string; text: string; header: string }
-> = {
-  indigo: {
-    bg: "bg-indigo-50/80 dark:bg-indigo-950/40",
-    border: "border-indigo-200 dark:border-indigo-800/70",
-    text: "text-indigo-900 dark:text-indigo-200",
-    header: "text-indigo-700 dark:text-indigo-400 font-semibold",
-  },
-  amber: {
-    bg: "bg-amber-50/80 dark:bg-amber-950/40",
-    border: "border-amber-200 dark:border-amber-800/70",
-    text: "text-amber-900 dark:text-amber-200",
-    header: "text-amber-700 dark:text-amber-400 font-semibold",
-  },
-  emerald: {
-    bg: "bg-emerald-50/80 dark:bg-emerald-950/40",
-    border: "border-emerald-200 dark:border-emerald-800/70",
-    text: "text-emerald-900 dark:text-emerald-200",
-    header: "text-emerald-700 dark:text-emerald-400 font-semibold",
-  },
-  purple: {
-    bg: "bg-purple-50/80 dark:bg-purple-950/40",
-    border: "border-purple-200 dark:border-purple-800/70",
-    text: "text-purple-900 dark:text-purple-200",
-    header: "text-purple-700 dark:text-purple-400 font-semibold",
-  },
-  rose: {
-    bg: "bg-rose-50/80 dark:bg-rose-950/40",
-    border: "border-rose-200 dark:border-rose-800/70",
-    text: "text-rose-900 dark:text-rose-200",
-    header: "text-rose-700 dark:text-rose-400 font-semibold",
-  },
-  zinc: {
-    bg: "bg-zinc-50 dark:bg-zinc-900/60",
-    border: "border-zinc-200 dark:border-zinc-800",
-    text: "text-zinc-800 dark:text-zinc-200",
-    header: "text-zinc-900 dark:text-zinc-100 font-semibold",
-  },
-};
-
 export default function Canvas() {
   const { id } = useParams<{ id?: string }>();
   const [nodes, setNodes] = useState<CanvasNode[]>(INITIAL_NODES);
   const [activeTool, setActiveTool] = useState<CanvasTool>("select");
+  const [selectedNodeId, setSelectedNodeId] = useState<string | number | null>(null);
   const [isSpacePressed, setIsSpacePressed] = useState<boolean>(false);
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -155,9 +114,32 @@ export default function Canvas() {
     resetZoom();
   }, [resetPan, resetZoom]);
 
+  const handleMoveNode = useCallback(
+    (nodeId: string | number, newX: number, newY: number) => {
+      setNodes((prev) =>
+        prev.map((n) => (n.id === nodeId ? { ...n, x: newX, y: newY } : n))
+      );
+    },
+    []
+  );
+
+  const handleUpdateNode = useCallback(
+    (nodeId: string | number, updates: Partial<CanvasNodeData>) => {
+      setNodes((prev) =>
+        prev.map((n) => (n.id === nodeId ? { ...n, ...updates } : n))
+      );
+    },
+    []
+  );
+
+  const handleDeleteNode = useCallback((nodeId: string | number) => {
+    setNodes((prev) => prev.filter((n) => n.id !== nodeId));
+    setSelectedNodeId((current) => (current === nodeId ? null : current));
+  }, []);
+
   const handleAddNode = useCallback(() => {
     const nextIndex = nodes.length + 1;
-    const colors: Array<CanvasNode["color"]> = [
+    const colors: CanvasNodeColor[] = [
       "indigo",
       "amber",
       "emerald",
@@ -176,6 +158,7 @@ export default function Canvas() {
     };
 
     setNodes((prev) => [...prev, newNode]);
+    setSelectedNodeId(newNode.id);
   }, [nodes.length]);
 
   return (
@@ -271,7 +254,12 @@ export default function Canvas() {
       <div
         ref={viewportRef}
         data-testid="canvas-viewport"
-        onPointerDown={handlePointerDown}
+        onPointerDown={(e) => {
+          if (e.target === e.currentTarget || (e.target as HTMLElement).dataset.testid === "canvas-plane") {
+            setSelectedNodeId(null);
+          }
+          handlePointerDown(e);
+        }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
@@ -297,31 +285,18 @@ export default function Canvas() {
             transform: `translate3d(${pan.x}px, ${pan.y}px, 0px) scale(${zoom})`,
           }}
         >
-          {nodes.map((node) => {
-            const colorStyle = COLOR_CLASSES[node.color || "indigo"];
-            return (
-              <div
-                key={node.id}
-                data-testid={`canvas-node-${node.id}`}
-                className={cn(
-                  "absolute w-64 rounded-xl border p-4 shadow-sm backdrop-blur-sm transition-shadow hover:shadow-md cursor-pointer",
-                  colorStyle.bg,
-                  colorStyle.border,
-                  colorStyle.text
-                )}
-                style={{
-                  transform: `translate3d(${node.x}px, ${node.y}px, 0px)`,
-                }}
-              >
-                <h4 className={cn("text-sm mb-1.5", colorStyle.header)}>
-                  {node.title}
-                </h4>
-                <p className="text-xs leading-relaxed opacity-90 line-clamp-4">
-                  {node.content}
-                </p>
-              </div>
-            );
-          })}
+          {nodes.map((node) => (
+            <CanvasNodeCard
+              key={node.id}
+              node={node}
+              zoom={zoom}
+              isSelected={selectedNodeId === node.id}
+              onSelect={setSelectedNodeId}
+              onMove={handleMoveNode}
+              onUpdate={handleUpdateNode}
+              onDelete={handleDeleteNode}
+            />
+          ))}
         </div>
       </div>
 
