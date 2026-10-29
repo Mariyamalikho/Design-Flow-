@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { clampCoordinate } from "./useCanvasPanning";
 
 export interface UseCanvasZoomOptions {
   minZoom?: number;
@@ -33,6 +34,7 @@ export function useCanvasZoom({
 
   const clampZoom = useCallback(
     (val: number) => {
+      if (!Number.isFinite(val)) return 1.0;
       const rounded = Math.round(val * 100) / 100;
       return Math.min(maxZoom, Math.max(minZoom, rounded));
     },
@@ -56,8 +58,8 @@ export function useCanvasZoom({
     (e: WheelEvent) => {
       e.preventDefault();
 
-      const currentZoom = zoomRef.current;
-      const currentPan = panRef.current;
+      const currentZoom = zoomRef.current || 1.0;
+      const currentPan = panRef.current || { x: 0, y: 0 };
 
       // Trackpad pinch-to-zoom sets ctrlKey; normal mouse wheel uses deltaY
       const zoomFactor = e.ctrlKey ? 0.01 : 0.0015;
@@ -71,17 +73,21 @@ export function useCanvasZoom({
         ? viewportEl.getBoundingClientRect()
         : { left: 0, top: 0 };
 
-      const cursorX = e.clientX - rect.left;
-      const cursorY = e.clientY - rect.top;
+      const cursorX = Number.isFinite(e.clientX - rect.left)
+        ? e.clientX - rect.left
+        : 0;
+      const cursorY = Number.isFinite(e.clientY - rect.top)
+        ? e.clientY - rect.top
+        : 0;
 
       // Adjust pan position so focal point remains steady under cursor
       const ratio = nextZoom / currentZoom;
-      const newPanX = cursorX - (cursorX - currentPan.x) * ratio;
-      const newPanY = cursorY - (cursorY - currentPan.y) * ratio;
+      const rawPanX = cursorX - (cursorX - currentPan.x) * ratio;
+      const rawPanY = cursorY - (cursorY - currentPan.y) * ratio;
 
       setPan({
-        x: Math.round(newPanX),
-        y: Math.round(newPanY),
+        x: clampCoordinate(rawPanX),
+        y: clampCoordinate(rawPanY),
       });
       setZoom(nextZoom);
     },

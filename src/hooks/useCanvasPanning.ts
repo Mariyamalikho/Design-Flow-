@@ -1,19 +1,53 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 export type CanvasTool = "select" | "pan";
+
+export interface CanvasPanningBounds {
+  minX?: number;
+  maxX?: number;
+  minY?: number;
+  maxY?: number;
+}
 
 export interface UseCanvasPanningOptions {
   activeTool: CanvasTool;
   isSpacePressed: boolean;
   initialPan?: { x: number; y: number };
+  bounds?: CanvasPanningBounds;
+}
+
+const DEFAULT_BOUNDS: Required<CanvasPanningBounds> = {
+  minX: -6000,
+  maxX: 6000,
+  minY: -6000,
+  maxY: 6000,
+};
+
+export function clampCoordinate(
+  val: number,
+  min: number = -6000,
+  max: number = 6000
+): number {
+  if (!Number.isFinite(val)) return 0;
+  return Math.max(min, Math.min(max, Math.round(val)));
 }
 
 export function useCanvasPanning({
   activeTool,
   isSpacePressed,
   initialPan = { x: 0, y: 0 },
+  bounds = DEFAULT_BOUNDS,
 }: UseCanvasPanningOptions) {
-  const [pan, setPan] = useState<{ x: number; y: number }>(initialPan);
+  const minX = bounds.minX ?? DEFAULT_BOUNDS.minX;
+  const maxX = bounds.maxX ?? DEFAULT_BOUNDS.maxX;
+  const minY = bounds.minY ?? DEFAULT_BOUNDS.minY;
+  const maxY = bounds.maxY ?? DEFAULT_BOUNDS.maxY;
+
+  const [pan, setPanState] = useState<{ x: number; y: number }>(() => ({
+    x: clampCoordinate(initialPan.x, minX, maxX),
+    y: clampCoordinate(initialPan.y, minY, maxY),
+  }));
+
   const [isPanning, setIsPanning] = useState<boolean>(false);
   const startDragRef = useRef<{
     clientX: number;
@@ -22,20 +56,29 @@ export function useCanvasPanning({
     panY: number;
   } | null>(null);
 
+  const setPan = useCallback(
+    (newPan: { x: number; y: number } | ((prev: { x: number; y: number }) => { x: number; y: number })) => {
+      setPanState((prev) => {
+        const next = typeof newPan === "function" ? newPan(prev) : newPan;
+        return {
+          x: clampCoordinate(next.x, minX, maxX),
+          y: clampCoordinate(next.y, minY, maxY),
+        };
+      });
+    },
+    [minX, maxX, minY, maxY]
+  );
+
   const canPan = activeTool === "pan" || isSpacePressed;
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      // Allow panning if:
-      // 1. Pan tool is active
-      // 2. Spacebar is held
-      // 3. Middle mouse button (button 1) is clicked
-      // 4. Primary click directly on the canvas background
       const isMiddleClick = e.button === 1;
+      const targetEl = e.target as HTMLElement | undefined;
       const isTargetCanvasBackground =
         e.target === e.currentTarget ||
-        (e.target as HTMLElement).dataset.testid === "canvas-viewport" ||
-        (e.target as HTMLElement).dataset.testid === "canvas-plane";
+        targetEl?.dataset?.testid === "canvas-viewport" ||
+        targetEl?.dataset?.testid === "canvas-plane";
 
       if ((e.button === 0 && (canPan || isTargetCanvasBackground)) || isMiddleClick) {
         setIsPanning(true);
@@ -56,31 +99,56 @@ export function useCanvasPanning({
     [canPan, pan.x, pan.y]
   );
 
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!startDragRef.current) return;
-    const dx = e.clientX - startDragRef.current.clientX;
-    const dy = e.clientY - startDragRef.current.clientY;
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!startDragRef.current) return;
+      const dx = e.clientX - startDragRef.current.clientX;
+      const dy = e.clientY - startDragRef.current.clientY;
 
-    setPan({
-      x: Math.round(startDragRef.current.panX + dx),
-      y: Math.round(startDragRef.current.panY + dy),
-    });
-  }, []);
+      const rawX = startDragRef.current.panX + dx;
+      const rawY = startDragRef.current.panY + dy;
 
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+      setPanState({
+        x: clampCoordinate(rawX, minX, maxX),
+        y: clampCoordinate(rawY, minY, maxY),
+      });
+    },
+    [minX, maxX, minY, maxY]
+  );
+
+  const handlePointerUp = useCallback((e?: React.PointerEvent) => {
     if (startDragRef.current) {
-      try {
-        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-      } catch {
-        // Fallback
+      if (e?.currentTarget) {
+        try {
+          (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+        } catch {
+          // Fallback
+        }
       }
       startDragRef.current = null;
       setIsPanning(false);
     }
   }, []);
 
+  // Global blur and pointer release listener to fix stuck panning state
+  useEffect(() => {
+    const handleGlobalRelease = () => {
+      if (startDragRef.current) {
+        startDragRef.current = null;
+        setIsPanning(false);
+      }
+    };
+
+    window.addEventListener("pointerup", handleGlobalRelease);
+    window.addEventListener("blur", handleGlobalRelease);
+    return () => {
+      window.removeEventListener("pointerup", handleGlobalRelease);
+      window.removeEventListener("blur", handleGlobalRelease);
+    };
+  }, []);
+
   const resetPan = useCallback(() => {
-    setPan({ x: 0, y: 0 });
+    setPanState({ x: 0, y: 0 });
     startDragRef.current = null;
     setIsPanning(false);
   }, []);
@@ -94,5 +162,6 @@ export function useCanvasPanning({
     handlePointerMove,
     handlePointerUp,
     resetPan,
+    bounds: { minX, maxX, minY, maxY },
   };
 }

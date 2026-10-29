@@ -100,4 +100,69 @@ describe("useCanvasPanning", () => {
 
     expect(result.current.pan).toEqual({ x: 0, y: 0 });
   });
+
+  it("clamps pan coordinates to boundaries to prevent drift into the void", () => {
+    const { result } = renderHook(() =>
+      useCanvasPanning({
+        activeTool: "pan",
+        isSpacePressed: false,
+        bounds: { minX: -200, maxX: 200, minY: -200, maxY: 200 },
+      })
+    );
+
+    const mockElement = document.createElement("div");
+
+    act(() => {
+      result.current.handlePointerDown({
+        button: 0,
+        clientX: 0,
+        clientY: 0,
+        currentTarget: mockElement,
+        target: mockElement,
+        pointerId: 1,
+      } as unknown as React.PointerEvent);
+    });
+
+    // Move by 5000px
+    act(() => {
+      result.current.handlePointerMove({
+        clientX: 5000,
+        clientY: -5000,
+      } as unknown as React.PointerEvent);
+    });
+
+    // Clamped strictly to max bounds
+    expect(result.current.pan.x).toBe(200);
+    expect(result.current.pan.y).toBe(-200);
+  });
+
+  it("releases active panning on window blur event", () => {
+    const { result } = renderHook(() =>
+      useCanvasPanning({
+        activeTool: "pan",
+        isSpacePressed: false,
+      })
+    );
+
+    const mockElement = document.createElement("div");
+
+    act(() => {
+      result.current.handlePointerDown({
+        button: 0,
+        clientX: 50,
+        clientY: 50,
+        currentTarget: mockElement,
+        target: mockElement,
+        pointerId: 1,
+      } as unknown as React.PointerEvent);
+    });
+
+    expect(result.current.isPanning).toBe(true);
+
+    act(() => {
+      window.dispatchEvent(new Event("blur"));
+    });
+
+    expect(result.current.isPanning).toBe(false);
+  });
 });
