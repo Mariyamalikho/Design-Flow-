@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, type CanvasNodeItem, type CanvasConnectionItem } from "@/lib/db";
+import { db, type CanvasNodeItem } from "@/lib/db";
 import {
   Sparkles,
   MousePointer,
@@ -483,6 +483,8 @@ export default function Canvas() {
           className="absolute inset-0 origin-top-left transition-transform duration-75 ease-out will-change-transform"
           style={{
             transform: `translate3d(${pan.x}px, ${pan.y}px, 0px) scale(${zoom})`,
+            transformStyle: "preserve-3d",
+            backfaceVisibility: "hidden",
           }}
         >
           {/* Origin crosshair indicator at (0, 0) */}

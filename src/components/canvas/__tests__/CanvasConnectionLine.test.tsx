@@ -4,7 +4,6 @@ import React from "react";
 import {
   CanvasConnectionLine,
   computeConnectionPath,
-  type CanvasConnectionLineProps,
 } from "../CanvasConnectionLine";
 import type { CanvasConnectionItem } from "@/lib/db";
 

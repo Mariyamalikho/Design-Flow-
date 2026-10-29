@@ -14,6 +14,7 @@ export interface UseCanvasPanningOptions {
   isSpacePressed: boolean;
   initialPan?: { x: number; y: number };
   bounds?: CanvasPanningBounds;
+  throttleWithRaf?: boolean;
 }
 
 const DEFAULT_BOUNDS: Required<CanvasPanningBounds> = {
@@ -37,11 +38,16 @@ export function useCanvasPanning({
   isSpacePressed,
   initialPan = { x: 0, y: 0 },
   bounds = DEFAULT_BOUNDS,
+  throttleWithRaf,
 }: UseCanvasPanningOptions) {
   const minX = bounds.minX ?? DEFAULT_BOUNDS.minX;
   const maxX = bounds.maxX ?? DEFAULT_BOUNDS.maxX;
   const minY = bounds.minY ?? DEFAULT_BOUNDS.minY;
   const maxY = bounds.maxY ?? DEFAULT_BOUNDS.maxY;
+
+  const shouldThrottle =
+    throttleWithRaf ??
+    (typeof process !== "undefined" && process.env?.NODE_ENV !== "test");
 
   const [pan, setPanState] = useState<{ x: number; y: number }>(() => ({
     x: clampCoordinate(initialPan.x, minX, maxX),
@@ -49,6 +55,7 @@ export function useCanvasPanning({
   }));
 
   const [isPanning, setIsPanning] = useState<boolean>(false);
+  const rafIdRef = useRef<number | null>(null);
   const startDragRef = useRef<{
     clientX: number;
     clientY: number;
@@ -108,15 +115,34 @@ export function useCanvasPanning({
       const rawX = startDragRef.current.panX + dx;
       const rawY = startDragRef.current.panY + dy;
 
-      setPanState({
-        x: clampCoordinate(rawX, minX, maxX),
-        y: clampCoordinate(rawY, minY, maxY),
-      });
+      const nextX = clampCoordinate(rawX, minX, maxX);
+      const nextY = clampCoordinate(rawY, minY, maxY);
+
+      // Render cycle optimization: debounce/coalesce multiple pointer movements per animation frame
+      if (
+        shouldThrottle &&
+        typeof window !== "undefined" &&
+        typeof window.requestAnimationFrame === "function"
+      ) {
+        if (rafIdRef.current !== null) {
+          cancelAnimationFrame(rafIdRef.current);
+        }
+        rafIdRef.current = requestAnimationFrame(() => {
+          setPanState({ x: nextX, y: nextY });
+          rafIdRef.current = null;
+        });
+      } else {
+        setPanState({ x: nextX, y: nextY });
+      }
     },
-    [minX, maxX, minY, maxY]
+    [minX, maxX, minY, maxY, shouldThrottle]
   );
 
   const handlePointerUp = useCallback((e?: React.PointerEvent) => {
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
     if (startDragRef.current) {
       if (e?.currentTarget) {
         try {
@@ -133,6 +159,10 @@ export function useCanvasPanning({
   // Global blur and pointer release listener to fix stuck panning state
   useEffect(() => {
     const handleGlobalRelease = () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
       if (startDragRef.current) {
         startDragRef.current = null;
         setIsPanning(false);
@@ -144,10 +174,17 @@ export function useCanvasPanning({
     return () => {
       window.removeEventListener("pointerup", handleGlobalRelease);
       window.removeEventListener("blur", handleGlobalRelease);
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
     };
   }, []);
 
   const resetPan = useCallback(() => {
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
     setPanState({ x: 0, y: 0 });
     startDragRef.current = null;
     setIsPanning(false);

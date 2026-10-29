@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useCanvasPanning } from "../useCanvasPanning";
 
@@ -81,6 +81,57 @@ describe("useCanvasPanning", () => {
 
     expect(result.current.isPanning).toBe(false);
     expect(result.current.pan).toEqual({ x: 50, y: 80 });
+  });
+
+  it("batches high-frequency pointer moves using requestAnimationFrame when throttleWithRaf is enabled", () => {
+    let queuedCallback: FrameRequestCallback | null = null;
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
+      queuedCallback = cb;
+      return 123;
+    });
+
+    const { result } = renderHook(() =>
+      useCanvasPanning({
+        activeTool: "pan",
+        isSpacePressed: false,
+        throttleWithRaf: true,
+      })
+    );
+
+    const mockElement = document.createElement("div");
+
+    act(() => {
+      result.current.handlePointerDown({
+        button: 0,
+        clientX: 0,
+        clientY: 0,
+        currentTarget: mockElement,
+        target: mockElement,
+        pointerId: 1,
+      } as unknown as React.PointerEvent);
+    });
+
+    // Move pointer
+    act(() => {
+      result.current.handlePointerMove({
+        clientX: 100,
+        clientY: 150,
+      } as unknown as React.PointerEvent);
+    });
+
+    expect(window.requestAnimationFrame).toHaveBeenCalled();
+    // Before RAF executes, state has not flushed yet
+    expect(result.current.pan).toEqual({ x: 0, y: 0 });
+
+    // Now execute RAF frame
+    act(() => {
+      if (queuedCallback) {
+        queuedCallback(16.6);
+      }
+    });
+
+    expect(result.current.pan).toEqual({ x: 100, y: 150 });
+    vi.restoreAllMocks();
   });
 
   it("resets pan coordinates when resetPan is called", () => {

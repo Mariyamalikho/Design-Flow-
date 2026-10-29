@@ -77,81 +77,98 @@ export function computeConnectionPath(
   return { pathData, startX, startY, endX, endY, midX, midY };
 }
 
-export const CanvasConnectionLine: React.FC<CanvasConnectionLineProps> = ({
-  connection,
-  fromNode,
-  toNode,
-  onDelete,
-}) => {
-  if (!fromNode || !toNode) return null;
+export const CanvasConnectionLine = React.memo<CanvasConnectionLineProps>(
+  ({ connection, fromNode, toNode, onDelete }) => {
+    if (!fromNode || !toNode) return null;
 
-  const { pathData, midX, midY } = computeConnectionPath(fromNode, toNode);
-  const strokeColor = connection.color || "#6366f1"; // indigo-500 default
-  const isDashed = connection.style === "dashed";
+    const { pathData, midX, midY } = computeConnectionPath(fromNode, toNode);
+    const strokeColor = connection.color || "#6366f1"; // indigo-500 default
+    const isDashed = connection.style === "dashed";
 
-  return (
-    <g
-      data-testid={`canvas-connection-${connection.id}`}
-      className="canvas-connection-group group pointer-events-auto cursor-pointer"
-    >
-      {/* Background thicker stroke for easy hover / selection */}
-      <path
-        d={pathData}
-        fill="none"
-        stroke="transparent"
-        strokeWidth="18"
-        className="pointer-events-stroke"
-      />
-
-      {/* Visible connector line */}
-      <path
-        d={pathData}
-        fill="none"
-        stroke={strokeColor}
-        strokeWidth="2.5"
-        strokeDasharray={isDashed ? "6 5" : undefined}
-        strokeLinecap="round"
-        className="transition-all duration-150 group-hover:stroke-indigo-600 dark:group-hover:stroke-indigo-400 group-hover:stroke-[3.5px] opacity-80 group-hover:opacity-100"
-      />
-
-      {/* Midpoint badge with label or quick delete button */}
-      <foreignObject
-        x={midX - 14}
-        y={midY - 14}
-        width={28}
-        height={28}
-        className="overflow-visible"
+    return (
+      <g
+        data-testid={`canvas-connection-${connection.id}`}
+        className="canvas-connection-group group pointer-events-auto cursor-pointer"
       >
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (connection.id !== undefined) {
-              onDelete?.(connection.id);
-            }
-          }}
-          className="w-7 h-7 rounded-full bg-white dark:bg-zinc-900 border border-indigo-200 dark:border-indigo-800 shadow-sm flex items-center justify-center text-zinc-400 hover:text-rose-600 hover:border-rose-300 dark:hover:border-rose-800 hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
-          title="Delete connection"
-          data-testid={`delete-connection-${connection.id}`}
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
-      </foreignObject>
+        {/* Background thicker stroke for easy hover / selection */}
+        <path
+          d={pathData}
+          fill="none"
+          stroke="transparent"
+          strokeWidth="18"
+          className="pointer-events-stroke"
+        />
 
-      {/* Connection label if provided */}
-      {connection.label && (
+        {/* Visible connector line */}
+        <path
+          d={pathData}
+          fill="none"
+          stroke={strokeColor}
+          strokeWidth="2.5"
+          strokeDasharray={isDashed ? "6 5" : undefined}
+          strokeLinecap="round"
+          className="transition-all duration-150 group-hover:stroke-indigo-600 dark:group-hover:stroke-indigo-400 group-hover:stroke-[3.5px] opacity-80 group-hover:opacity-100"
+        />
+
+        {/* Midpoint badge with label or quick delete button */}
         <foreignObject
-          x={midX - 60}
-          y={midY + 16}
-          width={120}
-          height={24}
-          className="overflow-visible pointer-events-none"
+          x={midX - 14}
+          y={midY - 14}
+          width={28}
+          height={28}
+          className="overflow-visible"
         >
-          <div className="text-[10px] text-center font-medium px-2 py-0.5 rounded-full bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 shadow-xs text-zinc-600 dark:text-zinc-400 truncate">
-            {connection.label}
-          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (connection.id !== undefined) {
+                onDelete?.(connection.id);
+              }
+            }}
+            className="w-7 h-7 rounded-full bg-white dark:bg-zinc-900 border border-indigo-200 dark:border-indigo-800 shadow-sm flex items-center justify-center text-zinc-400 hover:text-rose-600 hover:border-rose-300 dark:hover:border-rose-800 hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
+            title="Delete connection"
+            data-testid={`delete-connection-${connection.id}`}
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </foreignObject>
-      )}
-    </g>
-  );
-};
+
+        {/* Connection label if provided */}
+        {connection.label && (
+          <foreignObject
+            x={midX - 60}
+            y={midY + 16}
+            width={120}
+            height={24}
+            className="overflow-visible pointer-events-none"
+          >
+            <div className="text-[10px] text-center font-medium px-2 py-0.5 rounded-full bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 shadow-xs text-zinc-600 dark:text-zinc-400 truncate">
+              {connection.label}
+            </div>
+          </foreignObject>
+        )}
+      </g>
+    );
+  },
+  (prev, next) => {
+    return (
+      prev.connection.id === next.connection.id &&
+      prev.connection.fromNodeId === next.connection.fromNodeId &&
+      prev.connection.toNodeId === next.connection.toNodeId &&
+      prev.connection.label === next.connection.label &&
+      prev.connection.color === next.connection.color &&
+      prev.connection.style === next.connection.style &&
+      prev.fromNode?.x === next.fromNode?.x &&
+      prev.fromNode?.y === next.fromNode?.y &&
+      prev.fromNode?.width === next.fromNode?.width &&
+      prev.fromNode?.height === next.fromNode?.height &&
+      prev.toNode?.x === next.toNode?.x &&
+      prev.toNode?.y === next.toNode?.y &&
+      prev.toNode?.width === next.toNode?.width &&
+      prev.toNode?.height === next.toNode?.height
+    );
+  }
+);
+
+CanvasConnectionLine.displayName = "CanvasConnectionLine";
