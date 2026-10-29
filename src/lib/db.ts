@@ -116,6 +116,18 @@ export interface CanvasNodeItem {
   updatedAt: Date;
 }
 
+export interface CanvasConnectionItem {
+  id?: number;
+  projectId?: number;
+  boardId?: string;
+  fromNodeId: number;
+  toNodeId: number;
+  label?: string;
+  color?: string;
+  style?: "solid" | "dashed";
+  createdAt: Date;
+}
+
 export class DesignFlowDB extends Dexie {
   projects!: Table<Project, number>;
   tasks!: Table<Task, number>;
@@ -126,6 +138,7 @@ export class DesignFlowDB extends Dexie {
   brandIdentities!: Table<BrandIdentity, number>;
   notes!: Table<Note, number>;
   canvasNodes!: Table<CanvasNodeItem, number>;
+  canvasConnections!: Table<CanvasConnectionItem, number>;
 
   constructor() {
     super("DesignFlowDB");
@@ -222,6 +235,20 @@ export class DesignFlowDB extends Dexie {
       brandIdentities: "++id, projectId, createdAt, updatedAt",
       notes: "++id, projectId, isPinned, createdAt, updatedAt",
       canvasNodes: "++id, projectId, boardId, updatedAt",
+    });
+
+    // Version 11: Canvas Connections (SVG Relationships)
+    this.version(11).stores({
+      projects: "++id, status, createdAt",
+      tasks: "++id, projectId, status, priority",
+      briefs: "++id, projectId, status, createdAt",
+      assets: "++id, projectId, type, createdAt",
+      moodboardItems: "++id, projectId, type, order, createdAt",
+      paletteColors: "++id, projectId, createdAt",
+      brandIdentities: "++id, projectId, createdAt, updatedAt",
+      notes: "++id, projectId, isPinned, createdAt, updatedAt",
+      canvasNodes: "++id, projectId, boardId, updatedAt",
+      canvasConnections: "++id, fromNodeId, toNodeId, createdAt",
     });
   }
 }

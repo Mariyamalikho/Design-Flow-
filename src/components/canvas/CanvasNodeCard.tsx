@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
-import { GripVertical, Trash2, Palette, Check } from "lucide-react";
+import { GripVertical, Trash2, Palette, Check, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
   DropdownMenu,
@@ -30,7 +30,9 @@ export interface CanvasNodeCardProps {
   node: CanvasNodeData;
   zoom: number;
   isSelected?: boolean;
+  isConnectingSource?: boolean;
   onSelect?: (id: string | number) => void;
+  onStartConnect?: (id: string | number) => void;
   onMove?: (id: string | number, x: number, y: number) => void;
   onMoveEnd?: (id: string | number, x: number, y: number) => void;
   onUpdate?: (id: string | number, updates: Partial<CanvasNodeData>) => void;
@@ -103,7 +105,9 @@ export const CanvasNodeCard: React.FC<CanvasNodeCardProps> = ({
   node,
   zoom,
   isSelected = false,
+  isConnectingSource = false,
   onSelect,
+  onStartConnect,
   onMove,
   onMoveEnd,
   onUpdate,
@@ -206,7 +210,9 @@ export const CanvasNodeCard: React.FC<CanvasNodeCardProps> = ({
       className={cn(
         "absolute w-72 rounded-xl border p-4 shadow-sm backdrop-blur-md transition-[box-shadow,ring] select-none",
         "touch-none group",
-        isDragging
+        isConnectingSource
+          ? "cursor-crosshair shadow-lg z-30 ring-2 ring-emerald-500 animate-pulse"
+          : isDragging
           ? "cursor-grabbing shadow-xl z-30 ring-2 ring-indigo-500/70"
           : isSelected
           ? "cursor-grab shadow-md z-20 ring-2 ring-indigo-500"
@@ -257,8 +263,25 @@ export const CanvasNodeCard: React.FC<CanvasNodeCardProps> = ({
           )}
         </div>
 
-        {/* Action icons: Color Picker & Delete */}
+        {/* Action icons: Connect, Color Picker & Delete */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onStartConnect?.(node.id);
+            }}
+            className={cn(
+              "h-6 w-6 p-0 text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400",
+              isConnectingSource &&
+                "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 opacity-100"
+            )}
+            title="Connect to another node"
+          >
+            <Link2 className="w-3 h-3" />
+          </Button>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
