@@ -64,6 +64,7 @@ describe("useCanvasPanning", () => {
     // Pointer move to (150, 180) -> dx = 50, dy = 80
     act(() => {
       result.current.handlePointerMove({
+        pointerId: 1,
         clientX: 150,
         clientY: 180,
       } as unknown as React.PointerEvent);
@@ -74,8 +75,8 @@ describe("useCanvasPanning", () => {
     // Pointer up ends panning
     act(() => {
       result.current.handlePointerUp({
-        currentTarget: mockElement,
         pointerId: 1,
+        currentTarget: mockElement,
       } as unknown as React.PointerEvent);
     });
 
@@ -114,6 +115,7 @@ describe("useCanvasPanning", () => {
     // Move pointer
     act(() => {
       result.current.handlePointerMove({
+        pointerId: 1,
         clientX: 100,
         clientY: 150,
       } as unknown as React.PointerEvent);
@@ -177,6 +179,7 @@ describe("useCanvasPanning", () => {
     // Move by 5000px
     act(() => {
       result.current.handlePointerMove({
+        pointerId: 1,
         clientX: 5000,
         clientY: -5000,
       } as unknown as React.PointerEvent);
@@ -212,6 +215,104 @@ describe("useCanvasPanning", () => {
 
     act(() => {
       window.dispatchEvent(new Event("blur"));
+    });
+
+    expect(result.current.isPanning).toBe(false);
+  });
+
+  it("enables mobile touch panning even when select tool is active", () => {
+    const { result } = renderHook(() =>
+      useCanvasPanning({
+        activeTool: "select",
+        isSpacePressed: false,
+      })
+    );
+
+    const mockElement = document.createElement("div");
+
+    // Touch down on mobile device with select tool
+    act(() => {
+      result.current.handlePointerDown({
+        button: 0,
+        pointerType: "touch",
+        isPrimary: true,
+        clientX: 100,
+        clientY: 100,
+        currentTarget: mockElement,
+        target: mockElement,
+        pointerId: 5,
+      } as unknown as React.PointerEvent);
+    });
+
+    expect(result.current.isPanning).toBe(true);
+
+    act(() => {
+      result.current.handlePointerMove({
+        pointerId: 5,
+        clientX: 140,
+        clientY: 160,
+      } as unknown as React.PointerEvent);
+    });
+
+    expect(result.current.pan).toEqual({ x: 40, y: 60 });
+  });
+
+  it("ignores non-primary touches on mobile to prevent erratic jump gestures", () => {
+    const { result } = renderHook(() =>
+      useCanvasPanning({
+        activeTool: "select",
+        isSpacePressed: false,
+      })
+    );
+
+    const mockElement = document.createElement("div");
+
+    // Secondary touch finger down (isPrimary: false)
+    act(() => {
+      result.current.handlePointerDown({
+        button: 0,
+        pointerType: "touch",
+        isPrimary: false,
+        clientX: 200,
+        clientY: 200,
+        currentTarget: mockElement,
+        target: mockElement,
+        pointerId: 6,
+      } as unknown as React.PointerEvent);
+    });
+
+    // Should NOT initiate panning
+    expect(result.current.isPanning).toBe(false);
+  });
+
+  it("releases active mobile panning on window pointercancel event", () => {
+    const { result } = renderHook(() =>
+      useCanvasPanning({
+        activeTool: "select",
+        isSpacePressed: false,
+      })
+    );
+
+    const mockElement = document.createElement("div");
+
+    act(() => {
+      result.current.handlePointerDown({
+        button: 0,
+        pointerType: "touch",
+        isPrimary: true,
+        clientX: 50,
+        clientY: 50,
+        currentTarget: mockElement,
+        target: mockElement,
+        pointerId: 7,
+      } as unknown as React.PointerEvent);
+    });
+
+    expect(result.current.isPanning).toBe(true);
+
+    // Browser fires pointercancel (e.g. mobile notification or system gesture)
+    act(() => {
+      window.dispatchEvent(new Event("pointercancel"));
     });
 
     expect(result.current.isPanning).toBe(false);

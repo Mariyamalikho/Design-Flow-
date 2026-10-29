@@ -21,6 +21,8 @@ Unlike traditional platforms, DesignFlow is built with a **Local-First Architect
 ### ✨ Key Features
 - **Design Brief Wizard:** A multi-step form to capture client goals, target audience, and brand personality.
 - **Interactive Moodboards:** A drag-and-drop infinite canvas for organizing visual inspiration.
+- **Brainstorm Canvas:** An infinite visual workspace with focal-point zooming, SVG node connections, and hardware-accelerated pan transforms. (See [Canvas Mathematical Architecture](docs/CANVAS_MATH.md)).
+- **Rich Notes System:** Markdown & rich-text project notes with TipTap editor, templates, and tagging.
 - **Brand Identity Builder:** Define typography pairs, mission statements, and core values.
 - **Accessible Color Palettes:** A color manager with built-in WCAG contrast checking.
 - **Kanban Task Board:** Manage project deliverables from Draft to Final Review.
