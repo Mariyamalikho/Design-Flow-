@@ -57,6 +57,7 @@ export function useCanvasPanning({
   const [isPanning, setIsPanning] = useState<boolean>(false);
   const rafIdRef = useRef<number | null>(null);
   const startDragRef = useRef<{
+    pointerId?: number;
     clientX: number;
     clientY: number;
     panX: number;
@@ -80,16 +81,26 @@ export function useCanvasPanning({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
+      // On mobile touch devices, ignore secondary non-primary touches to prevent jumpy gestures
+      if (e.pointerType === "touch" && e.isPrimary === false) {
+        return;
+      }
+
       const isMiddleClick = e.button === 1;
+      const isTouch = e.pointerType === "touch";
       const targetEl = e.target as HTMLElement | undefined;
       const isTargetCanvasBackground =
         e.target === e.currentTarget ||
         targetEl?.dataset?.testid === "canvas-viewport" ||
         targetEl?.dataset?.testid === "canvas-plane";
 
-      if ((e.button === 0 && (canPan || isTargetCanvasBackground)) || isMiddleClick) {
+      // Mobile touch on canvas background always enables smooth panning
+      const canPanThisEvent = canPan || isTouch || isTargetCanvasBackground;
+
+      if ((e.button === 0 && canPanThisEvent) || isMiddleClick) {
         setIsPanning(true);
         startDragRef.current = {
+          pointerId: e.pointerId,
           clientX: e.clientX,
           clientY: e.clientY,
           panX: pan.x,
@@ -109,6 +120,16 @@ export function useCanvasPanning({
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!startDragRef.current) return;
+
+      // Filter out pointer moves from unrelated pointer IDs in multi-touch scenarios
+      if (
+        startDragRef.current.pointerId !== undefined &&
+        e.pointerId !== undefined &&
+        e.pointerId !== startDragRef.current.pointerId
+      ) {
+        return;
+      }
+
       const dx = e.clientX - startDragRef.current.clientX;
       const dy = e.clientY - startDragRef.current.clientY;
 
@@ -144,6 +165,15 @@ export function useCanvasPanning({
       rafIdRef.current = null;
     }
     if (startDragRef.current) {
+      if (
+        e &&
+        startDragRef.current.pointerId !== undefined &&
+        e.pointerId !== undefined &&
+        e.pointerId !== startDragRef.current.pointerId
+      ) {
+        return;
+      }
+
       if (e?.currentTarget) {
         try {
           (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
@@ -156,7 +186,7 @@ export function useCanvasPanning({
     }
   }, []);
 
-  // Global blur and pointer release listener to fix stuck panning state
+  // Global blur, pointerup, and pointercancel listener to fix stuck mobile panning state
   useEffect(() => {
     const handleGlobalRelease = () => {
       if (rafIdRef.current !== null) {
@@ -170,9 +200,11 @@ export function useCanvasPanning({
     };
 
     window.addEventListener("pointerup", handleGlobalRelease);
+    window.addEventListener("pointercancel", handleGlobalRelease);
     window.addEventListener("blur", handleGlobalRelease);
     return () => {
       window.removeEventListener("pointerup", handleGlobalRelease);
+      window.removeEventListener("pointercancel", handleGlobalRelease);
       window.removeEventListener("blur", handleGlobalRelease);
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
