@@ -1,8 +1,17 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "@/components/Sidebar";
 import { TopNav } from "@/components/TopNav";
+import { CommandPaletteModal } from "@/components/CommandPaletteModal";
+import { CreateProjectModal } from "@/components/CreateProjectModal";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 export function AppLayout() {
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+
+  // Register global Cmd+K / Ctrl+K keyboard shortcut
+  useKeyboardShortcuts();
+
   return (
     <div className="h-screen flex overflow-hidden bg-zinc-50 dark:bg-zinc-950">
       <Sidebar />
@@ -13,6 +22,17 @@ export function AppLayout() {
           <Outlet />
         </div>
       </main>
+
+      {/* Global Command Palette */}
+      <CommandPaletteModal
+        onOpenCreateProject={() => setIsCreateProjectOpen(true)}
+      />
+
+      {/* Quick Action: Create Project Modal */}
+      <CreateProjectModal
+        open={isCreateProjectOpen}
+        onOpenChange={setIsCreateProjectOpen}
+      />
     </div>
   );
 }
