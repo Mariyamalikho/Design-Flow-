@@ -5,6 +5,9 @@ interface AppState {
   toggleSidebar: () => void;
   theme: "light" | "dark";
   setTheme: (theme: "light" | "dark") => void;
+  isCommandPaletteOpen: boolean;
+  setCommandPaletteOpen: (open: boolean) => void;
+  toggleCommandPalette: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -17,4 +20,8 @@ export const useAppStore = create<AppState>((set) => ({
     root.classList.add(theme);
     set({ theme });
   },
+  isCommandPaletteOpen: false,
+  setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
+  toggleCommandPalette: () =>
+    set((state) => ({ isCommandPaletteOpen: !state.isCommandPaletteOpen })),
 }));
