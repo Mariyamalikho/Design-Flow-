@@ -12,13 +12,16 @@ export const targetAudienceSchema = z.object({
   competitors: z.string().optional(),
 });
 
-// Placeholders for steps 3 and 4
 export const brandPersonalitySchema = z.object({
-  // To be implemented on Day 31
+  brandTone: z.string().optional(),
+  coreValues: z.array(z.string()).optional(),
+  visualPreferences: z.array(z.string()).optional(),
 });
 
 export const deliverablesSchema = z.object({
-  // To be implemented on Day 31
+  requiredDeliverables: z.string().optional(),
+  timeline: z.string().optional(),
+  budget: z.string().optional(),
 });
 
 export const briefWizardSchema = z.object({

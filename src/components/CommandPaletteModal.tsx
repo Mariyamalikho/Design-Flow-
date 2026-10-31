@@ -224,13 +224,13 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
       .filter(
         (p) =>
           p.title?.toLowerCase().includes(q) ||
-          p.client?.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q) ||
           p.tags?.some((t) => t.toLowerCase().includes(q))
       )
       .map((p) => ({
         id: `project-${p.id}`,
         title: p.title,
-        description: p.client ? `Client: ${p.client}` : "Project workspace",
+        description: p.description ? p.description.slice(0, 60) : "Project workspace",
         category: "Projects",
         icon: Folder,
         action: () => handleNavigate(`/projects/${p.id}`),

@@ -19,7 +19,7 @@ vi.mock("@/lib/db", () => ({
     projects: {
       limit: () => ({
         toArray: vi.fn().mockResolvedValue([
-          { id: 1, title: "Lumina Brand Identity", client: "Lumina Labs", tags: ["branding"] },
+          { id: 1, title: "Lumina Brand Identity", description: "Lumina Labs branding", tags: ["branding"] },
         ]),
       }),
     },

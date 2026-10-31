@@ -54,7 +54,7 @@ export function useNoteAutoSave({
       console.error("Auto-save failed:", err);
       setSaveStatus("unsaved");
       // Put updates back into pending ref
-      pendingUpdatesRef.current = { ...updates, ...pendingUpdatesRef.current };
+      pendingUpdatesRef.current = { ...(updates as Record<string, unknown>), ...(pendingUpdatesRef.current || {}) };
       toast.error("Auto-save failed");
     }
   }, [onSaved]);

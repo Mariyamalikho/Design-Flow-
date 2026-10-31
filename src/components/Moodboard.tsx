@@ -24,7 +24,8 @@ function ImageWithSkeleton({ src, alt, className }: { src: string, alt?: string,
         alt={alt}
         crossOrigin="anonymous" 
         className={`${className} ${loaded ? "opacity-100" : "opacity-0 absolute"} transition-opacity duration-300`} 
-        loading="lazy" 
+        loading="lazy"
+        decoding="async" 
         onLoad={() => setLoaded(true)} 
       />
     </>
@@ -42,7 +43,7 @@ function AssetThumbnail({ asset }: { asset: any }) {
   if (!url) return null;
   return (
     <div className="aspect-square bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-      <img src={url} alt={asset.name} className="w-full h-full object-cover" />
+      <img src={url} alt={asset.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
     </div>
   );
 }

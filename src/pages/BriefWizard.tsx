@@ -36,8 +36,8 @@ export default function BriefWizard() {
       audiencePainPoints: "",
       competitors: "",
       brandTone: "",
-      coreValues: "",
-      visualPreferences: "",
+      coreValues: [],
+      visualPreferences: [],
       requiredDeliverables: "",
       timeline: "",
       budget: "",
@@ -100,7 +100,7 @@ export default function BriefWizard() {
       if (currentStepIndex < steps.length - 1) {
         await nextStep();
       } else {
-        methods.handleSubmit(onSubmit)();
+        methods.handleSubmit(onSubmit as any)();
       }
     }
   };
@@ -160,7 +160,7 @@ export default function BriefWizard() {
       <main className="flex-1 overflow-y-auto p-8">
         <div className="max-w-2xl mx-auto">
           <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit(onSubmit)} onKeyDown={handleKeyDown}>
+            <form onSubmit={methods.handleSubmit(onSubmit as any)} onKeyDown={handleKeyDown}>
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-8 shadow-sm min-h-[400px]">
                 {currentStepIndex === 0 && <ClientInfoForm />}
                 {currentStepIndex === 1 && <TargetAudienceForm />}
