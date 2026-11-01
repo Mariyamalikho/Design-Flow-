@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { ImagePreviewModal } from "./ImagePreviewModal";
+import { OptimizedImage } from "./ui/OptimizedImage";
 
 interface AssetCardProps {
   asset: Asset;
@@ -90,9 +91,12 @@ export function AssetCard({ asset, onDelete, onRename }: AssetCardProps) {
 
         <div className="aspect-square bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center relative overflow-hidden">
           {isImage && objectUrl ? (
-            <img 
+            <OptimizedImage 
               src={objectUrl} 
               alt={asset.name} 
+              loading="lazy"
+              decoding="async"
+              wrapperClassName="w-full h-full"
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (

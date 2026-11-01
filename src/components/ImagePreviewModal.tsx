@@ -121,6 +121,8 @@ export function ImagePreviewModal({ url, name, open, onOpenChange }: ImagePrevie
           }}
         >
           <img 
+            loading="eager"
+            decoding="async"
             src={url} 
             alt={name} 
             className="max-w-full max-h-full object-contain transition-transform duration-100 ease-out select-none pointer-events-none"

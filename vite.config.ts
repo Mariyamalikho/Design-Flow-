@@ -17,6 +17,17 @@ export default defineConfig({
       '@': path.resolve(dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('lucide-react')) {
+            return 'lucide-icons';
+          }
+        },
+      },
+    },
+  },
   test: {
     projects: [{
       extends: true,
