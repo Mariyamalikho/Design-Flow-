@@ -11,7 +11,7 @@ export interface ConfettiOptions {
   ticks?: number;
   origin?: { x?: number; y?: number };
   colors?: string[];
-  shapes?: string[];
+  shapes?: confetti.Shape[];
   scalar?: number;
   zIndex?: number;
   disableForReducedMotion?: boolean;

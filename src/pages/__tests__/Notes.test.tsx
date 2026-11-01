@@ -8,6 +8,7 @@ const mockNavigate = vi.fn();
 vi.mock("react-router-dom", () => ({
   useParams: () => ({ id: "1" }),
   useNavigate: () => mockNavigate,
+  Link: ({ children, to }: any) => <a href={to}>{children}</a>,
 }));
 
 const { mockProjects, mockNotes } = vi.hoisted(() => {

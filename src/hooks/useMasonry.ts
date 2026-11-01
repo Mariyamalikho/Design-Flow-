@@ -1,6 +1,6 @@
 import { useState, useEffect, RefObject } from "react";
 
-export function useMasonry(containerRef: RefObject<HTMLElement>, itemWidth: number = 250, gap: number = 16) {
+export function useMasonry(containerRef: RefObject<HTMLElement | null>, itemWidth: number = 250, gap: number = 16) {
   const [columns, setColumns] = useState(1);
 
   useEffect(() => {

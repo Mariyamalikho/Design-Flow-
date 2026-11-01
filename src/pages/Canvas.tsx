@@ -231,7 +231,7 @@ export default function Canvas() {
       const numId = Number(nodeId);
       try {
         await db.canvasNodes.update(numId, {
-          ...updates,
+          ...(updates as Record<string, any>),
           updatedAt: new Date(),
         });
       } catch (err) {
