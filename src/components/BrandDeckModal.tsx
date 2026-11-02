@@ -11,6 +11,7 @@ import {
   buildDeckFileName 
 } from "@/lib/exportUtils";
 import { Button } from "@/components/ui/Button";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { toast } from "sonner";
 import { 
   Download, 
@@ -33,6 +34,9 @@ export function BrandDeckModal({ projectId, isOpen, onClose }: BrandDeckModalPro
   const [localAssets, setLocalAssets] = useState<LocalDeckAsset[]>([]);
 
   const printAreaRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
 
   const project = useLiveQuery(() => db.projects.get(projectId), [projectId]);
   const brandIdentity = useLiveQuery(
@@ -151,7 +155,7 @@ export function BrandDeckModal({ projectId, isOpen, onClose }: BrandDeckModalPro
   ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col justify-between overflow-hidden animate-in fade-in duration-200">
+    <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Brand Guidelines Deck Preview" className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col justify-between overflow-hidden animate-in fade-in duration-200">
       {/* Top Deck Navigation Bar (Hidden during native print) */}
       <header className="print-hide h-16 bg-zinc-950 border-b border-zinc-800 px-6 flex items-center justify-between shrink-0 text-white z-20">
         <div className="flex items-center gap-3">
@@ -219,6 +223,7 @@ export function BrandDeckModal({ projectId, isOpen, onClose }: BrandDeckModalPro
 
           <button
             onClick={onClose}
+            aria-label="Close brand guidelines deck"
             className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors ml-2"
           >
             <X className="w-5 h-5" />

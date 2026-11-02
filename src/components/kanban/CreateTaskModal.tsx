@@ -307,6 +307,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                     <button
                       key={p.id}
                       type="button"
+                      aria-pressed={priority === p.id}
                       onClick={() => setPriority(p.id)}
                       className={cn(
                         "py-2 px-3 rounded-lg text-xs font-medium border flex items-center justify-center gap-1.5 transition-all",

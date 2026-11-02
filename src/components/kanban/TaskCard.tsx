@@ -404,7 +404,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       )}
 
       {/* Footer Info: Status indicator & Creation Date */}
-      <div className="flex items-center justify-between text-xs text-zinc-400 dark:text-zinc-500 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 mt-auto">
+      <div className="flex items-center justify-between text-xs text-zinc-600 dark:text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 mt-auto">
         <div className="flex items-center gap-1.5 capitalize">
           <StatusIcon
             className={cn(

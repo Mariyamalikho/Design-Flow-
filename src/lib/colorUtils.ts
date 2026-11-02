@@ -57,7 +57,7 @@ export function hslToHex(h: number, s: number, l: number): string {
 }
 
 export async function extractColorsFromImage(imageUrl: string, maxColors = 5): Promise<string[]> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     const img = new Image();
     img.crossOrigin = "Anonymous";
     img.onload = () => {

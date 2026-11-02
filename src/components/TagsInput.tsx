@@ -33,6 +33,8 @@ export function TagsInput({ tags, onChange, placeholder = "Add tag..." }: TagsIn
           <Badge key={tag} variant="secondary" className="flex items-center gap-1 pr-1">
             {tag}
             <button
+              type="button"
+              aria-label={`Remove tag ${tag}`}
               onClick={() => removeTag(tag)}
               className="rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 p-0.5"
             >
@@ -43,6 +45,7 @@ export function TagsInput({ tags, onChange, placeholder = "Add tag..." }: TagsIn
       </div>
       <Input
         type="text"
+        aria-label="Add new tag"
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}

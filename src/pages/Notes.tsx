@@ -429,7 +429,7 @@ export default function Notes({ embedded = false, projectId }: NotesProps) {
 
                 {/* Editor Footer Status Bar */}
                 <div
-                  className="px-6 py-2 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 shrink-0 select-none"
+                  className="px-6 py-2 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 flex items-center justify-between text-[11px] text-zinc-600 dark:text-zinc-400 shrink-0 select-none"
                   data-testid="editor-footer-status"
                 >
                   <div className="flex items-center gap-3">

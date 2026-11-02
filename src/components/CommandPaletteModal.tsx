@@ -291,6 +291,13 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
         if (activeItem) {
           activeItem.action();
         }
+      } else if (e.key === "Tab") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          setSelectedIndex((prev) => (prev - 1 < 0 ? Math.max(0, filteredCommands.length - 1) : prev - 1));
+        } else {
+          setSelectedIndex((prev) => (prev + 1 >= filteredCommands.length ? 0 : prev + 1));
+        }
       } else if (e.key === "Escape") {
         e.preventDefault();
         setOpen(false);
@@ -347,6 +354,8 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
           data-testid="command-palette-modal"
           aria-label="Command Palette"
         >
+          <DialogPrimitive.Title className="sr-only">Command Palette</DialogPrimitive.Title>
+          <DialogPrimitive.Description className="sr-only">Search commands, projects, notes, and pages</DialogPrimitive.Description>
           {/* Header Search Input */}
           <div className="flex items-center gap-3 px-4 py-3.5 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/30">
             <Search className="w-4 h-4 text-zinc-400 shrink-0" />

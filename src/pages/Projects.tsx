@@ -84,6 +84,8 @@ export default function Projects() {
                   : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
               }`}
               title="Grid View"
+              aria-label="Grid View"
+              aria-pressed={viewMode === "grid"}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
@@ -95,6 +97,8 @@ export default function Projects() {
                   : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
               }`}
               title="Table View"
+              aria-label="Table View"
+              aria-pressed={viewMode === "table"}
             >
               <List className="w-4 h-4" />
             </button>
@@ -113,6 +117,7 @@ export default function Projects() {
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
             <Input
               placeholder="Search projects, tags..."
+              aria-label="Search projects and tags"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 text-xs"
@@ -124,6 +129,8 @@ export default function Projects() {
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
+                aria-label={`Filter by ${status} status`}
+                aria-pressed={statusFilter === status}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${
                   statusFilter === status
                     ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
@@ -202,7 +209,7 @@ export default function Projects() {
                       </span>
                     ))}
                     {project.tags.length > 3 && (
-                      <span className="text-[10px] text-zinc-400 self-center">
+                      <span className="text-[10px] text-zinc-500 dark:text-zinc-400 self-center">
                         +{project.tags.length - 3}
                       </span>
                     )}
@@ -210,7 +217,7 @@ export default function Projects() {
                 )}
               </CardHeader>
 
-              <CardFooter className="text-[11px] text-zinc-400 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+              <CardFooter className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5" />
                   {new Date(project.createdAt).toLocaleDateString()}
@@ -248,7 +255,7 @@ export default function Projects() {
                         {project.title}
                       </span>
                       {project.description && (
-                        <span className="text-xs text-zinc-400 truncate max-w-sm mt-0.5">
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-sm mt-0.5">
                           {project.description}
                         </span>
                       )}
@@ -274,7 +281,7 @@ export default function Projects() {
                           </span>
                         ))
                       ) : (
-                        <span className="text-xs text-zinc-400">-</span>
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400">-</span>
                       )}
                     </div>
                   </TableCell>
