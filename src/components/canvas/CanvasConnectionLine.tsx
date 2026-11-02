@@ -120,6 +120,7 @@ export const CanvasConnectionLine = React.memo<CanvasConnectionLineProps>(
         >
           <button
             type="button"
+            aria-label="Delete connection line"
             onClick={(e) => {
               e.stopPropagation();
               if (connection.id !== undefined) {

@@ -395,6 +395,8 @@ export default function Canvas() {
               onClick={() => setActiveTool("select")}
               className="h-8 px-2.5 gap-1.5 text-xs font-medium"
               title="Select tool (V)"
+              aria-label="Select tool"
+              aria-pressed={activeTool === "select"}
             >
               <MousePointer className="w-3.5 h-3.5" />
               <span>Select</span>
@@ -405,6 +407,8 @@ export default function Canvas() {
               onClick={() => setActiveTool("pan")}
               className="h-8 px-2.5 gap-1.5 text-xs font-medium"
               title="Pan tool (H or hold Spacebar)"
+              aria-label="Pan tool"
+              aria-pressed={activeTool === "pan"}
             >
               <Hand className="w-3.5 h-3.5" />
               <span>Pan</span>
@@ -418,6 +422,7 @@ export default function Canvas() {
             onClick={handleResetView}
             className="h-8 px-2.5 gap-1.5 text-xs"
             title="Reset canvas view"
+            aria-label="Reset canvas view"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset View</span>
@@ -550,6 +555,7 @@ export default function Canvas() {
             onClick={zoomOut}
             className="h-7 w-7 p-0"
             title="Zoom out (-)"
+            aria-label="Zoom out"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </Button>
@@ -559,6 +565,7 @@ export default function Canvas() {
             data-testid="canvas-zoom-indicator"
             className="min-w-[46px] text-center font-semibold text-zinc-800 dark:text-zinc-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
             title="Click to reset zoom to 100%"
+            aria-label="Reset zoom to 100%"
           >
             {Math.round(zoom * 100)}%
           </button>
@@ -568,6 +575,7 @@ export default function Canvas() {
             onClick={zoomIn}
             className="h-7 w-7 p-0"
             title="Zoom in (+)"
+            aria-label="Zoom in"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </Button>
@@ -589,6 +597,7 @@ export default function Canvas() {
           }}
           className="h-7 px-2 text-xs gap-1.5 text-zinc-600 dark:text-zinc-300 capitalize"
           title="Toggle grid background (Dots, Lines, None)"
+          aria-label={`Toggle grid background (${gridMode})`}
           data-testid="canvas-grid-toggle"
         >
           <Grid className="w-3.5 h-3.5 text-zinc-500" />

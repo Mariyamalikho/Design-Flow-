@@ -244,6 +244,7 @@ export const CanvasNodeCard = React.memo<CanvasNodeCardProps>(
               <input
                 type="text"
                 autoFocus
+                aria-label="Node title"
                 defaultValue={node.title}
                 onBlur={(e) => {
                   setIsEditingTitle(false);
@@ -288,6 +289,7 @@ export const CanvasNodeCard = React.memo<CanvasNodeCardProps>(
                   "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 opacity-100"
               )}
               title="Connect to another node"
+              aria-label="Connect to another node"
             >
               <Link2 className="w-3 h-3" />
             </Button>
@@ -299,6 +301,7 @@ export const CanvasNodeCard = React.memo<CanvasNodeCardProps>(
                   size="sm"
                   className="h-6 w-6 p-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
                   title="Change color theme"
+                  aria-label="Change color theme"
                 >
                   <Palette className="w-3 h-3" />
                 </Button>
@@ -336,6 +339,7 @@ export const CanvasNodeCard = React.memo<CanvasNodeCardProps>(
               }}
               className="h-6 w-6 p-0 text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400"
               title="Delete node"
+              aria-label="Delete node"
             >
               <Trash2 className="w-3 h-3" />
             </Button>
@@ -346,6 +350,7 @@ export const CanvasNodeCard = React.memo<CanvasNodeCardProps>(
         {isEditingContent ? (
           <textarea
             autoFocus
+            aria-label="Node content"
             defaultValue={node.content}
             onBlur={(e) => {
               setIsEditingContent(false);
