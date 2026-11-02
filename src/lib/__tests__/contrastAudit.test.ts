@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getContrastRatio, checkWCAGCompliance } from "../colorUtils";
+import { checkWCAGCompliance } from "../colorUtils";
 
 describe("WCAG 2.1 AA Contrast Compliance Audit", () => {
   describe("Light Mode Theme Palettes", () => {

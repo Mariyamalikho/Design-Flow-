@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import React from "react";
+import { renderHook } from "@testing-library/react";
 import { useFocusTrap } from "../useFocusTrap";
 
 describe("useFocusTrap Hook", () => {

@@ -1,7 +1,21 @@
 import { NavLink } from "react-router-dom";
-import { PenTool, LayoutDashboard, FolderKanban, FileText, Image, Palette, Kanban, StickyNote, Sparkles } from "lucide-react";
+import {
+  PenTool,
+  LayoutDashboard,
+  FolderKanban,
+  FileText,
+  Image,
+  Palette,
+  Kanban,
+  StickyNote,
+  Sparkles,
+  ShieldCheck,
+} from "lucide-react";
+import { useAppStore } from "@/store/useAppStore";
 
 export function Sidebar() {
+  const { setGdprModalOpen } = useAppStore();
+
   const navItems = [
     { name: "Dashboard", to: "/", icon: LayoutDashboard },
     { name: "Projects", to: "/projects", icon: FolderKanban },
@@ -50,6 +64,20 @@ export function Sidebar() {
             </NavLink>
           ))}
         </nav>
+      </div>
+
+      {/* Bottom Footer: Privacy & GDPR Export */}
+      <div className="p-4 border-t border-zinc-100 dark:border-zinc-800">
+        <button
+          type="button"
+          onClick={() => setGdprModalOpen(true)}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors"
+          aria-label="Export all workspace data (GDPR Portability)"
+          data-testid="sidebar-gdpr-export-button"
+        >
+          <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+          <span>Privacy &amp; Data Export</span>
+        </button>
       </div>
     </aside>
   );

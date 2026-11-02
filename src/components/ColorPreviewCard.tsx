@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Check, Sun, Moon, Sparkles } from "lucide-react";
+import { Copy, Check, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
 import { 
   getLuminance, 

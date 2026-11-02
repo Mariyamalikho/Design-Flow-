@@ -4,10 +4,13 @@ import { Sidebar } from "@/components/Sidebar";
 import { TopNav } from "@/components/TopNav";
 import { CommandPaletteModal } from "@/components/CommandPaletteModal";
 import { CreateProjectModal } from "@/components/CreateProjectModal";
+import { GdprExportModal } from "@/components/GdprExportModal";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useAppStore } from "@/store/useAppStore";
 
 export function AppLayout() {
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+  const { isGdprModalOpen, setGdprModalOpen } = useAppStore();
 
   // Register global Cmd+K / Ctrl+K keyboard shortcut
   useKeyboardShortcuts();
@@ -32,6 +35,12 @@ export function AppLayout() {
       <CreateProjectModal
         open={isCreateProjectOpen}
         onOpenChange={setIsCreateProjectOpen}
+      />
+
+      {/* GDPR Data Portability Export Modal */}
+      <GdprExportModal
+        open={isGdprModalOpen}
+        onOpenChange={setGdprModalOpen}
       />
     </div>
   );

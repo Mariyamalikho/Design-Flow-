@@ -16,6 +16,7 @@ import {
   Folder,
   FileCode,
   Lightbulb,
+  ShieldCheck,
 } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useAppStore } from "@/store/useAppStore";
@@ -49,6 +50,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
   const storeSetOpen = useAppStore((state) => state.setCommandPaletteOpen);
   const theme = useAppStore((state) => state.theme);
   const setTheme = useAppStore((state) => state.setTheme);
+  const setGdprModalOpen = useAppStore((state) => state.setGdprModalOpen);
 
   const isOpen = propOpen !== undefined ? propOpen : storeOpen;
   const setOpen = propOnOpenChange !== undefined ? propOnOpenChange : storeSetOpen;
@@ -201,8 +203,20 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
           setOpen(false);
         },
       },
+      {
+        id: "act-gdpr-export",
+        title: "Export All Workspace Data (GDPR)",
+        description: "Export all projects, briefs, tasks, and notes as ZIP or JSON (GDPR Art. 20)",
+        category: "Actions",
+        icon: ShieldCheck,
+        shortcut: "G E",
+        action: () => {
+          setOpen(false);
+          setGdprModalOpen(true);
+        },
+      },
     ];
-  }, [handleNavigate, onOpenCreateNote, onOpenCreateProject, setOpen, setTheme, theme]);
+  }, [handleNavigate, onOpenCreateNote, onOpenCreateProject, setGdprModalOpen, setOpen, setTheme, theme]);
 
   // Combine static and dynamic matching commands based on search query
   const filteredCommands = useMemo<CommandItem[]>(() => {

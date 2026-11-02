@@ -8,8 +8,7 @@ import {
   List, 
   Search, 
   ArrowRight, 
-  Calendar,
-  Sparkles
+  Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -31,6 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import { db } from "@/lib/db";
+import { safeLocalStorage } from "@/lib/storageUtils";
 
 export default function Projects() {
   const navigate = useNavigate();
@@ -38,14 +38,14 @@ export default function Projects() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "table">(() => {
-    return (localStorage.getItem("projects-view-mode") as "grid" | "table") || "grid";
+    return safeLocalStorage.getItem<"grid" | "table">("projects-view-mode", "grid");
   });
 
   const projects = useLiveQuery(() => db.projects.toArray());
 
   const handleViewModeChange = (mode: "grid" | "table") => {
     setViewMode(mode);
-    localStorage.setItem("projects-view-mode", mode);
+    safeLocalStorage.setItem("projects-view-mode", mode);
   };
 
   const filteredProjects = useMemo(() => {
