@@ -86,22 +86,22 @@ export function ImagePreviewModal({ url, name, open, onOpenChange }: ImagePrevie
         <div className="flex items-center justify-between p-4 bg-black/50 absolute top-0 left-0 right-0 z-50 text-white transition-opacity hover:opacity-100 opacity-80">
           <p className="font-medium truncate max-w-[50%]">{name}</p>
           <div className="flex items-center gap-1 sm:gap-2">
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 h-9 w-9" onClick={handleZoomOut} disabled={scale <= 1}>
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 h-9 w-9" onClick={handleZoomOut} disabled={scale <= 1} aria-label="Zoom out">
               <ZoomOut className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
             <span className="text-xs w-10 sm:w-12 text-center">{Math.round(scale * 100)}%</span>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 h-9 w-9" onClick={handleZoomIn} disabled={scale >= 4}>
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 h-9 w-9" onClick={handleZoomIn} disabled={scale >= 4} aria-label="Zoom in">
               <ZoomIn className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
             <div className="w-px h-6 bg-white/20 mx-1 sm:mx-2" />
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 h-9 w-9" onClick={handleCopyImage} title="Copy Image">
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 h-9 w-9" onClick={handleCopyImage} title="Copy Image" aria-label="Copy image to clipboard">
               {isCopied ? <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" /> : <Copy className="w-4 h-4 sm:w-5 sm:h-5" />}
             </Button>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 h-9 w-9" onClick={handleDownload} title="Download Image">
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 h-9 w-9" onClick={handleDownload} title="Download Image" aria-label="Download image">
               <Download className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
             <div className="w-px h-6 bg-white/20 mx-1 sm:mx-2" />
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 h-9 w-9 text-red-400 hover:text-red-300" onClick={() => onOpenChange(false)}>
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 h-9 w-9 text-red-400 hover:text-red-300" onClick={() => onOpenChange(false)} aria-label="Close image preview">
               <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </Button>
           </div>

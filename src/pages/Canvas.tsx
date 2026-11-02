@@ -422,7 +422,6 @@ export default function Canvas() {
             onClick={handleResetView}
             className="h-8 px-2.5 gap-1.5 text-xs"
             title="Reset canvas view"
-            aria-label="Reset canvas view"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset View</span>
