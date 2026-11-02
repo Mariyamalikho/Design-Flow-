@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { triggerTaskCompletedConfetti } from "../confettiUtils";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { triggerTaskCompletedConfetti, triggerOnboardingCelebrationConfetti } from "../confettiUtils";
 
 vi.mock("canvas-confetti", () => {
   const confetti = vi.fn();
@@ -9,6 +9,14 @@ vi.mock("canvas-confetti", () => {
 import confetti from "canvas-confetti";
 
 describe("confettiUtils", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("triggers confetti with custom particles and brand palette", () => {
     triggerTaskCompletedConfetti();
 
@@ -32,5 +40,17 @@ describe("confettiUtils", () => {
         spread: 90,
       })
     );
+  });
+
+  it("triggers multi-stage onboarding celebration cannons", () => {
+    vi.useFakeTimers();
+    triggerOnboardingCelebrationConfetti();
+
+    // Two cannon bursts triggered immediately (left and right)
+    expect(confetti).toHaveBeenCalledTimes(2);
+
+    // Third starburst triggered after delay
+    vi.advanceTimersByTime(250);
+    expect(confetti).toHaveBeenCalledTimes(3);
   });
 });

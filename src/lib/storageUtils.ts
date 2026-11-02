@@ -74,6 +74,19 @@ export const safeLocalStorage = {
       return false;
     }
   },
+
+  clear(): boolean {
+    if (typeof window === "undefined" || !window.localStorage) {
+      return false;
+    }
+    try {
+      window.localStorage.clear();
+      return true;
+    } catch (error) {
+      console.warn("[safeLocalStorage] Unable to clear storage:", error);
+      return false;
+    }
+  },
 };
 
 /**

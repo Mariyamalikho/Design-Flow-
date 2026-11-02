@@ -26,6 +26,20 @@ describe("safeLocalStorage & System Theme Utilities", () => {
     });
   });
 
+  it("removes items and clears storage safely", () => {
+    safeLocalStorage.setItem("item-to-remove", "hello");
+    expect(safeLocalStorage.getItem("item-to-remove", "")).toBe("hello");
+
+    safeLocalStorage.removeItem("item-to-remove");
+    expect(safeLocalStorage.getItem("item-to-remove", "cleared")).toBe("cleared");
+
+    safeLocalStorage.setItem("key-1", "val-1");
+    safeLocalStorage.setItem("key-2", "val-2");
+    safeLocalStorage.clear();
+    expect(safeLocalStorage.getItem("key-1", "empty")).toBe("empty");
+    expect(safeLocalStorage.getItem("key-2", "empty")).toBe("empty");
+  });
+
   it("handles corrupted JSON gracefully without throwing", () => {
     localStorage.setItem("corrupted-key", "{ bad-json :::");
     const result = safeLocalStorage.getItemJSON("corrupted-key", { defaultVal: 123 });

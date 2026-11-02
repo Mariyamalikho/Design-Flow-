@@ -10,11 +10,12 @@ import {
   StickyNote,
   Sparkles,
   ShieldCheck,
+  Compass,
 } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 
 export function Sidebar() {
-  const { setGdprModalOpen } = useAppStore();
+  const { setGdprModalOpen, setOnboardingModalOpen } = useAppStore();
 
   const navItems = [
     { name: "Dashboard", to: "/", icon: LayoutDashboard },
@@ -28,37 +29,55 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-md border-r border-zinc-200 dark:border-zinc-800 flex flex-col justify-between hidden md:flex z-10">
+    <aside className="w-64 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md border-r border-zinc-200 dark:border-zinc-800 flex flex-col justify-between hidden md:flex z-10 select-none transition-colors duration-200">
       <div>
-        <div className="h-16 flex items-center px-6 border-b border-zinc-100 dark:border-zinc-800">
-          <div className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-            <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-indigo-500 flex items-center justify-center text-white">
-              <PenTool className="w-4 h-4" />
+        {/* Brand Header with subtle logo spring micro-animation */}
+        <div className="h-16 flex items-center px-6 border-b border-zinc-100 dark:border-zinc-800/80">
+          <div className="group/logo flex items-center gap-2.5 text-xl font-semibold tracking-tight cursor-default">
+            <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-indigo-500 flex items-center justify-center text-white shadow-sm transition-transform duration-300 ease-out group-hover/logo:scale-110 group-hover/logo:rotate-6">
+              <PenTool className="w-4 h-4 transition-transform duration-300 group-hover/logo:-rotate-6" />
             </div>
-            DesignFlow
+            <span className="bg-gradient-to-r from-zinc-900 to-zinc-700 dark:from-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent">
+              DesignFlow
+            </span>
           </div>
         </div>
-        <nav className="p-4 space-y-1">
-          <p className="px-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 mt-4">Workspace</p>
+
+        {/* Navigation list with smooth hover & active transitions */}
+        <nav className="p-3.5 space-y-1">
+          <p className="px-3 text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2 mt-3">
+            Workspace
+          </p>
           {navItems.map((item) => (
             <NavLink
               key={item.name}
               to={item.to}
               className={({ isActive }) =>
-                `group relative flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
+                `group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-out ${
                   isActive
                     ? "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-50 shadow-sm"
-                    : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 hover:text-zinc-900 dark:hover:text-zinc-100"
+                    : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-100 hover:translate-x-1"
                 }`
               }
             >
               {({ isActive }) => (
                 <>
+                  {/* Glowing active indicator bar with smooth expansion */}
                   {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full animate-in fade-in zoom-in duration-300" />
+                    <div
+                      data-testid="sidebar-active-indicator"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-indigo-500 dark:bg-indigo-400 rounded-r-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-in fade-in zoom-in-75 duration-200"
+                    />
                   )}
-                  <item.icon className={`w-5 h-5 transition-colors ${isActive ? "text-indigo-500" : "group-hover:text-zinc-900 dark:group-hover:text-zinc-100"}`} />
-                  {item.name}
+                  {/* Animated icon with subtle hover bounce/scale */}
+                  <item.icon
+                    className={`w-4 h-4 transition-all duration-200 ease-out ${
+                      isActive
+                        ? "text-indigo-600 dark:text-indigo-400 scale-110"
+                        : "text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 group-hover:scale-110"
+                    }`}
+                  />
+                  <span>{item.name}</span>
                 </>
               )}
             </NavLink>
@@ -66,16 +85,26 @@ export function Sidebar() {
         </nav>
       </div>
 
-      {/* Bottom Footer: Privacy & GDPR Export */}
-      <div className="p-4 border-t border-zinc-100 dark:border-zinc-800">
+      {/* Bottom Footer: Quick Tour & GDPR Export with hover slide micro-interactions */}
+      <div className="p-3.5 border-t border-zinc-100 dark:border-zinc-800/80 space-y-1">
+        <button
+          type="button"
+          onClick={() => setOnboardingModalOpen(true)}
+          className="group/btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 hover:translate-x-0.5 transition-all duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+          aria-label="Open Welcome Onboarding Tour"
+          data-testid="sidebar-welcome-tour-button"
+        >
+          <Compass className="w-4 h-4 text-indigo-500 shrink-0 transition-transform duration-300 ease-out group-hover/btn:rotate-45 group-hover/btn:scale-110" />
+          <span>Quick Welcome Tour</span>
+        </button>
         <button
           type="button"
           onClick={() => setGdprModalOpen(true)}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors"
+          className="group/btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 hover:translate-x-0.5 transition-all duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           aria-label="Export all workspace data (GDPR Portability)"
           data-testid="sidebar-gdpr-export-button"
         >
-          <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+          <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 transition-transform duration-300 ease-out group-hover/btn:scale-110" />
           <span>Privacy &amp; Data Export</span>
         </button>
       </div>
