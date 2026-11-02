@@ -600,7 +600,7 @@ export default function Canvas() {
         {/* Pan coordinates */}
         <div
           data-testid="canvas-pan-coordinates"
-          className="text-[11px] font-mono text-zinc-400"
+          className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400"
         >
           X: {Math.round(pan.x)} Y: {Math.round(pan.y)}
         </div>
@@ -608,7 +608,7 @@ export default function Canvas() {
         <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800" />
 
         {/* Help tooltip */}
-        <div className="flex items-center gap-1 text-[11px] text-zinc-400">
+        <div className="flex items-center gap-1 text-[11px] text-zinc-600 dark:text-zinc-400">
           <HelpCircle className="w-3 h-3 text-zinc-400" />
           <span className="hidden sm:inline">Space+Drag to pan • Wheel to zoom</span>
         </div>

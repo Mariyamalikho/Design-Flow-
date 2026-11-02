@@ -25,7 +25,7 @@ export function Sidebar() {
           </div>
         </div>
         <nav className="p-4 space-y-1">
-          <p className="px-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 mt-4">Workspace</p>
+          <p className="px-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2 mt-4">Workspace</p>
           {navItems.map((item) => (
             <NavLink
               key={item.name}

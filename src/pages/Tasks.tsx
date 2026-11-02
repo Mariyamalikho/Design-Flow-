@@ -603,7 +603,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
         {/* Active Filter Pills Bar */}
         {hasActiveFilters && (
           <div className="flex items-center gap-2 flex-wrap pt-0.5 text-xs">
-            <span className="text-zinc-400 dark:text-zinc-500 text-[11px] font-medium">
+            <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
               Active filters:
             </span>
 

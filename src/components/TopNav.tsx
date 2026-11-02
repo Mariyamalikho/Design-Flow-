@@ -29,12 +29,12 @@ export function TopNav() {
       <div className="flex items-center gap-4">
         <button 
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800"
           title="Toggle light and dark theme"
         >
           {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
-        <button className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 relative">
+        <button className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 relative">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full"></span>
         </button>

@@ -202,7 +202,7 @@ export default function Projects() {
                       </span>
                     ))}
                     {project.tags.length > 3 && (
-                      <span className="text-[10px] text-zinc-400 self-center">
+                      <span className="text-[10px] text-zinc-500 dark:text-zinc-400 self-center">
                         +{project.tags.length - 3}
                       </span>
                     )}
@@ -210,7 +210,7 @@ export default function Projects() {
                 )}
               </CardHeader>
 
-              <CardFooter className="text-[11px] text-zinc-400 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+              <CardFooter className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5" />
                   {new Date(project.createdAt).toLocaleDateString()}
@@ -248,7 +248,7 @@ export default function Projects() {
                         {project.title}
                       </span>
                       {project.description && (
-                        <span className="text-xs text-zinc-400 truncate max-w-sm mt-0.5">
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-sm mt-0.5">
                           {project.description}
                         </span>
                       )}
@@ -274,7 +274,7 @@ export default function Projects() {
                           </span>
                         ))
                       ) : (
-                        <span className="text-xs text-zinc-400">-</span>
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400">-</span>
                       )}
                     </div>
                   </TableCell>
