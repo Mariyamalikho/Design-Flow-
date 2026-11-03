@@ -3,20 +3,13 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, type Note } from "@/lib/db";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import {
   StickyNote,
   Plus,
-  Search,
   Pin,
-  Trash2,
   FolderKanban,
-  Clock,
   Check,
-  FileText,
-  Filter,
-  X,
   Loader2,
   Sparkles,
 } from "lucide-react";

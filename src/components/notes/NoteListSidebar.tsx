@@ -17,8 +17,6 @@ import {
   MoreVertical,
   Copy,
   Edit2,
-  ArrowUpDown,
-  Sparkles,
 } from "lucide-react";
 import {
   DropdownMenu,

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { gatherAllUserData, exportAllUserDataAsJson } from "../privacyUtils";
-import { db } from "../db";
 
 vi.mock("../db", () => ({
   db: {

@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/Button";
 import {
   ShieldCheck,
-  Download,
   FileArchive,
   FileCode,
   Loader2,
