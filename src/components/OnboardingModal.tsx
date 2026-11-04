@@ -23,7 +23,7 @@ import {
   Zap,
 } from "lucide-react";
 import { safeLocalStorage } from "@/lib/storageUtils";
-import { triggerTaskCompletedConfetti } from "@/lib/confettiUtils";
+import { triggerOnboardingCelebrationConfetti } from "@/lib/confettiUtils";
 import { toast } from "sonner";
 
 export const ONBOARDING_STORAGE_KEY = "designflow_onboarding_completed";
@@ -192,11 +192,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
   const handleComplete = useCallback(() => {
     safeLocalStorage.setItem(ONBOARDING_STORAGE_KEY, "true");
-    triggerTaskCompletedConfetti({
-      particleCount: 80,
-      spread: 75,
-      origin: { y: 0.6, x: 0.5 },
-    });
+    triggerOnboardingCelebrationConfetti();
     toast.success("Welcome aboard! Your workspace is ready.", {
       description: "You can reopen this tour anytime from the sidebar or Command Palette.",
     });

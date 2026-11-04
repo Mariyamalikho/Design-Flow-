@@ -40,3 +40,53 @@ export function triggerTaskCompletedConfetti(options?: ConfettiOptions): void {
     // Fail silently in non-browser or mock environments
   }
 }
+
+/**
+ * Triggers a multi-stage celebratory confetti cannon burst when completing
+ * the onboarding walkthrough or reaching a major creative milestone.
+ */
+export function triggerOnboardingCelebrationConfetti(): void {
+  try {
+    if (typeof window === "undefined") return;
+
+    // First burst: left cannon
+    confetti({
+      particleCount: 45,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0.15, y: 0.65 },
+      colors: ["#6366f1", "#8b5cf6", "#10b981", "#f59e0b", "#ec4899", "#06b6d4"],
+      zIndex: 9999,
+      disableForReducedMotion: true,
+    });
+
+    // Second burst: right cannon
+    confetti({
+      particleCount: 45,
+      angle: 120,
+      spread: 55,
+      origin: { x: 0.85, y: 0.65 },
+      colors: ["#6366f1", "#8b5cf6", "#10b981", "#f59e0b", "#ec4899", "#06b6d4"],
+      zIndex: 9999,
+      disableForReducedMotion: true,
+    });
+
+    // Center starburst slightly delayed
+    setTimeout(() => {
+      try {
+        confetti({
+          particleCount: 65,
+          spread: 90,
+          origin: { x: 0.5, y: 0.55 },
+          colors: ["#6366f1", "#a855f7", "#3b82f6", "#10b981", "#fbbf24"],
+          zIndex: 9999,
+          disableForReducedMotion: true,
+        });
+      } catch {
+        // Fail silently
+      }
+    }, 200);
+  } catch {
+    // Fail silently in non-browser or mock environments
+  }
+}

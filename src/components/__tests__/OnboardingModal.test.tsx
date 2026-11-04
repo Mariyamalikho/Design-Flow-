@@ -12,6 +12,7 @@ import * as confettiUtils from "@/lib/confettiUtils";
 // Mock confetti
 vi.mock("@/lib/confettiUtils", () => ({
   triggerTaskCompletedConfetti: vi.fn(),
+  triggerOnboardingCelebrationConfetti: vi.fn(),
 }));
 
 // Mock sonner
@@ -82,7 +83,7 @@ describe("OnboardingModal Component", () => {
     fireEvent.click(screen.getByText("Skip Tour"));
 
     expect(safeLocalStorage.getItem(ONBOARDING_STORAGE_KEY)).toBe("true");
-    expect(confettiUtils.triggerTaskCompletedConfetti).toHaveBeenCalled();
+    expect(confettiUtils.triggerOnboardingCelebrationConfetti).toHaveBeenCalled();
     expect(handleOpenChange).toHaveBeenCalledWith(false);
     expect(handleComplete).toHaveBeenCalled();
   });
