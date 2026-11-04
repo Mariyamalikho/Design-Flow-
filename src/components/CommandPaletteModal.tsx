@@ -17,6 +17,7 @@ import {
   FileCode,
   Lightbulb,
   ShieldCheck,
+  Compass,
 } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useAppStore } from "@/store/useAppStore";
@@ -51,6 +52,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
   const theme = useAppStore((state) => state.theme);
   const setTheme = useAppStore((state) => state.setTheme);
   const setGdprModalOpen = useAppStore((state) => state.setGdprModalOpen);
+  const setOnboardingModalOpen = useAppStore((state) => state.setOnboardingModalOpen);
 
   const isOpen = propOpen !== undefined ? propOpen : storeOpen;
   const setOpen = propOnOpenChange !== undefined ? propOnOpenChange : storeSetOpen;
@@ -216,7 +218,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
         },
       },
     ];
-  }, [handleNavigate, onOpenCreateNote, onOpenCreateProject, setGdprModalOpen, setOpen, setTheme, theme]);
+  }, [handleNavigate, onOpenCreateNote, onOpenCreateProject, setGdprModalOpen, setOnboardingModalOpen, setOpen, setTheme, theme]);
 
   // Combine static and dynamic matching commands based on search query
   const filteredCommands = useMemo<CommandItem[]>(() => {

@@ -11,6 +11,8 @@ interface AppState {
   toggleCommandPalette: () => void;
   isGdprModalOpen: boolean;
   setGdprModalOpen: (open: boolean) => void;
+  isOnboardingModalOpen: boolean;
+  setOnboardingModalOpen: (open: boolean) => void;
 }
 
 const getInitialTheme = (): "light" | "dark" => {
@@ -49,4 +51,6 @@ export const useAppStore = create<AppState>((set) => ({
     set((state) => ({ isCommandPaletteOpen: !state.isCommandPaletteOpen })),
   isGdprModalOpen: false,
   setGdprModalOpen: (open) => set({ isGdprModalOpen: open }),
+  isOnboardingModalOpen: false,
+  setOnboardingModalOpen: (open) => set({ isOnboardingModalOpen: open }),
 }));
