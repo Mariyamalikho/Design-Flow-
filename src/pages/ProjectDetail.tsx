@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { ArrowLeft, MoreVertical, Pencil, Trash2, FileText, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MoreVertical, Pencil, Trash2, FileText, CheckCircle2, PenTool } from "lucide-react";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -170,7 +170,20 @@ export default function ProjectDetail() {
             <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">Project Tags</h3>
             <TagsInput tags={tags} onChange={handleTagsChange} />
           </div>
-          <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg ml-8 self-end">
+          <div className="flex items-center gap-3 ml-8 self-end">
+            <div
+              data-testid="project-tabs-site-logo"
+              className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700/60 select-none shrink-0"
+              title="DesignFlow Studio"
+            >
+              <div className="w-5 h-5 rounded-md bg-zinc-900 dark:bg-indigo-500 flex items-center justify-center text-white shadow-xs">
+                <PenTool className="w-3 h-3" />
+              </div>
+              <span className="text-xs font-semibold tracking-tight text-zinc-800 dark:text-zinc-200">
+                DesignFlow
+              </span>
+            </div>
+            <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg">
             <button 
               onClick={() => setActiveTab("board")}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "board" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
@@ -208,6 +221,7 @@ export default function ProjectDetail() {
                 Typography & Brand
               </button>
             </div>
+          </div>
         </div>
       </header>
 

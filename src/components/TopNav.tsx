@@ -1,4 +1,4 @@
-import { Search, Bell, Moon, Sun, Command, Menu } from "lucide-react";
+import { Search, Bell, Moon, Sun, Command, Menu, PenTool } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 
 export function TopNav() {
@@ -6,16 +6,26 @@ export function TopNav() {
 
   return (
     <header className="h-16 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 sm:px-8 z-10 sticky top-0 shrink-0 gap-3">
-      {/* Mobile Hamburger Menu Toggle */}
-      <button
-        type="button"
-        onClick={toggleSidebar}
-        className="md:hidden p-2 -ml-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-        aria-label="Toggle navigation menu"
-        data-testid="mobile-menu-button"
-      >
-        <Menu className="w-5 h-5" />
-      </button>
+      {/* Mobile Hamburger & Site Logo */}
+      <div className="flex items-center gap-2 md:hidden shrink-0">
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className="p-2 -ml-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+          aria-label="Toggle navigation menu"
+          data-testid="mobile-menu-button"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+        <div className="flex items-center gap-1.5" data-testid="topnav-site-logo">
+          <div className="w-7 h-7 rounded-lg bg-zinc-900 dark:bg-indigo-500 flex items-center justify-center text-white shadow-xs">
+            <PenTool className="w-3.5 h-3.5" />
+          </div>
+          <span className="font-semibold text-sm tracking-tight bg-gradient-to-r from-zinc-900 to-zinc-700 dark:from-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent">
+            DesignFlow
+          </span>
+        </div>
+      </div>
 
       {/* Global Search & Command Launcher */}
       <div className="flex items-center gap-2 flex-1 max-w-md">

@@ -23,7 +23,8 @@ import {
   MessageSquare, 
   Compass, 
   LayoutDashboard,
-  Download
+  Download,
+  PenTool
 } from "lucide-react";
 
 interface TypographyManagerProps {
@@ -96,6 +97,18 @@ export function TypographyManager({ projectId }: TypographyManagerProps) {
 
         {/* View Switcher Tabs & Download Fonts Action */}
         <div className="flex items-center gap-2">
+          <div
+            data-testid="typography-tabs-site-logo"
+            className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700/60 select-none shrink-0"
+            title="DesignFlow Brand Studio"
+          >
+            <div className="w-5 h-5 rounded-md bg-zinc-900 dark:bg-indigo-500 flex items-center justify-center text-white shadow-xs">
+              <PenTool className="w-3 h-3" />
+            </div>
+            <span className="text-xs font-semibold tracking-tight text-zinc-800 dark:text-zinc-200">
+              DesignFlow
+            </span>
+          </div>
           <div className="flex bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-lg shrink-0 overflow-x-auto">
             <button
               onClick={() => setActiveTab("overview")}

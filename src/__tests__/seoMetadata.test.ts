@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 describe("Lighthouse SEO & Performance Audit Validation", () => {
-  it("verifies index.html has required metadata and preconnects", () => {
+  it("verifies index.html has required metadata, favicon links, and preconnects", () => {
     const htmlPath = path.resolve(__dirname, "../../index.html");
     const html = fs.readFileSync(htmlPath, "utf8");
 
@@ -20,6 +20,11 @@ describe("Lighthouse SEO & Performance Audit Validation", () => {
 
     // Theme color meta tag
     expect(html).toContain('name="theme-color"');
+
+    // Browser tab icons & favicon
+    expect(html).toContain('rel="icon" type="image/svg+xml" href="/favicon.svg"');
+    expect(html).toContain('rel="shortcut icon" href="/favicon.svg"');
+    expect(html).toContain('rel="apple-touch-icon" href="/favicon.svg"');
 
     // Preconnect hints for external fonts
     expect(html).toContain('rel="preconnect" href="https://fonts.googleapis.com"');
@@ -60,5 +65,14 @@ describe("Lighthouse SEO & Performance Audit Validation", () => {
     expect(svgContent).toContain('width="1200"');
     expect(svgContent).toContain('height="630"');
     expect(svgContent).toContain("DesignFlow");
+  });
+
+  it("verifies browser tab favicon asset exists and contains DesignFlow branding", () => {
+    const faviconPath = path.resolve(__dirname, "../../public/favicon.svg");
+    expect(fs.existsSync(faviconPath)).toBe(true);
+
+    const svgContent = fs.readFileSync(faviconPath, "utf8");
+    expect(svgContent).toContain('viewBox="0 0 64 64"');
+    expect(svgContent).toContain("url(#brandGrad)");
   });
 });
