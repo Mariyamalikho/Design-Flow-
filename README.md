@@ -5,6 +5,7 @@
 
   <p>
     <a href="https://mariyamalikho.github.io/Design-Flow-/"><img src="https://img.shields.io/badge/🚀_Live_Demo-Experience_DesignFlow-6366f1?style=for-the-badge&logo=rocket" alt="Live Demo" /></a>
+    <a href="docs/articles/HOW_I_BUILT_DESIGNFLOW.md"><img src="https://img.shields.io/badge/📖_Article-How_I_Built_This-black?style=for-the-badge&logo=dev.to" alt="Dev.to Case Study" /></a>
     <a href="#-about-the-project"><img src="https://img.shields.io/badge/⚡_Zero_Signup-Instant_IndexedDB-10b981?style=for-the-badge" alt="Zero Friction" /></a>
     <a href="#-accessible-color-palettes"><img src="https://img.shields.io/badge/🛡️_WCAG_2.1_AA-Accessible-8b5cf6?style=for-the-badge" alt="WCAG AA" /></a>
   </p>
@@ -34,6 +35,21 @@ Experience DesignFlow directly in your browser without creating an account or pr
 
 ---
 
+## 📖 Technical Deep Dive &amp; Case Study
+
+Want to explore the architecture and mathematics behind DesignFlow? Read our in-depth case study:
+
+👉 **[How I Built DesignFlow: A Zero-Signup, Local-First Creative Direction Studio](docs/articles/HOW_I_BUILT_DESIGNFLOW.md)**
+
+### Key Technical Topics:
+- **Zero-Latency Persistence**: Dexie.js (IndexedDB) reactive queries, raw binary `Blob` object lifecycle, and sub-2ms write times.
+- **Infinite Canvas Mathematics**: World-space vs. screen-space coordinate transforms, focal-point zoom anchoring, and cubic Bézier connectors (detailed in [Canvas Math Guide](docs/CANVAS_MATH.md)).
+- **Accessibility & Contrast Engine**: ITU-R BT.709 relative luminance calculations for automated WCAG 2.1 AA/AAA compliance audits.
+- **GDPR Article 20 Data Portability**: Client-side ZIP bundle compilation containing relational database dumps and original media assets via JSZip.
+- **Performance Optimization**: 76% initial bundle size reduction through `React.lazy` route code splitting and manual chunking.
+
+---
+
 ## 🎨 About The Project
 **DesignFlow** is a modern Software-as-a-Service (SaaS) dashboard built specifically for graphic designers, branding specialists, and creative agencies. 
 
@@ -50,7 +66,7 @@ A multi-step guided walkthrough for first-time designers introducing core studio
 </p>
 
 ### 2. Infinite Brainstorm Canvas &amp; SVG Dynamic Connectors
-Freeform infinite zoom &amp; pan ideation surface powered by focal-point coordinate math, responsive node cards, and animated SVG connection paths. (See [Canvas Mathematical Architecture](docs/CANVAS_MATH.md)).
+Freeform infinite zoom &amp; pan ideation surface powered by focal-point coordinate math, responsive node cards, and animated SVG connection paths.
 <p align="center">
   <img src="docs/assets/demo-canvas.svg" alt="Brainstorm Canvas Demo" width="100%" />
 </p>
@@ -69,7 +85,7 @@ Define color harmonies, automatically extract hex swatches from photography, ver
 
 ---
 
-### ✨ Key Features
+## ✨ Key Features
 - **Design Brief Wizard:** A multi-step form to capture client goals, target audience, and brand personality.
 - **Interactive Moodboards:** Drag-and-drop masonry canvas for organizing visual inspiration with responsive asset cards.
 - **Brainstorm Canvas:** Infinite visual workspace with focal-point zooming, SVG node connections, and hardware-accelerated pan transforms.
