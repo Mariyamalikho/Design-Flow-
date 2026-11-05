@@ -4,12 +4,33 @@
   <p><strong>The Frictionless Creative Workspace for Designers &amp; Agencies</strong></p>
 
   <p>
-    <a href="https://github.com/Mariyamalikho/Design-Flow-/stargazers"><img src="https://img.shields.io/github/stars/Mariyamalikho/Design-Flow-?style=for-the-badge&color=6366f1" alt="Stars" /></a>
-    <a href="https://github.com/Mariyamalikho/Design-Flow-/network/members"><img src="https://img.shields.io/github/forks/Mariyamalikho/Design-Flow-?style=for-the-badge&color=8b5cf6" alt="Forks" /></a>
-    <a href="https://github.com/Mariyamalikho/Design-Flow-/issues"><img src="https://img.shields.io/github/issues/Mariyamalikho/Design-Flow-?style=for-the-badge&color=ec4899" alt="Issues" /></a>
-    <a href="https://github.com/Mariyamalikho/Design-Flow-/pulls"><img src="https://img.shields.io/github/issues-pr/Mariyamalikho/Design-Flow-?style=for-the-badge&color=14b8a6" alt="Pull Requests" /></a>
+    <a href="https://mariyamalikho.github.io/Design-Flow-/"><img src="https://img.shields.io/badge/🚀_Live_Demo-Experience_DesignFlow-6366f1?style=for-the-badge&logo=rocket" alt="Live Demo" /></a>
+    <a href="#-about-the-project"><img src="https://img.shields.io/badge/⚡_Zero_Signup-Instant_IndexedDB-10b981?style=for-the-badge" alt="Zero Friction" /></a>
+    <a href="#-accessible-color-palettes"><img src="https://img.shields.io/badge/🛡️_WCAG_2.1_AA-Accessible-8b5cf6?style=for-the-badge" alt="WCAG AA" /></a>
+  </p>
+
+  <p>
+    <a href="https://github.com/Mariyamalikho/Design-Flow-/stargazers"><img src="https://img.shields.io/github/stars/Mariyamalikho/Design-Flow-?style=flat-square&color=6366f1" alt="Stars" /></a>
+    <a href="https://github.com/Mariyamalikho/Design-Flow-/network/members"><img src="https://img.shields.io/github/forks/Mariyamalikho/Design-Flow-?style=flat-square&color=8b5cf6" alt="Forks" /></a>
+    <a href="https://github.com/Mariyamalikho/Design-Flow-/issues"><img src="https://img.shields.io/github/issues/Mariyamalikho/Design-Flow-?style=flat-square&color=ec4899" alt="Issues" /></a>
+    <a href="https://github.com/Mariyamalikho/Design-Flow-/pulls"><img src="https://img.shields.io/github/issues-pr/Mariyamalikho/Design-Flow-?style=flat-square&color=14b8a6" alt="Pull Requests" /></a>
+    <a href="https://github.com/Mariyamalikho/Design-Flow-/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
   </p>
 </div>
+
+---
+
+## 🌐 Live Demo &amp; Instant Sandbox
+
+Experience DesignFlow directly in your browser without creating an account or providing credentials:
+
+👉 **[Launch Live Demo](https://mariyamalikho.github.io/Design-Flow-/)**
+
+### ⚡ Why Local-First?
+- **Zero Friction:** No signup forms, email verifications, or passwords. Your workspace instantiates immediately.
+- **Privacy by Default:** 100% of your assets, design briefs, moodboards, and notes are persisted client-side in your browser's IndexedDB. Zero cloud telemetry.
+- **Offline Resilient:** Keep designing even without internet access. Everything operates at hardware speeds with zero server roundtrips.
+- **Full Portability:** Export your entire workspace as structured JSON or media ZIP archives anytime under GDPR Art. 20.
 
 ---
 
