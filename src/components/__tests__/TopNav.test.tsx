@@ -6,7 +6,7 @@ import { useAppStore } from "@/store/useAppStore";
 
 describe("TopNav", () => {
   beforeEach(() => {
-    useAppStore.setState({ isCommandPaletteOpen: false, theme: "light" });
+    useAppStore.setState({ isCommandPaletteOpen: false, theme: "light", isSidebarOpen: false });
   });
 
   it("renders search button with Cmd+K badge", () => {
@@ -41,5 +41,19 @@ describe("TopNav", () => {
 
     fireEvent.click(themeBtn);
     expect(useAppStore.getState().theme).toBe("light");
+  });
+
+  it("toggles mobile sidebar menu when hamburger button is clicked", () => {
+    render(<TopNav />);
+
+    expect(useAppStore.getState().isSidebarOpen).toBe(false);
+
+    const menuBtn = screen.getByTestId("mobile-menu-button");
+    fireEvent.click(menuBtn);
+
+    expect(useAppStore.getState().isSidebarOpen).toBe(true);
+
+    fireEvent.click(menuBtn);
+    expect(useAppStore.getState().isSidebarOpen).toBe(false);
   });
 });
