@@ -56,4 +56,12 @@ describe("TopNav", () => {
     fireEvent.click(menuBtn);
     expect(useAppStore.getState().isSidebarOpen).toBe(false);
   });
+
+  it("renders mobile site logo badge in navigation bar", () => {
+    render(<TopNav />);
+
+    const siteLogo = screen.getByTestId("topnav-site-logo");
+    expect(siteLogo).toBeDefined();
+    expect(siteLogo.textContent).toContain("DesignFlow");
+  });
 });
