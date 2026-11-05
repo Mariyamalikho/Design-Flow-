@@ -1,15 +1,36 @@
 <div align="center">
-  <img src="https://via.placeholder.com/120?text=Logo" alt="DesignFlow Logo" width="120" height="120" />
+  <img src="public/favicon.svg" alt="DesignFlow Logo" width="100" height="100" />
   <h1>DesignFlow</h1>
-  <p><strong>The Frictionless Creative Workspace for Designers & Agencies</strong></p>
+  <p><strong>The Frictionless Creative Workspace for Designers &amp; Agencies</strong></p>
 
   <p>
-    <a href="https://github.com/Mariyamalikho/Design-Flow-/stargazers"><img src="https://img.shields.io/github/stars/Mariyamalikho/Design-Flow-?style=for-the-badge&color=6366f1" alt="Stars" /></a>
-    <a href="https://github.com/Mariyamalikho/Design-Flow-/network/members"><img src="https://img.shields.io/github/forks/Mariyamalikho/Design-Flow-?style=for-the-badge&color=8b5cf6" alt="Forks" /></a>
-    <a href="https://github.com/Mariyamalikho/Design-Flow-/issues"><img src="https://img.shields.io/github/issues/Mariyamalikho/Design-Flow-?style=for-the-badge&color=ec4899" alt="Issues" /></a>
-    <a href="https://github.com/Mariyamalikho/Design-Flow-/pulls"><img src="https://img.shields.io/github/issues-pr/Mariyamalikho/Design-Flow-?style=for-the-badge&color=14b8a6" alt="Pull Requests" /></a>
+    <a href="https://mariyamalikho.github.io/Design-Flow-/"><img src="https://img.shields.io/badge/🚀_Live_Demo-Experience_DesignFlow-6366f1?style=for-the-badge&logo=rocket" alt="Live Demo" /></a>
+    <a href="#-about-the-project"><img src="https://img.shields.io/badge/⚡_Zero_Signup-Instant_IndexedDB-10b981?style=for-the-badge" alt="Zero Friction" /></a>
+    <a href="#-accessible-color-palettes"><img src="https://img.shields.io/badge/🛡️_WCAG_2.1_AA-Accessible-8b5cf6?style=for-the-badge" alt="WCAG AA" /></a>
+  </p>
+
+  <p>
+    <a href="https://github.com/Mariyamalikho/Design-Flow-/stargazers"><img src="https://img.shields.io/github/stars/Mariyamalikho/Design-Flow-?style=flat-square&color=6366f1" alt="Stars" /></a>
+    <a href="https://github.com/Mariyamalikho/Design-Flow-/network/members"><img src="https://img.shields.io/github/forks/Mariyamalikho/Design-Flow-?style=flat-square&color=8b5cf6" alt="Forks" /></a>
+    <a href="https://github.com/Mariyamalikho/Design-Flow-/issues"><img src="https://img.shields.io/github/issues/Mariyamalikho/Design-Flow-?style=flat-square&color=ec4899" alt="Issues" /></a>
+    <a href="https://github.com/Mariyamalikho/Design-Flow-/pulls"><img src="https://img.shields.io/github/issues-pr/Mariyamalikho/Design-Flow-?style=flat-square&color=14b8a6" alt="Pull Requests" /></a>
+    <a href="https://github.com/Mariyamalikho/Design-Flow-/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
   </p>
 </div>
+
+---
+
+## 🌐 Live Demo &amp; Instant Sandbox
+
+Experience DesignFlow directly in your browser without creating an account or providing credentials:
+
+👉 **[Launch Live Demo](https://mariyamalikho.github.io/Design-Flow-/)**
+
+### ⚡ Why Local-First?
+- **Zero Friction:** No signup forms, email verifications, or passwords. Your workspace instantiates immediately.
+- **Privacy by Default:** 100% of your assets, design briefs, moodboards, and notes are persisted client-side in your browser's IndexedDB. Zero cloud telemetry.
+- **Offline Resilient:** Keep designing even without internet access. Everything operates at hardware speeds with zero server roundtrips.
+- **Full Portability:** Export your entire workspace as structured JSON or media ZIP archives anytime under GDPR Art. 20.
 
 ---
 
@@ -18,15 +39,46 @@
 
 Unlike traditional platforms, DesignFlow is built with a **Local-First Architecture**. There are no login walls, no sign-ups, and no cloud latency. Anyone can instantly open the application, drag and drop inspiration into their moodboard, and start crafting brand identities securely on their own device.
 
+---
+
+## 📸 Interactive Feature Previews &amp; Demos
+
+### 1. Guided Onboarding &amp; Studio Tour
+A multi-step guided walkthrough for first-time designers introducing core studio workflows, complete with celebratory confetti cannon animations upon completion.
+<p align="center">
+  <img src="docs/assets/demo-onboarding.svg" alt="Welcome Onboarding Walkthrough" width="100%" />
+</p>
+
+### 2. Infinite Brainstorm Canvas &amp; SVG Dynamic Connectors
+Freeform infinite zoom &amp; pan ideation surface powered by focal-point coordinate math, responsive node cards, and animated SVG connection paths. (See [Canvas Mathematical Architecture](docs/CANVAS_MATH.md)).
+<p align="center">
+  <img src="docs/assets/demo-canvas.svg" alt="Brainstorm Canvas Demo" width="100%" />
+</p>
+
+### 3. Client Deliverables Kanban &amp; Milestone Timeline
+Agile task management with drag-and-drop status workflows, priority tags, quick due date presets, milestone timeline grouping, and keyboard shortcuts (`?`, `N`, `Cmd+K`).
+<p align="center">
+  <img src="docs/assets/demo-kanban.svg" alt="Kanban Deliverables Board" width="100%" />
+</p>
+
+### 4. Brand Systems, Image Color Extraction &amp; WCAG Contrast Auditing
+Define color harmonies, automatically extract hex swatches from photography, verify text legibility with automated WCAG 2.1 AA ratios, and export ready-to-share PDF brand decks.
+<p align="center">
+  <img src="docs/assets/demo-brand-kit.svg" alt="Brand Identity & WCAG Palette Demo" width="100%" />
+</p>
+
+---
+
 ### ✨ Key Features
 - **Design Brief Wizard:** A multi-step form to capture client goals, target audience, and brand personality.
-- **Interactive Moodboards:** A drag-and-drop infinite canvas for organizing visual inspiration.
-- **Brainstorm Canvas:** An infinite visual workspace with focal-point zooming, SVG node connections, and hardware-accelerated pan transforms. (See [Canvas Mathematical Architecture](docs/CANVAS_MATH.md)).
-- **Rich Notes System:** Markdown & rich-text project notes with TipTap editor, templates, and tagging.
-- **Brand Identity Builder:** Define typography pairs, mission statements, and core values.
-- **Accessible Color Palettes:** A color manager with built-in WCAG contrast checking.
-- **Kanban Task Board:** Manage project deliverables from Draft to Final Review.
-- **PDF Export:** Generate professional, agency-quality Brand Guidelines with one click.
+- **Interactive Moodboards:** Drag-and-drop masonry canvas for organizing visual inspiration with responsive asset cards.
+- **Brainstorm Canvas:** Infinite visual workspace with focal-point zooming, SVG node connections, and hardware-accelerated pan transforms.
+- **Rich Notes System:** Markdown &amp; rich-text project notes with TipTap editor, note templates, and debounced auto-save.
+- **Brand Identity Builder:** Define typography pairings, Google Fonts dynamic loading, mission statements, and core values.
+- **Accessible Color Palettes:** Real-time WCAG 2.1 AA/AAA contrast scoring with luminance calculations.
+- **Kanban Task Board:** Manage project deliverables from Draft to Final Review with milestone timeline views.
+- **PDF Export:** Generate professional, agency-quality Brand Guidelines presentations with one click.
+- **GDPR Art. 20 Data Portability:** Export your entire workspace (projects, tasks, briefs, notes, canvas items, and media assets) as structured JSON or ZIP archive anytime.
 
 ---
 
@@ -36,7 +88,9 @@ Unlike traditional platforms, DesignFlow is built with a **Local-First Architect
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 - **Database:** Local-First via [IndexedDB (Dexie.js)](https://dexie.org/)
 - **Routing:** [React Router](https://reactrouter.com/)
+- **Editor:** [TipTap](https://tiptap.dev/)
 - **Icons:** [Lucide React](https://lucide.dev/)
+- **Testing:** [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/)
 
 ---
 
