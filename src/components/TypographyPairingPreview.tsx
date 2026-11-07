@@ -697,7 +697,7 @@ export function TypographyPairingPreview({
                   }}
                   className="opacity-60"
                 >
-                  Figure 1.0 — Proportional type scaling ensures legibility across mobile and desktop interfaces.
+                  Figure 1.0: Proportional type scaling ensures legibility across mobile and desktop interfaces.
                 </p>
               </div>
             </div>

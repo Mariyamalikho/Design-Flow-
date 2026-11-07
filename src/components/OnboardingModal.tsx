@@ -237,7 +237,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         aria-describedby="onboarding-dialog-description"
       >
         {/* Banner with gradient accent */}
-        <div className={`relative px-6 pt-7 pb-6 bg-gradient-to-r ${step.accentColor} text-white`}>
+        <div className="relative px-6 pt-7 pb-6 bg-zinc-900 dark:bg-zinc-950 border-b border-zinc-800 text-white">
           <button
             type="button"
             onClick={handleSkip}
@@ -248,7 +248,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
           </button>
 
           <div className="flex items-center space-x-2 mb-2">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm text-white">
+            <span className="inline-flex items-center text-xs font-mono uppercase tracking-wider text-zinc-400 font-medium">
               {step.badge}
             </span>
             <span className="text-xs text-white/80 font-medium">
@@ -258,7 +258,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
           <DialogHeader className="p-0 text-left">
             <div className="flex items-start space-x-3.5">
-              <div className="p-2.5 rounded-xl bg-white/15 backdrop-blur-sm shadow-inner flex-shrink-0">
+              <div className="p-2.5 rounded-xl bg-zinc-800 border border-zinc-700/60 flex-shrink-0">
                 <StepIcon className="w-7 h-7 text-white" />
               </div>
               <div>

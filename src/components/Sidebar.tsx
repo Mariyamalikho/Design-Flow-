@@ -130,7 +130,7 @@ export function Sidebar() {
               <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-indigo-500 flex items-center justify-center text-white shadow-sm">
                 <PenTool className="w-4 h-4" />
               </div>
-              <span className="bg-gradient-to-r from-zinc-900 to-zinc-700 dark:from-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent">
+              <span className="text-zinc-900 dark:text-zinc-100">
                 DesignFlow
               </span>
             </div>
@@ -158,7 +158,7 @@ export function Sidebar() {
               <div className="w-8 h-8 rounded-lg bg-zinc-900 dark:bg-indigo-500 flex items-center justify-center text-white shadow-sm transition-transform duration-300 ease-out group-hover/logo:scale-110 group-hover/logo:rotate-6">
                 <PenTool className="w-4 h-4 transition-transform duration-300 group-hover/logo:-rotate-6" />
               </div>
-              <span className="bg-gradient-to-r from-zinc-900 to-zinc-700 dark:from-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent">
+              <span className="text-zinc-900 dark:text-zinc-100">
                 DesignFlow
               </span>
             </div>

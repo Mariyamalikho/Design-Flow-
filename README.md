@@ -20,13 +20,13 @@
 
 ---
 
-## 🌐 Live Demo &amp; Instant Sandbox
+## Live Demo & Instant Sandbox
 
 Experience DesignFlow directly in your browser without creating an account or providing credentials:
 
 👉 **[Launch Live Demo](https://mariyamalikho.github.io/Design-Flow-/)**
 
-### ⚡ Why Local-First?
+### Why Local-First?
 - **Zero Friction:** No signup forms, email verifications, or passwords. Your workspace instantiates immediately.
 - **Privacy by Default:** 100% of your assets, design briefs, moodboards, and notes are persisted client-side in your browser's IndexedDB. Zero cloud telemetry.
 - **Offline Resilient:** Keep designing even without internet access. Everything operates at hardware speeds with zero server roundtrips.
@@ -34,14 +34,14 @@ Experience DesignFlow directly in your browser without creating an account or pr
 
 ---
 
-## 🎨 About The Project
+## About The Project
 **DesignFlow** is a modern Software-as-a-Service (SaaS) dashboard built specifically for graphic designers, branding specialists, and creative agencies. 
 
 Unlike traditional platforms, DesignFlow is built with a **Local-First Architecture**. There are no login walls, no sign-ups, and no cloud latency. Anyone can instantly open the application, drag and drop inspiration into their moodboard, and start crafting brand identities securely on their own device.
 
 ---
 
-## 📸 Interactive Feature Previews &amp; Demos
+## Feature Previews & Interactive Demos
 
 ### 1. Guided Onboarding &amp; Studio Tour
 A multi-step guided walkthrough for first-time designers introducing core studio workflows, complete with celebratory confetti cannon animations upon completion.
@@ -69,7 +69,7 @@ Define color harmonies, automatically extract hex swatches from photography, ver
 
 ---
 
-### ✨ Key Features
+### Key Features
 - **Design Brief Wizard:** A multi-step form to capture client goals, target audience, and brand personality.
 - **Interactive Moodboards:** Drag-and-drop masonry canvas for organizing visual inspiration with responsive asset cards.
 - **Brainstorm Canvas:** Infinite visual workspace with focal-point zooming, SVG node connections, and hardware-accelerated pan transforms.
@@ -82,7 +82,7 @@ Define color harmonies, automatically extract hex swatches from photography, ver
 
 ---
 
-## 💻 Tech Stack
+## Tech Stack
 - **Framework:** [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
@@ -94,7 +94,7 @@ Define color harmonies, automatically extract hex swatches from photography, ver
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 To get a local copy up and running, follow these simple steps.
 
 ### Prerequisites
@@ -121,14 +121,14 @@ To get a local copy up and running, follow these simple steps.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
 Please see our [CONTRIBUTING.md](./CONTRIBUTING.md) for full details on our Git workflow, how to open a Pull Request, and our coding standards.
 
 ---
 
-## 📜 License
+## License
 Distributed under the MIT License. See `LICENSE` for more information.
 
 <div align="center">

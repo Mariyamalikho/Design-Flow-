@@ -124,13 +124,11 @@ export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps
   return (
     <div className="space-y-8 font-rendered">
       {/* Brand Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-zinc-900 via-indigo-950 to-zinc-900 text-white p-8 shadow-sm">
+      <div className="relative overflow-hidden rounded-2xl bg-zinc-900 dark:bg-zinc-900 border border-zinc-800 text-white p-8 shadow-xs">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono tracking-wider uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3" /> Master Brand Guidelines
-              </span>
+              <span className="text-xs uppercase tracking-wider text-zinc-400 font-mono font-semibold">Brand Guidelines</span>
               <span className="text-xs text-zinc-400">·</span>
               <span className="text-xs text-zinc-300 font-medium">
                 {project?.title || "Brand System"}
@@ -186,7 +184,7 @@ export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps
             <span className="text-zinc-400 text-[11px]">Brand Completeness:</span>
             <div className="w-36 h-2 bg-zinc-800 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 rounded-full transition-all duration-500"
+                className="h-full bg-indigo-500 rounded-full transition-all duration-500"
                 style={{ width: `${completionPercentage}%` }}
               />
             </div>

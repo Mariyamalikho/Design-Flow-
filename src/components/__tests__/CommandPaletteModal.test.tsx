@@ -33,7 +33,7 @@ vi.mock("@/lib/db", () => ({
     canvasNodes: {
       limit: () => ({
         toArray: vi.fn().mockResolvedValue([
-          { id: 100, title: "🎨 Design System Architecture" },
+          { id: 100, title: "Design System Architecture" },
         ]),
       }),
     },

@@ -11,7 +11,7 @@ const { mockCanvasNodes, mockCanvasConnections } = vi.hoisted(() => {
       id: 1,
       x: 120,
       y: 100,
-      title: "🎨 Design System Architecture",
+      title: "Design System Architecture",
       content: "Establish primary design tokens, typography scales, and zinc/indigo dark mode palettes.",
       color: "indigo",
       createdAt: new Date(),
@@ -21,7 +21,7 @@ const { mockCanvasNodes, mockCanvasConnections } = vi.hoisted(() => {
       id: 2,
       x: 480,
       y: 160,
-      title: "⚡ Interactive Flowchart",
+      title: "Interactive Flowchart",
       content: "Connect user onboarding journey to the visual brief wizard and live dashboard metrics.",
       color: "amber",
       createdAt: new Date(),
@@ -31,7 +31,7 @@ const { mockCanvasNodes, mockCanvasConnections } = vi.hoisted(() => {
       id: 3,
       x: 240,
       y: 380,
-      title: "💡 Brainstorming Prompts",
+      title: "Brainstorming Prompts",
       content: "Freeform visual node layout for rapid sketching, moodboard curation, and wireframes.",
       color: "purple",
       createdAt: new Date(),
@@ -121,9 +121,9 @@ describe("Canvas Page", () => {
   it("renders initial starter idea nodes", () => {
     renderCanvas();
 
-    expect(screen.getByText("🎨 Design System Architecture")).toBeDefined();
-    expect(screen.getByText("⚡ Interactive Flowchart")).toBeDefined();
-    expect(screen.getByText("💡 Brainstorming Prompts")).toBeDefined();
+    expect(screen.getByText("Design System Architecture")).toBeDefined();
+    expect(screen.getByText("Interactive Flowchart")).toBeDefined();
+    expect(screen.getByText("Brainstorming Prompts")).toBeDefined();
   });
 
   it("renders SVG connection lines layer between nodes", () => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useDeferredValue } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   DndContext,
@@ -88,6 +88,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
     activeTask,
   } = state;
 
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [isClearCompletedModalOpen, setIsClearCompletedModalOpen] = useState(false);
@@ -204,7 +205,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
 
       if (nextStatus === "done") {
         triggerTaskCompletedConfetti();
-        toast.success("Task completed! 🎉", {
+        toast.success("Task marked as completed", {
           description: "Great job completing this deliverable.",
         });
       } else {
@@ -308,7 +309,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
   // Filter tasks based on search, project selector, status, and priority
   const filteredTasks = useMemo(() => {
     if (!tasks) return [];
-    const query = searchQuery.trim().toLowerCase();
+    const query = deferredSearchQuery.trim().toLowerCase();
 
     return tasks.filter((task) => {
       // Text search matching title or description or project name
@@ -337,7 +338,7 @@ export default function Tasks({ embedded = false, projectId }: TasksProps) {
 
       return matchesSearch && matchesStatus && matchesProject && matchesPriority;
     });
-  }, [tasks, searchQuery, statusFilter, selectedProjectId, priorityFilter, projectId, projectMap]);
+  }, [tasks, deferredSearchQuery, statusFilter, selectedProjectId, priorityFilter, projectId, projectMap]);
 
   // Group into columns
   const todoTasks = useMemo(

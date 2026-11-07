@@ -22,11 +22,38 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("lucide-react")) {
-            return "lucide-icons";
+          if (id.includes("node_modules")) {
+            if (id.includes("jspdf")) {
+              return "vendor-jspdf";
+            }
+            if (id.includes("html2canvas")) {
+              return "vendor-html2canvas";
+            }
+            if (id.includes("jszip")) {
+              return "vendor-jszip";
+            }
+            if (id.includes("react") || id.includes("react-dom") || id.includes("react-router")) {
+              return "vendor-react";
+            }
+            if (id.includes("@tiptap")) {
+              return "vendor-editor";
+            }
+            if (id.includes("@dnd-kit") || id.includes("@hello-pangea/dnd")) {
+              return "vendor-dnd";
+            }
+            if (id.includes("dexie")) {
+              return "vendor-db";
+            }
+            if (id.includes("lucide-react")) {
+              return "lucide-icons";
+            }
+            if (id.includes("@radix-ui")) {
+              return "vendor-ui";
+            }
           }
         },
       },
@@ -46,8 +73,6 @@ export default defineConfig(({ mode }) => ({
       {
         extends: true,
         plugins: [
-          // The plugin will run tests for the stories defined in your Storybook config
-          // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
           storybookTest({
             configDir: path.join(dirname, ".storybook"),
           }),
