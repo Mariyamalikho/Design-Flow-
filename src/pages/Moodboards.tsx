@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { CreateProjectModal } from "@/components/CreateProjectModal";
-import { Image as ImageIcon, FolderKanban, Plus, ExternalLink } from "lucide-react";
+import { Image as ImageIcon, FolderKanban, Plus, ExternalLink, Sparkles } from "lucide-react";
 import { safeLocalStorage } from "@/lib/storageUtils";
+import { createDetailedStarterProject } from "@/lib/seedProject";
 
 export default function Moodboards() {
   const { projectId: urlProjectId } = useParams<{ projectId?: string }>();
@@ -51,6 +52,15 @@ export default function Moodboards() {
     setSelectedProjectId(id);
     safeLocalStorage.setItem("designflow_active_moodboard_project", String(id));
     navigate(`/moodboards/${id}`, { replace: true });
+  };
+
+    const handleLoadStarterProject = async () => {
+    const id = await createDetailedStarterProject();
+    if (id) {
+      setSelectedProjectId(id);
+      safeLocalStorage.setItem("designflow_active_moodboard_project", String(id));
+      navigate(`/moodboards/${id}`, { replace: true });
+    }
   };
 
   const isLoading = projects === undefined;
@@ -140,12 +150,21 @@ export default function Moodboards() {
           <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400 max-w-sm">
             Create your first project to start uploading reference imagery, organizing visual moodboards, and extracting color palettes.
           </p>
-          <Button
-            className="mt-6 gap-1.5 text-xs"
-            onClick={() => setIsCreateModalOpen(true)}
-          >
-            <Plus className="w-4 h-4" /> Create First Project
-          </Button>
+          <div className="flex items-center gap-3 mt-6 flex-wrap justify-center">
+            <Button
+              className="gap-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
+              onClick={handleLoadStarterProject}
+            >
+              <Sparkles className="w-3.5 h-3.5" /> Initialize Architectural Project
+            </Button>
+            <Button
+              variant="outline"
+              className="gap-1.5 text-xs"
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              <Plus className="w-3.5 h-3.5" /> Blank Project
+            </Button>
+          </div>
         </Card>
       ) : selectedProjectId ? (
         <div className="space-y-4">
