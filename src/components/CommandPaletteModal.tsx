@@ -18,6 +18,8 @@ import {
   Lightbulb,
   ShieldCheck,
   Compass,
+  Image,
+  Palette,
 } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useAppStore } from "@/store/useAppStore";
@@ -160,6 +162,24 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
         icon: FileText,
         shortcut: "G B",
         action: () => handleNavigate("/briefs"),
+      },
+      {
+        id: "nav-moodboards",
+        title: "Moodboards Studio",
+        description: "Curate visual assets, photography, and inspiration boards",
+        category: "Navigation",
+        icon: Image,
+        shortcut: "G M",
+        action: () => handleNavigate("/moodboards"),
+      },
+      {
+        id: "nav-identity",
+        title: "Brand Identity Studio",
+        description: "Typography pairings, guidelines, and presentation decks",
+        category: "Navigation",
+        icon: Palette,
+        shortcut: "G I",
+        action: () => handleNavigate("/identity"),
       },
       {
         id: "act-create-project",

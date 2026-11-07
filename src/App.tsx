@@ -12,6 +12,8 @@ const BriefWizard = lazy(() => import("@/pages/BriefWizard"));
 const Tasks = lazy(() => import("@/pages/Tasks"));
 const Notes = lazy(() => import("@/pages/Notes"));
 const Canvas = lazy(() => import("@/pages/Canvas"));
+const Moodboards = lazy(() => import("@/pages/Moodboards"));
+const BrandIdentity = lazy(() => import("@/pages/BrandIdentity"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 function App() {
@@ -88,6 +90,38 @@ function App() {
             element={
               <Suspense fallback={<RouteLoadingFallback />}>
                 <Canvas />
+              </Suspense>
+            }
+          />
+          <Route
+            path="moodboards"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <Moodboards />
+              </Suspense>
+            }
+          />
+          <Route
+            path="moodboards/:projectId"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <Moodboards />
+              </Suspense>
+            }
+          />
+          <Route
+            path="identity"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <BrandIdentity />
+              </Suspense>
+            }
+          />
+          <Route
+            path="identity/:projectId"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <BrandIdentity />
               </Suspense>
             }
           />
