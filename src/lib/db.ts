@@ -76,6 +76,10 @@ export interface BrandIdentity {
   bodyLineHeight?: number;
   letterSpacing?: string;
 
+  // Colors & Palette Pairing
+  primaryColor?: string;
+  accentColor?: string;
+
   // Mission & Vision
   tagline?: string;
   missionStatement?: string;

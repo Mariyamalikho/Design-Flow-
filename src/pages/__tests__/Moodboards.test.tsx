@@ -77,6 +77,7 @@ describe("Moodboards Page", () => {
     render(<Moodboards />);
 
     expect(screen.getByText("No projects found")).toBeInTheDocument();
-    expect(screen.getByText("Create First Project")).toBeInTheDocument();
+    expect(screen.getByText("Initialize Architectural Project")).toBeInTheDocument();
+    expect(screen.getByText("Blank Project")).toBeInTheDocument();
   });
 });

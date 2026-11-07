@@ -8,6 +8,7 @@ import { TypographyPairingPreview } from "./TypographyPairingPreview";
 import { BrandVoiceForm } from "./BrandVoiceForm";
 import { MissionVisionForm } from "./MissionVisionForm";
 import { BrandDashboard } from "./BrandDashboard";
+import { ProjectColorPalette } from "./ProjectColorPalette";
 import { DownloadFontsModal } from "./DownloadFontsModal";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -24,7 +25,8 @@ import {
   Compass, 
   LayoutDashboard,
   Download,
-  PenTool
+  PenTool,
+  Palette
 } from "lucide-react";
 
 interface TypographyManagerProps {
@@ -32,7 +34,7 @@ interface TypographyManagerProps {
 }
 
 export function TypographyManager({ projectId }: TypographyManagerProps) {
-  const [activeTab, setActiveTab] = useState<"overview" | "pairing" | "catalogue" | "voice" | "mission">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "pairing" | "catalogue" | "colors" | "voice" | "mission">("overview");
   const [headingFont, setHeadingFont] = useState("Playfair Display");
   const [bodyFont, setBodyFont] = useState("Inter");
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
@@ -144,6 +146,17 @@ export function TypographyManager({ projectId }: TypographyManagerProps) {
               Fonts ({POPULAR_GOOGLE_FONTS.length})
             </button>
             <button
+              onClick={() => setActiveTab("colors")}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+                activeTab === "colors"
+                  ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+              }`}
+            >
+              <Palette className="w-3.5 h-3.5" />
+              Colors & Palettes
+            </button>
+            <button
               onClick={() => setActiveTab("voice")}
               className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
                 activeTab === "voice"
@@ -208,6 +221,11 @@ export function TypographyManager({ projectId }: TypographyManagerProps) {
       {/* Tab 3: Mission & Vision Form */}
       {activeTab === "mission" && (
         <MissionVisionForm projectId={projectId} />
+      )}
+
+      {/* Tab: Project Color Palette */}
+      {activeTab === "colors" && (
+        <ProjectColorPalette projectId={projectId} />
       )}
 
       {/* Tab 4: Font Library Catalogue */}

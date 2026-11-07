@@ -9,6 +9,7 @@ import { OnboardingModal, ONBOARDING_STORAGE_KEY } from "@/components/Onboarding
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useAppStore } from "@/store/useAppStore";
 import { safeLocalStorage } from "@/lib/storageUtils";
+import { ensureStarterProject } from "@/lib/seedProject";
 
 export function AppLayout() {
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
@@ -17,6 +18,11 @@ export function AppLayout() {
 
   // Register global Cmd+K / Ctrl+K keyboard shortcut
   useKeyboardShortcuts();
+
+  // Initialize detailed starter project if database is fresh
+  useEffect(() => {
+    ensureStarterProject();
+  }, []);
 
   // Prompt onboarding walkthrough for first-time visitors
   useEffect(() => {

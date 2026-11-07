@@ -43,7 +43,7 @@ import {
 
 interface BrandDashboardProps {
   projectId: number;
-  onNavigateTab?: (tab: "pairing" | "catalogue" | "voice" | "mission") => void;
+  onNavigateTab?: (tab: "overview" | "pairing" | "catalogue" | "colors" | "voice" | "mission") => void;
 }
 
 export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps) {
@@ -357,7 +357,17 @@ export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps
               {paletteColors?.length || 0} Colors
             </Badge>
           </div>
-          <span className="text-[11px] text-zinc-400">Click swatch to copy HEX code</span>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-zinc-400 hidden sm:inline">Click swatch to copy HEX code</span>
+            {onNavigateTab && (
+              <button
+                onClick={() => onNavigateTab("colors")}
+                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-medium"
+              >
+                Manage Colors <ExternalLink className="w-3 h-3" />
+              </button>
+            )}
+          </div>
         </div>
 
         {paletteColors && paletteColors.length > 0 ? (
@@ -386,10 +396,14 @@ export function BrandDashboard({ projectId, onNavigateTab }: BrandDashboardProps
             ))}
           </div>
         ) : (
-          <div className="p-8 text-center border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl space-y-2">
+          <div className="p-8 text-center border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl space-y-3">
             <Palette className="w-8 h-8 mx-auto text-zinc-400 opacity-40" />
             <p className="text-xs text-zinc-500">No custom colors saved yet.</p>
-            <p className="text-[11px] text-zinc-400">Add colors in the Colors tab to populate your master palette.</p>
+            {onNavigateTab && (
+              <Button size="sm" variant="outline" onClick={() => onNavigateTab("colors")} className="text-xs">
+                <Palette className="w-3.5 h-3.5 mr-1.5" /> Curate Color Palette
+              </Button>
+            )}
           </div>
         )}
       </div>

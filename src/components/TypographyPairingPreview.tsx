@@ -8,6 +8,8 @@ import {
   getRecommendedPairing,
   type TypographyPreset
 } from "@/lib/fontUtils";
+import { checkWCAGCompliance } from "@/lib/colorUtils";
+import { Palette } from "lucide-react";
 import { Slider } from "@/components/ui/Slider";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -41,6 +43,13 @@ export function TypographyPairingPreview({
   initialBodyFont = "Inter",
   onSelectPairing
 }: TypographyPairingPreviewProps) {
+    const paletteColors = useLiveQuery(
+    () => (projectId ? db.paletteColors.where("projectId").equals(projectId).toArray() : []),
+    [projectId]
+  );
+  const [headingColor, setHeadingColor] = useState<string>("");
+  const [accentColor, setAccentColor] = useState<string>("");
+
   const savedIdentity = useLiveQuery(
     () => (projectId ? db.brandIdentities.where("projectId").equals(projectId).first() : undefined),
     [projectId]
@@ -84,6 +93,8 @@ export function TypographyPairingPreview({
       if (savedIdentity.headingLineHeight) setHeadingLineHeight(savedIdentity.headingLineHeight);
       if (savedIdentity.bodyLineHeight) setBodyLineHeight(savedIdentity.bodyLineHeight);
       if (savedIdentity.letterSpacing) setLetterSpacing(savedIdentity.letterSpacing);
+      if (savedIdentity.primaryColor) setHeadingColor(savedIdentity.primaryColor);
+      if (savedIdentity.accentColor) setAccentColor(savedIdentity.accentColor);
     }
   }, [savedIdentity]);
 
@@ -105,6 +116,8 @@ export function TypographyPairingPreview({
         headingLineHeight,
         bodyLineHeight,
         letterSpacing,
+        primaryColor: headingColor || undefined,
+        accentColor: accentColor || undefined,
       });
       toast.success("Typography choices saved to local database!");
     } catch (error) {
@@ -442,6 +455,117 @@ export function TypographyPairingPreview({
           </div>
 
           {/* Letter Spacing & View Mode Controls */}
+                    {/* Color & Typography Harmony Bar */}
+          <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5 text-indigo-500" />
+                Pair with Brand Colors
+              </span>
+              {headingColor && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-zinc-400">WCAG 2.1 Contrast:</span>
+                  {(() => {
+                    const bg = previewTheme === "dark" ? "#09090b" : previewTheme === "cream" ? "#faf7f2" : "#ffffff";
+                    const audit = checkWCAGCompliance(headingColor, bg);
+                    return (
+                      <Badge 
+                        variant="outline" 
+                        className={`text-[10px] font-mono ${
+                          audit.AA_normal ? "text-emerald-600 border-emerald-300 dark:text-emerald-400 dark:border-emerald-800" : "text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-800"
+                        }`}
+                      >
+                        {audit.ratio}:1 · {audit.AA_normal ? "AA Pass" : "Fail"}
+                      </Badge>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Heading Text Color Picker */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-zinc-500 font-medium">Headline Color</span>
+                  {headingColor && (
+                    <button
+                      onClick={() => setHeadingColor("")}
+                      className="text-[10px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 underline"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <button
+                    onClick={() => setHeadingColor("")}
+                    className={`px-2 py-1 rounded text-[11px] border transition-all ${
+                      !headingColor 
+                        ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 font-semibold shadow-xs" 
+                        : "border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-400"
+                    }`}
+                  >
+                    Theme
+                  </button>
+                  {paletteColors && paletteColors.map((c) => (
+                    <button
+                      key={c.id || c.hex}
+                      onClick={() => setHeadingColor(c.hex)}
+                      title={c.name || c.hex}
+                      style={{ backgroundColor: c.hex }}
+                      className={`w-6 h-6 rounded-md border transition-transform relative ${
+                        headingColor.toLowerCase() === c.hex.toLowerCase()
+                          ? "ring-2 ring-indigo-500 ring-offset-2 scale-110 shadow-sm"
+                          : "border-black/10 dark:border-white/10 hover:scale-105"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Accent / CTA Button Color Picker */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-zinc-500 font-medium">Accent / CTA Color</span>
+                  {accentColor && (
+                    <button
+                      onClick={() => setAccentColor("")}
+                      className="text-[10px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 underline"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <button
+                    onClick={() => setAccentColor("")}
+                    className={`px-2 py-1 rounded text-[11px] border transition-all ${
+                      !accentColor 
+                        ? "border-indigo-600 bg-indigo-600 text-white font-semibold shadow-xs" 
+                        : "border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-400"
+                    }`}
+                  >
+                    Default
+                  </button>
+                  {paletteColors && paletteColors.map((c) => (
+                    <button
+                      key={c.id || c.hex}
+                      onClick={() => setAccentColor(c.hex)}
+                      title={c.name || c.hex}
+                      style={{ backgroundColor: c.hex }}
+                      className={`w-6 h-6 rounded-md border transition-transform relative ${
+                        accentColor.toLowerCase() === c.hex.toLowerCase()
+                          ? "ring-2 ring-indigo-500 ring-offset-2 scale-110 shadow-sm"
+                          : "border-black/10 dark:border-white/10 hover:scale-105"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="pt-2 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-1.5">
               <span className="text-zinc-400 text-[11px]">Letter Spacing:</span>
@@ -549,6 +673,7 @@ export function TypographyPairingPreview({
                   fontWeight: headingWeight,
                   fontSize: `${headingSize}px`,
                   lineHeight: headingLineHeight,
+                  color: headingColor || undefined,
                 }}
               >
                 {headlineText}
@@ -573,7 +698,8 @@ export function TypographyPairingPreview({
                 className="pt-2 flex items-center justify-center gap-3"
                 style={{ fontFamily: `"${bodyFont}", sans-serif` }}
               >
-                <button className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-colors shadow-xs">
+                <button className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-colors shadow-xs"
+                style={{ backgroundColor: accentColor || undefined }}>
                   Get Started Free
                 </button>
                 <button className="px-5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-sm font-medium transition-colors">
