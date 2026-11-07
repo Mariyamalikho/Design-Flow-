@@ -391,7 +391,7 @@ export function BrandVoiceForm({ projectId }: BrandVoiceFormProps) {
         {/* Right Column: Live Voice Card Specimen */}
         <div className="lg:col-span-4 space-y-5">
           <div className="sticky top-6 space-y-4">
-            <div className="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/40 dark:from-indigo-950/20 dark:via-zinc-900 dark:to-purple-950/20 p-5 rounded-xl border border-indigo-100 dark:border-indigo-900/40 shadow-xs space-y-4">
+            <div className="bg-zinc-50 dark:bg-zinc-900/60 p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-indigo-950 dark:text-indigo-300 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-indigo-500" />

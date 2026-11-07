@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -37,6 +38,7 @@ export default function Projects() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [viewMode, setViewMode] = useState<"grid" | "table">(() => {
     return safeLocalStorage.getItem<"grid" | "table">("projects-view-mode", "grid");
   });
@@ -52,15 +54,15 @@ export default function Projects() {
     if (!projects) return [];
     return projects.filter((project) => {
       const matchesSearch = 
-        project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (project.description && project.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (project.tags && project.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())));
+        project.title.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
+        (project.description && project.description.toLowerCase().includes(deferredSearchQuery.toLowerCase())) ||
+        (project.tags && project.tags.some(t => t.toLowerCase().includes(deferredSearchQuery.toLowerCase())));
 
       const matchesStatus = statusFilter === "all" || project.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
-  }, [projects, searchQuery, statusFilter]);
+  }, [projects, deferredSearchQuery, statusFilter]);
 
   return (
     <div className="flex flex-col h-full space-y-6">
@@ -145,7 +147,20 @@ export default function Projects() {
       )}
 
       {/* Main Content Area */}
-      {!projects || projects.length === 0 ? (
+      {projects === undefined ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="p-5 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+              <Skeleton className="h-5 w-40 mb-2" />
+              <Skeleton className="h-4 w-60 mb-4" />
+              <div className="flex gap-2">
+                <Skeleton className="h-5 w-16 rounded-full" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : projects.length === 0 ? (
         <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 p-8">
           <div className="flex flex-col items-center text-center max-w-sm">
             <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-4">

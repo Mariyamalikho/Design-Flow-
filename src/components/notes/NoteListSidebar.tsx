@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import type { Note } from "@/lib/db";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -69,6 +69,7 @@ export const NoteListSidebar: React.FC<NoteListSidebarProps> = ({
 }) => {
   const [filterTab, setFilterTab] = useState<NoteFilterTab>("all");
   const [sortBy, setSortBy] = useState<NoteSortOption>("updated");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   // Project map for quick lookup
   const projectMap = useMemo(() => {
@@ -95,9 +96,9 @@ export const NoteListSidebar: React.FC<NoteListSidebarProps> = ({
             : note.projectId === selectedProjectId;
 
         const matchesSearch =
-          searchQuery.trim() === "" ||
-          note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          note.content.toLowerCase().includes(searchQuery.toLowerCase());
+          deferredSearchQuery.trim() === "" ||
+          note.title.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
+          note.content.toLowerCase().includes(deferredSearchQuery.toLowerCase());
 
         const matchesTab = filterTab === "all" ? true : Boolean(note.isPinned);
 
@@ -125,7 +126,7 @@ export const NoteListSidebar: React.FC<NoteListSidebarProps> = ({
         const dateB = new Date(b.updatedAt || b.createdAt).getTime();
         return dateB - dateA;
       });
-  }, [notes, selectedProjectId, searchQuery, filterTab, sortBy]);
+  }, [notes, selectedProjectId, deferredSearchQuery, filterTab, sortBy]);
 
   if (isCollapsed) {
     return (

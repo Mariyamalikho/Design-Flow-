@@ -21,7 +21,7 @@ export function TopNav() {
           <div className="w-7 h-7 rounded-lg bg-zinc-900 dark:bg-indigo-500 flex items-center justify-center text-white shadow-xs">
             <PenTool className="w-3.5 h-3.5" />
           </div>
-          <span className="font-semibold text-sm tracking-tight bg-gradient-to-r from-zinc-900 to-zinc-700 dark:from-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent">
+          <span className="font-semibold text-sm tracking-tight text-zinc-900 dark:text-zinc-100">
             DesignFlow
           </span>
         </div>

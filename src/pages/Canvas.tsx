@@ -33,21 +33,21 @@ const SEED_NODES: Omit<CanvasNodeItem, "id" | "createdAt" | "updatedAt">[] = [
   {
     x: 120,
     y: 100,
-    title: "🎨 Design System Architecture",
+    title: "Design System Architecture",
     content: "Establish primary design tokens, typography scales, and zinc/indigo dark mode palettes.",
     color: "indigo",
   },
   {
     x: 520,
     y: 140,
-    title: "⚡ Interactive Flowchart",
+    title: "Interactive Flowchart",
     content: "Connect user onboarding journey to the visual brief wizard and live dashboard metrics.",
     color: "amber",
   },
   {
     x: 320,
     y: 400,
-    title: "💡 Brainstorming Prompts",
+    title: "Brainstorming Prompts",
     content: "Freeform visual node layout for rapid sketching, moodboard curation, and wireframes.",
     color: "purple",
   },
@@ -279,7 +279,7 @@ export default function Canvas() {
 
     try {
       const newId = await db.canvasNodes.add({
-        title: `💡 Idea Node #${count}`,
+        title: `Idea Node #${count}`,
         content: "Click to write your brainstorming thoughts, task items, or architectural notes.",
         x: 180 + (count % 5) * 60,
         y: 180 + (count % 5) * 40,
