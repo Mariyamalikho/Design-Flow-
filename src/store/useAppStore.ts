@@ -3,6 +3,7 @@ import { safeLocalStorage, getSystemPreferredTheme } from "@/lib/storageUtils";
 
 interface AppState {
   isSidebarOpen: boolean;
+  setIsSidebarOpen: (open: boolean) => void;
   toggleSidebar: () => void;
   theme: "light" | "dark";
   setTheme: (theme: "light" | "dark") => void;
@@ -33,7 +34,8 @@ if (typeof window !== "undefined" && window.document?.documentElement) {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  isSidebarOpen: true,
+  isSidebarOpen: false, // Default closed on mobile, desktop handled via md:flex
+  setIsSidebarOpen: (open) => set({ isSidebarOpen: open }),
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   theme: initialTheme,
   setTheme: (theme) => {

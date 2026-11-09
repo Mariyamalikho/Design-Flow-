@@ -1,11 +1,23 @@
-import { Search, Bell, Moon, Sun, Command } from "lucide-react";
+import { Search, Bell, Moon, Sun, Command, Menu } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 
 export function TopNav() {
-  const { theme, setTheme, setCommandPaletteOpen } = useAppStore();
+  const { theme, setTheme, setCommandPaletteOpen, toggleSidebar } = useAppStore();
 
   return (
-    <header className="h-16 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-8 z-10 sticky top-0 shrink-0">
+    <header className="h-16 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 sm:px-8 z-10 sticky top-0 shrink-0 gap-3">
+      {/* Mobile Hamburger Menu Toggle */}
+      <button
+        type="button"
+        onClick={toggleSidebar}
+        className="md:hidden p-2 -ml-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+        aria-label="Toggle navigation menu"
+        data-testid="mobile-menu-button"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+
+      {/* Global Search & Command Launcher */}
       <div className="flex items-center gap-2 flex-1 max-w-md">
         <button
           type="button"
@@ -15,7 +27,7 @@ export function TopNav() {
           aria-label="Open command palette"
         >
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors" />
-          <div className="w-full pl-9 pr-14 py-2 bg-zinc-100/50 dark:bg-zinc-800/50 border border-transparent group-hover:border-zinc-300 dark:group-hover:border-zinc-700 rounded-lg text-xs text-zinc-500 dark:text-zinc-400 transition-all select-none">
+          <div className="w-full pl-9 pr-10 sm:pr-14 py-2 bg-zinc-100/50 dark:bg-zinc-800/50 border border-transparent group-hover:border-zinc-300 dark:group-hover:border-zinc-700 rounded-lg text-xs text-zinc-500 dark:text-zinc-400 transition-all select-none truncate">
             Search projects, tasks, or tags...
           </div>
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -26,7 +38,9 @@ export function TopNav() {
           </div>
         </button>
       </div>
-      <div className="flex items-center gap-4">
+
+      {/* Theme & Notifications */}
+      <div className="flex items-center gap-1 sm:gap-4 shrink-0">
         <button 
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800"
