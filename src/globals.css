@@ -21,12 +21,45 @@
   }
 }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+/* Refined Editorial Skeleton Shimmer */
+@keyframes editorial-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-editorial {
+  background: linear-gradient(
+    90deg,
+    rgba(244, 244, 245, 0.9) 0%,
+    rgba(228, 228, 231, 0.95) 50%,
+    rgba(244, 244, 245, 0.9) 100%
+  );
+  background-size: 200% 100%;
+  animation: editorial-shimmer 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.dark .skeleton-editorial {
+  background: linear-gradient(
+    90deg,
+    rgba(39, 39, 42, 0.7) 0%,
+    rgba(63, 63, 70, 0.6) 50%,
+    rgba(39, 39, 42, 0.7) 100%
+  );
+  background-size: 200% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-editorial {
+    animation: none;
+    background: #f4f4f5;
+  }
+  .dark .skeleton-editorial {
+    background: #27272a;
+  }
 }
 
 /* Custom Scrollbars */

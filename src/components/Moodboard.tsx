@@ -24,16 +24,15 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { toast } from "sonner";
 import { ImagePreviewModal } from "./ImagePreviewModal";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 
 function ImageWithSkeleton({ src, alt, className }: { src: string; alt?: string; className?: string }) {
   const [loaded, setLoaded] = useState(false);
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
+    <div className="relative w-full h-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900">
       {!loaded && (
-        <div className="absolute inset-0 animate-pulse bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center">
-          <ImageIcon className="w-6 h-6 text-zinc-300 dark:text-zinc-600" />
-        </div>
+        <Skeleton className="absolute inset-0 w-full h-full rounded-lg" />
       )}
       <img
         src={src}

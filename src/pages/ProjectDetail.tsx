@@ -17,6 +17,7 @@ import { TypographyManager } from "@/components/TypographyManager";
 import Tasks from "@/pages/Tasks";
 import { DownloadCloud } from "lucide-react";
 import { exportProjectToZip } from "@/lib/generators/exportProject";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -74,7 +75,51 @@ export default function ProjectDetail() {
     }
   }, [project]);
 
-  if (project === undefined) return <div className="p-8">Loading...</div>;
+  if (project === undefined) {
+    return (
+      <div className="p-6 sm:p-8 max-w-7xl mx-auto w-full space-y-8 animate-in fade-in duration-150" data-testid="project-detail-skeleton">
+        <div className="space-y-4 pb-6 border-b border-zinc-200/80 dark:border-zinc-800/80">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-16" />
+            <span className="text-zinc-300 dark:text-zinc-700">/</span>
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-72" />
+              <Skeleton className="h-4 w-96 max-w-full" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-24 rounded-lg" />
+              <Skeleton className="h-9 w-9 rounded-lg" />
+            </div>
+          </div>
+          <div className="flex gap-2 pt-2">
+            <Skeleton className="h-5 w-20 rounded" />
+            <Skeleton className="h-5 w-24 rounded" />
+            <Skeleton className="h-5 w-16 rounded" />
+          </div>
+        </div>
+
+        <div className="flex gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3">
+          <Skeleton className="h-8 w-24 rounded-lg" />
+          <Skeleton className="h-8 w-24 rounded-lg" />
+          <Skeleton className="h-8 w-24 rounded-lg" />
+          <Skeleton className="h-8 w-24 rounded-lg" />
+        </div>
+
+        <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 p-6 space-y-4">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-full max-w-xl" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+            <Skeleton className="h-32 rounded-lg" />
+            <Skeleton className="h-32 rounded-lg" />
+            <Skeleton className="h-32 rounded-lg" />
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (project === null) return <div className="p-8">Project not found.</div>;
 
   const handleStatusChange = async (status: "active" | "completed" | "archived") => {
