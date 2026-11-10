@@ -154,8 +154,8 @@ export default function Projects() {
               <Skeleton className="h-5 w-40 mb-2" />
               <Skeleton className="h-4 w-60 mb-4" />
               <div className="flex gap-2">
-                <Skeleton className="h-5 w-16 rounded-full" />
-                <Skeleton className="h-5 w-16 rounded-full" />
+                <Skeleton className="h-5 w-16 rounded" />
+                <Skeleton className="h-5 w-16 rounded" />
               </div>
             </Card>
           ))}
