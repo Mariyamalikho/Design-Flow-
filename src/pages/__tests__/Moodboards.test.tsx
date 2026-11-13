@@ -54,7 +54,7 @@ describe("Moodboards Page", () => {
   it("renders Moodboard Studio header and active project moodboard", () => {
     render(<Moodboards />);
 
-    expect(screen.getByText("Moodboard Studio")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Moodboard Studio", level: 1 })).toBeInTheDocument();
     expect(screen.getByText(/Curate visual inspiration/i)).toBeInTheDocument();
 
     const moodboard = screen.getByTestId("mock-moodboard");

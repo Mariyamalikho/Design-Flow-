@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { usePageSeo } from "@/hooks/usePageSeo";
 import {
   FolderKanban,
   CheckCircle2,
@@ -15,9 +16,18 @@ import {
   Sparkles,
   ChevronRight,
   Calendar,
+  Palette,
+  Image as ImageIcon,
 } from "lucide-react";
 
 export default function Dashboard() {
+  usePageSeo({
+    title: "Dashboard | DesignFlow — Creative Workspace & Brand Platform",
+    description: "Local-first creative workspace overview, active deliverables, visual moodboards, and brand identity assets.",
+    canonicalPath: "/",
+    keywords: "creative workspace, design direction, brand identity dashboard, local-first indexeddb, design agency management",
+  });
+
   const projects = useLiveQuery(() => db.projects.toArray());
   const activeProjects = useLiveQuery(() => db.projects.where("status").equals("active").toArray());
   const pendingTasks = useLiveQuery(() => db.tasks.where("status").notEqual("done").toArray());
@@ -120,6 +130,53 @@ export default function Dashboard() {
           </Card>
         </div>
       )}
+
+      {/* Featured Creative Studios Navigation */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Link
+          to="/identity"
+          className="group block p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-xs"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100">
+                <Palette className="w-4 h-4 text-indigo-500" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  Brand Identity Studio
+                </h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  Typography pairings, WCAG 2.1 AA palettes &amp; brand decks
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors shrink-0 mt-2.5" />
+          </div>
+        </Link>
+
+        <Link
+          to="/moodboards"
+          className="group block p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-xs"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100">
+                <ImageIcon className="w-4 h-4 text-emerald-500" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                  Visual Moodboard Studio
+                </h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  Multi-column moodboards, reference imagery &amp; Unsplash search
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors shrink-0 mt-2.5" />
+          </div>
+        </Link>
+      </div>
 
       {/* Main Content: Projects and Notes Split */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

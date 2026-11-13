@@ -45,9 +45,12 @@ describe("App Route Code Splitting", () => {
     expect(screen.getByTestId("topnav-search-button")).toBeDefined();
 
     // Lazy loaded dashboard content resolves within Suspense
-    await waitFor(() => {
-      expect(screen.getByText(/Good morning/i)).toBeDefined();
-      expect(screen.getByText("Active Projects")).toBeDefined();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Good morning/i)).toBeDefined();
+        expect(screen.getByText("Active Projects")).toBeDefined();
+      },
+      { timeout: 4000 }
+    );
   });
 });

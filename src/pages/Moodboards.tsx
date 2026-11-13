@@ -10,11 +10,20 @@ import { CreateProjectModal } from "@/components/CreateProjectModal";
 import { Image as ImageIcon, FolderKanban, Plus, ExternalLink, Sparkles } from "lucide-react";
 import { safeLocalStorage } from "@/lib/storageUtils";
 import { createDetailedStarterProject } from "@/lib/seedProject";
+import { usePageSeo } from "@/hooks/usePageSeo";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 export default function Moodboards() {
   const { projectId: urlProjectId } = useParams<{ projectId?: string }>();
   const navigate = useNavigate();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  usePageSeo({
+    title: "Visual Moodboard Studio | DesignFlow",
+    description: "Curate visual inspiration, arrange multi-column imagery, drag-and-drop reference photography, and compose project aesthetic boards.",
+    canonicalPath: urlProjectId ? `/moodboards/${urlProjectId}` : "/moodboards",
+    keywords: "moodboard builder, visual direction, design aesthetics, photo curation, creative studio, moodboards",
+  });
 
   const projects = useLiveQuery(() => db.projects.toArray());
 
@@ -68,6 +77,17 @@ export default function Moodboards() {
 
   return (
     <div className="p-6 sm:p-8 max-w-7xl mx-auto w-full flex flex-col space-y-6">
+      <Breadcrumbs
+        items={
+          currentProject
+            ? [
+                { label: "Moodboard Studio", href: "/moodboards" },
+                { label: currentProject.title },
+              ]
+            : [{ label: "Moodboard Studio" }]
+        }
+      />
+
       {/* Editorial Header with Project Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200 dark:border-zinc-800">
         <div>

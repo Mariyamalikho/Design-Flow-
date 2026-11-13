@@ -10,11 +10,20 @@ import { CreateProjectModal } from "@/components/CreateProjectModal";
 import { Palette, FolderKanban, Plus, ExternalLink, Sparkles } from "lucide-react";
 import { safeLocalStorage } from "@/lib/storageUtils";
 import { createDetailedStarterProject } from "@/lib/seedProject";
+import { usePageSeo } from "@/hooks/usePageSeo";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 export default function BrandIdentity() {
   const { projectId: urlProjectId } = useParams<{ projectId?: string }>();
   const navigate = useNavigate();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  usePageSeo({
+    title: "Brand Identity Studio | DesignFlow",
+    description: "Define typography pairings, Google Fonts collections, brand voice guidelines, and export branded PDF presentations.",
+    canonicalPath: urlProjectId ? `/identity/${urlProjectId}` : "/identity",
+    keywords: "brand identity, typography pairing, font pairing studio, WCAG color palette, brand guidelines, brand deck export",
+  });
 
   const projects = useLiveQuery(() => db.projects.toArray());
 
@@ -68,6 +77,17 @@ export default function BrandIdentity() {
 
   return (
     <div className="p-6 sm:p-8 max-w-7xl mx-auto w-full flex flex-col space-y-6">
+      <Breadcrumbs
+        items={
+          currentProject
+            ? [
+                { label: "Brand Identity Studio", href: "/identity" },
+                { label: currentProject.title },
+              ]
+            : [{ label: "Brand Identity Studio" }]
+        }
+      />
+
       {/* Editorial Header with Project Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200 dark:border-zinc-800">
         <div>

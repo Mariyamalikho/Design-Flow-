@@ -18,6 +18,8 @@ import Tasks from "@/pages/Tasks";
 import { DownloadCloud } from "lucide-react";
 import { exportProjectToZip } from "@/lib/generators/exportProject";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { usePageSeo } from "@/hooks/usePageSeo";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -26,6 +28,13 @@ export default function ProjectDetail() {
 
   const project = useLiveQuery(() => db.projects.get(projectId), [projectId]);
   const brief = useLiveQuery(() => db.briefs.where("projectId").equals(projectId).first(), [projectId]);
+
+  usePageSeo({
+    title: `${project?.title || "Project Details"} | DesignFlow`,
+    description: project?.description || "Comprehensive brand direction, deliverables, moodboard assets, and design system specs.",
+    canonicalPath: `/projects/${projectId}`,
+    keywords: "brand guidelines, design system, project deliverables, moodboard assets, creative direction",
+  });
 
   const [tags, setTags] = useState<string[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -160,9 +169,13 @@ export default function ProjectDetail() {
   return (
     <div className="flex flex-col h-full bg-zinc-50 dark:bg-zinc-950">
       <header className="px-8 py-6 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky top-0 z-10">
-        <Button variant="ghost" size="sm" className="-ml-3 mb-4 text-zinc-500" onClick={() => navigate("/projects")}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Projects
-        </Button>
+        <Breadcrumbs
+          items={[
+            { label: "Projects", href: "/projects" },
+            { label: project.title },
+          ]}
+          className="mb-4"
+        />
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-3">

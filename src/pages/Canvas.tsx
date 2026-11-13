@@ -26,6 +26,7 @@ import {
 import { CanvasConnectionLine } from "@/components/canvas/CanvasConnectionLine";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { usePageSeo } from "@/hooks/usePageSeo";
 
 export type CanvasGridMode = "dots" | "lines" | "none";
 
@@ -55,6 +56,14 @@ const SEED_NODES: Omit<CanvasNodeItem, "id" | "createdAt" | "updatedAt">[] = [
 
 export default function Canvas() {
   const { id } = useParams<{ id?: string }>();
+
+  usePageSeo({
+    title: "Brainstorm Canvas | DesignFlow",
+    description: "Infinite ideation canvas for creative directors. Connect visual thought nodes, map concepts, and brainstorm brand architecture.",
+    canonicalPath: id ? `/canvas/${id}` : "/canvas",
+    keywords: "brainstorm canvas, mind map, ideation whiteboard, creative direction, design thinking, freeform canvas",
+  });
+
   const [activeTool, setActiveTool] = useState<CanvasTool>("select");
   const [selectedNodeId, setSelectedNodeId] = useState<string | number | null>(null);
   const [connectingFromId, setConnectingFromId] = useState<string | number | null>(null);
