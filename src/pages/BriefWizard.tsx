@@ -12,6 +12,7 @@ import { db } from "@/lib/db";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { briefWizardSchema, brandPersonalitySchema, deliverablesSchema, clientInfoSchema, targetAudienceSchema, type BriefWizardFormValues } from "@/lib/schemas";
+import { usePageSeo } from "@/hooks/usePageSeo";
 
 const steps = [
   { id: "client-info", title: "Client Info", fields: Object.keys(clientInfoSchema.shape) },
@@ -22,6 +23,13 @@ const steps = [
 ];
 
 export default function BriefWizard() {
+  usePageSeo({
+    title: "Interactive Design Briefs | DesignFlow",
+    description: "Structured design questionnaire wizard to capture project goals, target audience, competitive landscape, and visual tone.",
+    canonicalPath: "/briefs",
+    keywords: "design briefs, creative questionnaire, brand discovery, client brief wizard, project scope",
+  });
+
   const navigate = useNavigate();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 

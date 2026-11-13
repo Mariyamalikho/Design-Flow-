@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { usePageSeo } from "@/hooks/usePageSeo";
 
 export interface TasksProps {
   embedded?: boolean;
@@ -64,6 +65,14 @@ const dropAnimationConfig: DropAnimation = {
 };
 
 export default function Tasks({ embedded = false, projectId }: TasksProps) {
+  usePageSeo({
+    title: "Deliverables & Kanban Board | DesignFlow",
+    description: "Local-first Kanban task board for tracking creative deliverables, design milestones, deadlines, and project priorities.",
+    canonicalPath: "/tasks",
+    keywords: "kanban board, task management, creative deliverables, design milestones, offline task board, indexeddb",
+    enabled: !embedded,
+  });
+
   // Query projects and tasks from Dexie
   const projects = useLiveQuery(() => db.projects.toArray());
   const tasks = useLiveQuery(() => {

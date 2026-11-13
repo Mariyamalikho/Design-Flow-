@@ -47,7 +47,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       {!isLoaded && (
         <div
           data-testid="optimized-image-skeleton"
-          className="absolute inset-0 bg-zinc-200/60 dark:bg-zinc-800/60 animate-pulse"
+          className="absolute inset-0 skeleton-editorial rounded"
         />
       )}
       <img

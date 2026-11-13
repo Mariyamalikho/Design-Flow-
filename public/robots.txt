@@ -1,0 +1,8 @@
+# DesignFlow - The Local-First Creative Direction Studio
+# https://mariyamalikho.github.io/Design-Flow-/
+
+User-agent: *
+Allow: /
+
+# Sitemap Index
+Sitemap: https://mariyamalikho.github.io/Design-Flow-/sitemap.xml

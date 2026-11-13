@@ -54,7 +54,7 @@ describe("BrandIdentity Page", () => {
   it("renders Brand Identity Studio header and active project typography manager", () => {
     render(<BrandIdentity />);
 
-    expect(screen.getByText("Brand Identity Studio")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Brand Identity Studio", level: 1 })).toBeInTheDocument();
     expect(screen.getByText(/Define typography pairings/i)).toBeInTheDocument();
 
     const manager = screen.getByTestId("mock-typography-manager");

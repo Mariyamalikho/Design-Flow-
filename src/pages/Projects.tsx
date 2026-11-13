@@ -2,6 +2,8 @@ import { useState, useMemo, useDeferredValue } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useNavigate } from "react-router-dom";
+import { usePageSeo } from "@/hooks/usePageSeo";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { 
   Plus, 
   FolderKanban, 
@@ -34,6 +36,13 @@ import { db } from "@/lib/db";
 import { safeLocalStorage } from "@/lib/storageUtils";
 
 export default function Projects() {
+  usePageSeo({
+    title: "Projects Directory | DesignFlow — Creative Workspace",
+    description: "Manage and filter client design briefs, moodboards, brand palettes, and creative deliverables.",
+    canonicalPath: "/projects",
+    keywords: "design projects, creative director, brand briefs, moodboards, design deliverables, agency workspace",
+  });
+
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -66,6 +75,8 @@ export default function Projects() {
 
   return (
     <div className="p-6 sm:p-8 max-w-7xl mx-auto w-full flex flex-col space-y-6">
+      <Breadcrumbs items={[{ label: "Projects Directory" }]} />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200 dark:border-zinc-800">
         <div>

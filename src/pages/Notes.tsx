@@ -22,6 +22,7 @@ import { DeleteNoteModal } from "@/components/notes/DeleteNoteModal";
 import { useNoteAutoSave } from "@/hooks/useNoteAutoSave";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { usePageSeo } from "@/hooks/usePageSeo";
 
 const EMPTY_NOTES: Note[] = [];
 
@@ -32,6 +33,15 @@ export interface NotesProps {
 
 export default function Notes({ embedded = false, projectId }: NotesProps) {
   const { id: routeNoteId } = useParams<{ id?: string }>();
+
+  usePageSeo({
+    title: "Creative Notes & Documentation | DesignFlow",
+    description: "Rich markdown editor for brand messaging, creative copy, meeting minutes, and project guidelines with live autosave.",
+    canonicalPath: routeNoteId ? `/notes/${routeNoteId}` : "/notes",
+    keywords: "creative notes, brand copy, design documentation, markdown editor, project notes, local-first notes",
+    enabled: !embedded,
+  });
+
   const navigate = useNavigate();
 
   const [activeNoteId, setActiveNoteId] = useState<number | null>(() => {
