@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { AppFooter } from "@/components/AppFooter";
 import { usePageSeo } from "@/hooks/usePageSeo";
 import {
   FolderKanban,
@@ -306,6 +307,8 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      <AppFooter />
     </div>
   );
 }

@@ -8,9 +8,9 @@ export function AppFooter() {
   return (
     <footer
       aria-label="DesignFlow studio footer"
-      className="border-t border-zinc-200/80 dark:border-zinc-800/80 bg-white/40 dark:bg-zinc-950/40 backdrop-blur-xs py-8 px-6 sm:px-8 mt-auto"
+      className="pt-12 pb-6 border-t border-zinc-200 dark:border-zinc-800 mt-12 w-full text-zinc-600 dark:text-zinc-400"
     >
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="space-y-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Studio Brand Column */}
           <div className="space-y-3">
@@ -25,18 +25,18 @@ export function AppFooter() {
             <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
               Local-first creative direction studio and brand platform. Zero cloud tracking, instant IndexedDB performance, and client-ready brand decks.
             </p>
-            <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800/70 text-[11px] font-mono text-zinc-600 dark:text-zinc-400">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-100 dark:bg-zinc-800/80 text-[11px] font-mono text-zinc-600 dark:text-zinc-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               Local-First Offline Ready
             </div>
           </div>
 
           {/* Creative Studios Directory */}
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
               Creative Studios
             </h4>
-            <nav className="flex flex-col space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+            <nav className="flex flex-col space-y-2 text-xs">
               <Link to="/identity" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
                 Brand Identity Studio
               </Link>
@@ -53,11 +53,11 @@ export function AppFooter() {
           </div>
 
           {/* Deliverables & Workspace */}
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
               Deliverables
             </h4>
-            <nav className="flex flex-col space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+            <nav className="flex flex-col space-y-2 text-xs">
               <Link to="/projects" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
                 Projects Directory
               </Link>
@@ -74,25 +74,25 @@ export function AppFooter() {
           </div>
 
           {/* Privacy, Sitemap & Architecture */}
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
               Privacy &amp; System
             </h4>
-            <nav className="flex flex-col space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+            <nav className="flex flex-col space-y-2 text-xs">
               <button
                 type="button"
                 onClick={() => setGdprModalOpen(true)}
-                className="text-left hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1.5"
+                className="text-left hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1.5 cursor-pointer"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                 <span>GDPR Data Export</span>
               </button>
               <button
                 type="button"
                 onClick={() => setOnboardingModalOpen(true)}
-                className="text-left hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1.5"
+                className="text-left hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1.5 cursor-pointer"
               >
-                <Compass className="w-3.5 h-3.5 text-indigo-500" />
+                <Compass className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                 <span>Interactive Tour</span>
               </button>
               <a
@@ -101,7 +101,7 @@ export function AppFooter() {
                 rel="noreferrer"
                 className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1.5"
               >
-                <FileCode2 className="w-3.5 h-3.5 text-zinc-400" />
+                <FileCode2 className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                 <span>XML Sitemap</span>
               </a>
               <a
@@ -110,7 +110,7 @@ export function AppFooter() {
                 rel="noreferrer"
                 className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1.5"
               >
-                <Globe className="w-3.5 h-3.5 text-zinc-400" />
+                <Globe className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                 <span>Robots Directive</span>
               </a>
             </nav>
@@ -118,7 +118,7 @@ export function AppFooter() {
         </div>
 
         {/* Bottom Baseline Bar */}
-        <div className="pt-6 border-t border-zinc-200/60 dark:border-zinc-800/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+        <div className="pt-6 border-t border-zinc-200/80 dark:border-zinc-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500 dark:text-zinc-400">
           <p>
             &copy; {new Date().getFullYear()} DesignFlow. Designed by Mariya Malik for brand strategists and design studios.
           </p>

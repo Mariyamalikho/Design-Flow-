@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "@/components/Sidebar";
 import { TopNav } from "@/components/TopNav";
-import { AppFooter } from "@/components/AppFooter";
 import { CommandPaletteModal } from "@/components/CommandPaletteModal";
 import { CreateProjectModal } from "@/components/CreateProjectModal";
 import { GdprExportModal } from "@/components/GdprExportModal";
@@ -54,12 +53,9 @@ export function AppLayout() {
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 overflow-y-auto z-10 relative flex flex-col justify-between focus:outline-none"
+          className="flex-1 overflow-y-auto z-10 relative focus:outline-none"
         >
-          <div className="flex-1">
-            <Outlet />
-          </div>
-          <AppFooter />
+          <Outlet />
         </main>
       </div>
 

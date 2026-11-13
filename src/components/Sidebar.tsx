@@ -101,6 +101,28 @@ export function Sidebar() {
         <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 transition-transform duration-300 ease-out group-hover/btn:scale-110" />
         <span>Privacy &amp; Data Export</span>
       </button>
+
+      <div className="flex items-center justify-between px-3 pt-2 text-[11px] text-zinc-400 dark:text-zinc-500 font-mono">
+        <a
+          href="/sitemap.xml"
+          target="_blank"
+          rel="noreferrer"
+          className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+        >
+          Sitemap
+        </a>
+        <span>&bull;</span>
+        <a
+          href="/robots.txt"
+          target="_blank"
+          rel="noreferrer"
+          className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+        >
+          Robots
+        </a>
+        <span>&bull;</span>
+        <span className="text-[10px]">IndexedDB</span>
+      </div>
     </div>
   );
 
